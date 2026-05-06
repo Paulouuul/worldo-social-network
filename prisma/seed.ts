@@ -23,7 +23,6 @@ console.log('4. Adapter criado')
 // Instancia o PrismaClient passando o adaptador como parâmetro
 const prisma = new PrismaClient({ adapter })
 console.log('5. PrismaClient criado:', !!prisma)
-console.log('6. PrismaClient.product existe?', !!prisma?.products)
 
 async function main() {
   console.log('Starting seed...')

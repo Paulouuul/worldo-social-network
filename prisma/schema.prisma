@@ -71,11 +71,10 @@ model users {
   resales         cosmetic_resale[] 
   following     follow[]   @relation("follower")
   followers     follow[]   @relation("following")
-  created_groups group[] @relation("group_creator") 
+  created_chats chat[] @relation("chat_creator") 
   buyer_purchases  cosmetic_purchase[] @relation("buyer_purchases")
   seller_purchases cosmetic_purchase[] @relation("seller_purchases")
-  group_members group_member[]
-  group_messages group_message[]
+  chat_members chat_member[]
   coin_transactions coin_transaction[]
   coin_purchases coin_purchase[]
   created_frames cosmetic_frame[]
@@ -163,9 +162,10 @@ model follow {
 // MODELOS PARA CHAT (GRUPOS)
 // ============================================
 
-model group {
+model chat {
   id          String        @id @default(cuid())
   name        String
+  type       ChatType // "DM" ou "GROUP"
   description String?
   photo       String?
   createdBy   String
@@ -173,35 +173,26 @@ model group {
   updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
   
-  creator     users @relation("group_creator", fields: [createdBy], references: [id])
-  members     group_member[]
-  messages    group_message[]
+  creator     users? @relation("chat_creator", fields: [createdBy], references: [id])
+  members     chat_member[]
 }
 
-model group_member {
+model chat_member {
   id         String   @id @default(cuid())
-  groupId    String
+  chatId    String
   userId     String
   role       String   @default("member") // owner, admin, member
   joinedAt   DateTime @default(now())
   
-  group      group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  chat      chat    @relation(fields: [chatId], references: [id], onDelete: Cascade)
   user       users    @relation(fields: [userId], references: [id])
   
-  @@unique([groupId, userId])
+  @@unique([chatId, userId])
 }
 
-model group_message {
-  id         String   @id @default(cuid())
-  groupId    String
-  userId     String
-  content    String   @db.Text
-  createdAt  DateTime @default(now())
-  deletedAt  DateTime?
-  
-  group      group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user       users    @relation(fields: [userId], references: [id])
-  isRead     Boolean  @default(false)
+enum ChatType {
+  DM
+  GROUP
 }
 
 // ============================================
