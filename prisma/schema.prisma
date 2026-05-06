@@ -25,112 +25,11 @@ model accounts {
   @@unique([provider, providerAccountId])
 }
 
-model cart_items {
-  id        String   @id @default(cuid())
-  cartId    String
-  productId String
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  carts     carts    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  products  products @relation(fields: [productId], references: [id])
 
-  @@unique([cartId, productId])
-}
 
-model carts {
-  id         String       @id @default(cuid())
-  sessionId  String?      @unique
-  userId     String?      @unique
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  cart_items cart_items[]
-  users      users?       @relation(fields: [userId], references: [id])
-}
 
-model order_items {
-  id        String   @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Float
-  name      String
-  image     String?
-  orders    orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  products  products @relation(fields: [productId], references: [id])
-}
 
-model orders {
-  id              String        @id @default(cuid())
-  orderNumber     String        @unique
-  userId          String
-  status          OrderStatus   @default(PENDING)
-  paymentStatus   PaymentStatus @default(PENDING)
-  paymentIntentId String?       @unique
-  subtotal        Float
-  shippingCost    Float         @default(0)
-  tax             Float         @default(0)
-  discount        Float         @default(0)
-  total           Float
-  shippingAddress Json
-  billingAddress  Json?
-  stripeSessionId String?
-  paidAt          DateTime?
-  deliveredAt     DateTime?
-  canceledAt      DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  order_items     order_items[]
-  users           users         @relation(fields: [userId], references: [id])
 
-  @@index([orderNumber])
-  @@index([status])
-  @@index([userId])
-}
-
-model products {
-  id           String        @id @default(cuid())
-  name         String
-  slug         String        @unique
-  description  String
-  price        Float
-  comparePrice Float?
-  costPrice    Float?
-  images       String[]
-  category     String
-  tags         String[]
-  stock        Int           @default(0)
-  sku          String        @unique
-  rating       Float         @default(0)
-  numReviews   Int           @default(0)
-  isActive     Boolean       @default(true)
-  isFeatured   Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  cart_items   cart_items[]
-  order_items  order_items[]
-  reviews      reviews[]
-
-  @@index([category])
-  @@index([slug])
-}
-
-model reviews {
-  id        String   @id @default(cuid())
-  publicId  String   @unique @default(uuid())
-  rating    Int
-  title     String?
-  comment   String
-  userId    String
-  productId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  products  products @relation(fields: [productId], references: [id], onDelete: Cascade)
-  users     users    @relation(fields: [userId], references: [id])
-
-  @@unique([userId, productId])
-  @@index([productId])
-}
 
 model sessions {
   id           String   @id @default(cuid())
@@ -148,26 +47,369 @@ model users {
   image         String?
   password      String?
   emailVerified DateTime?
+
+  bio            String?
+  avatar         String?
+  coverImage     String?
+  location       String?
+  website        String?
+  equippedProfileFrameId String?
+  cosmetic_cart   cosmetic_cart?
+  followersCount Int      @default(0)
+  followingCount Int      @default(0)
+  
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
   accounts      accounts[]
-  carts         carts?
-  orders        orders[]
-  reviews       reviews[]
   sessions      sessions[]
+
+  posts         post[]
+  comments      comment[]
+  likes         like[]
+  frame_items     user_frame_item[]     // Itens que possui
+  resales         cosmetic_resale[] 
+  following     follow[]   @relation("follower")
+  followers     follow[]   @relation("following")
+  created_groups group[] @relation("group_creator") 
+  buyer_purchases  cosmetic_purchase[] @relation("buyer_purchases")
+  seller_purchases cosmetic_purchase[] @relation("seller_purchases")
+  group_members group_member[]
+  group_messages group_message[]
+  coin_transactions coin_transaction[]
+  coin_purchases coin_purchase[]
+  created_frames cosmetic_frame[]
+  cosmetic_reviews     cosmetic_review[]
+  cosmetic_review_likes cosmetic_review_like[]
+
+
+
 }
 
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
+model cosmetic_creation_cost {
+  id           String   @id @default(cuid())
+  rarity       String   @unique
+  costCoins    Int
+  timeMinutes  Int
 }
+
 
 enum PaymentStatus {
   PENDING
   PAID
   FAILED
   REFUNDED
+}
+
+// ============================================
+// NOVOS MODELOS PARA REDE SOCIAL
+// ============================================
+
+model post {
+  id         String   @id @default(cuid())
+  userId     String
+  content    String   @db.Text
+  media      String[]
+  likes      Int      @default(0)
+  commentsCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt DateTime?
+  
+  user       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments   comment[]
+  likes_relation like[]
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model comment {
+  id         String   @id @default(cuid())
+  userId     String
+  postId     String
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  deletedAt DateTime?
+  
+  user       users    @relation(fields: [userId], references: [id])
+  post       post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model like {
+  id         String   @id @default(cuid())
+  userId     String
+  postId     String
+  createdAt  DateTime @default(now())
+  
+  user       users    @relation(fields: [userId], references: [id])
+  post       post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+}
+
+model follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  
+  follower    users    @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   users    @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+}
+
+// ============================================
+// MODELOS PARA CHAT (GRUPOS)
+// ============================================
+
+model group {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  photo       String?
+  createdBy   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+  
+  creator     users @relation("group_creator", fields: [createdBy], references: [id])
+  members     group_member[]
+  messages    group_message[]
+}
+
+model group_member {
+  id         String   @id @default(cuid())
+  groupId    String
+  userId     String
+  role       String   @default("member") // owner, admin, member
+  joinedAt   DateTime @default(now())
+  
+  group      group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user       users    @relation(fields: [userId], references: [id])
+  
+  @@unique([groupId, userId])
+}
+
+model group_message {
+  id         String   @id @default(cuid())
+  groupId    String
+  userId     String
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  deletedAt  DateTime?
+  
+  group      group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user       users    @relation(fields: [userId], references: [id])
+  isRead     Boolean  @default(false)
+}
+
+// ============================================
+// MODELOS PARA SISTEMA DE MOEDAS
+// ============================================
+
+model coin_package {
+  id            String   @id @default(cuid())
+  name          String
+  coins         Int
+  priceReal     Float
+  bonusCoins    Int      @default(0)
+  isActive      Boolean  @default(true)
+  stripePriceId String?
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  purchases coin_purchase[]
+  transactions coin_transaction[]
+}
+
+model coin_purchase {
+  id              String        @id @default(cuid())
+  userId          String
+  packageId       String
+  amountCoins     Int
+  priceReal       Float
+  stripeSessionId String?
+  stripePaymentIntentId String?
+  status          PaymentStatus @default(PENDING)
+  paymentIntent   Json?         // Dados do Stripe
+  transactions    coin_transaction[] 
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  user            users         @relation(fields: [userId], references: [id])
+  package         coin_package  @relation(fields: [packageId], references: [id])
+}
+
+
+model coin_transaction {
+  id              String   @id @default(cuid())
+  userId          String
+  amount          Int      // positivo = ganhou, negativo = gastou
+  balance         Int      // saldo após transação
+  type            String   // purchase, spend, earn, refund, bonus
+  description     String
+  stripePaymentId String?
+  status          PaymentStatus? // Status do pagamento (se for compra)
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  purchaseId      String?
+  packageId       String?
+  
+  user            users         @relation(fields: [userId], references: [id])
+  purchase        coin_purchase? @relation(fields: [purchaseId], references: [id])
+  coin_package coin_package? @relation(fields: [packageId], references: [id])
+
+}
+
+// ============================================
+// MODELOS PARA COSMÉTICOS (MOLDURAS)
+// ============================================
+
+model cosmetic_frame {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  imageUrl     String
+  thumbnailUrl String
+  category     String   @default("PROFILE_PICTURE") // PROFILE_PICTURE, POST, CHAT_BUBBLE
+  rarity       String   @default("COMUM") // COMUM, RARO, EPICO, LENDARIO
+  stock        Int      @default(1)  // Quantidade disponível para venda
+  soldCount    Int      @default(0)  // Quantas já foram vendidas
+  priceCoins   Int
+  isActive     Boolean  @default(true)
+  createdBy    String
+  createdAt    DateTime @default(now())
+  deletedAt    DateTime?
+  totalSales   Int      @default(0)
+  cart_items cosmetic_cart_item[]
+  resales cosmetic_resale[]
+  items user_frame_item[]
+  avgRating      Float            @default(0)
+  totalReviews   Int              @default(0)
+  total5Stars    Int              @default(0)
+  total4Stars    Int              @default(0)
+  total3Stars    Int              @default(0)
+  total2Stars    Int              @default(0)
+  total1Stars    Int              @default(0)
+  
+  creator      users    @relation(fields: [createdBy], references: [id])
+  purchases    cosmetic_purchase[]
+  reviews        cosmetic_review[]
+}
+
+model cosmetic_purchase {
+  id             String   @id @default(cuid())
+  frameId        String
+  buyerId        String
+  sellerId       String
+  quantity       Int      @default(1)  // ← NOVO: Quantas unidades comprou
+  pricePaid      Int
+  platformFee    Int
+  sellerEarnings Int
+  purchasedAt    DateTime @default(now())
+  items user_frame_item[]
+  
+  frame          cosmetic_frame @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  buyer          users          @relation("buyer_purchases", fields: [buyerId], references: [id])
+  seller         users          @relation("seller_purchases", fields: [sellerId], references: [id])
+  
+
+}
+
+model cosmetic_resale {
+  id         String   @id @default(cuid())
+  itemId     String   // Referência ao user_frame_item
+  frameId    String
+  sellerId   String
+  price      Int      // Preço de revenda (em moedas)
+  status     String   @default("ACTIVE") // ACTIVE, SOLD, CANCELLED
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime? // Expiracao automática
+  
+  item       user_frame_item @relation(fields: [itemId], references: [id])
+  frame      cosmetic_frame   @relation(fields: [frameId], references: [id])
+  seller     users            @relation(fields: [sellerId], references: [id])
+  
+  @@index([status])
+  @@index([frameId])
+}
+
+
+model cosmetic_cart {
+  id         String              @id @default(cuid())
+  sessionId  String?             @unique
+  userId     String?             @unique
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+  
+  user       users?              @relation(fields: [userId], references: [id])
+  cart_items cosmetic_cart_item[]
+}
+
+model cosmetic_cart_item {
+  id         String              @id @default(cuid())
+  cartId     String
+  frameId    String
+  quantity   Int                 @default(1)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+  
+  cart       cosmetic_cart       @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  frame      cosmetic_frame      @relation(fields: [frameId], references: [id])
+  
+  @@unique([cartId, frameId])
+}
+
+model cosmetic_review {
+  id         String   @id @default(cuid())
+  frameId    String
+  userId     String
+  rating     Int      // 1 a 5 estrelas
+  title      String?
+  comment    String   @db.Text
+  images     String[] // URLs de imagens da review (opcional)
+  likes      cosmetic_review_like[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+  
+  frame      cosmetic_frame @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  user       users          @relation(fields: [userId], references: [id])
+  
+  @@unique([frameId, userId]) // 1 review por usuário por moldura
+  @@index([frameId])
+  @@index([rating])
+}
+
+model cosmetic_review_like {
+  id         String   @id @default(cuid())
+  reviewId   String
+  userId     String
+  createdAt  DateTime @default(now())
+  
+  review     cosmetic_review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user       users           @relation(fields: [userId], references: [id])
+  
+  @@unique([reviewId, userId])
+}
+
+
+
+model user_frame_item {
+  id         String   @id @default(cuid())
+  frameId    String
+  ownerId    String   // Usuário que possui esta unidade
+  purchaseId String   // Compra original
+  isListed   Boolean  @default(false)  // Se está à venda
+  resalePrice Int?    // Preço de revenda (opcional)
+  createdAt  DateTime @default(now())
+  soldAt     DateTime?
+  soldTo     String?
+  resales    cosmetic_resale[]  // ← VÁRIAS revendas (histórico)
+  
+  frame      cosmetic_frame @relation(fields: [frameId], references: [id])
+  owner      users          @relation(fields: [ownerId], references: [id])
+  purchase   cosmetic_purchase @relation(fields: [purchaseId], references: [id])
+  
+  @@unique([frameId, ownerId, id])
 }

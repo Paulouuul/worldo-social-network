@@ -28,106 +28,129 @@ console.log('6. PrismaClient.product existe?', !!prisma?.products)
 async function main() {
   console.log('Starting seed...')
 
-  // Limpar dados existentes (opcional)
-  console.log('8. Tentando deleteMany...')
-  const deleted = await prisma.products.deleteMany()
-  console.log(`9. ${deleted.count} produtos removidos`)
+  // ============================================
+  // 1. PACOTES DE MOEDAS
+  // ============================================
+  const coinPackages = [
+    { name: "100 Moedas", coins: 100, priceReal: 5.00, bonusCoins: 0, sortOrder: 1 },
+    { name: "500 Moedas", coins: 500, priceReal: 20.00, bonusCoins: 50, sortOrder: 2 },
+    { name: "1000 Moedas", coins: 1000, priceReal: 35.00, bonusCoins: 150, sortOrder: 3 },
+    { name: "5000 Moedas", coins: 5000, priceReal: 150.00, bonusCoins: 1000, sortOrder: 4 },
+  ]
 
+  for (const pkg of coinPackages) {
+    const existing = await prisma.coin_package.findFirst({
+      where: { name: pkg.name }
+    })
+    
+    if (existing) {
+      await prisma.coin_package.update({
+        where: { id: existing.id },
+        data: pkg,
+      })
+    } else {
+      await prisma.coin_package.create({ data: pkg })
+    }
+    console.log(`Pacote: ${pkg.name} - ${pkg.coins} moedas por R$${pkg.priceReal}`)
+  }
 
-  // Criar produtos
-  const products = [
+  // ============================================
+  // 2. CUSTOS PARA CRIAR MOLDURAS
+  // ============================================
+  const creationCosts = [
+    { rarity: "COMUM", costCoins: 50, timeMinutes: 5 },
+    { rarity: "RARO", costCoins: 200, timeMinutes: 15 },
+    { rarity: "EPICO", costCoins: 500, timeMinutes: 30 },
+    { rarity: "LENDARIO", costCoins: 1000, timeMinutes: 60 },
+  ]
+
+  for (const cost of creationCosts) {
+    const existing = await prisma.cosmetic_creation_cost.findFirst({
+      where: { rarity: cost.rarity }
+    })
+    
+    if (existing) {
+      await prisma.cosmetic_creation_cost.update({
+        where: { id: existing.id },
+        data: cost,
+      })
+    } else {
+      await prisma.cosmetic_creation_cost.create({ data: cost })
+    }
+    console.log(`Custo de criação: ${cost.rarity} - ${cost.costCoins} moedas`)
+  }
+
+  // ============================================
+  // 3. MOLDURAS DE EXEMPLO (Cosméticos)
+  // ============================================
+  
+  // Primeiro, crie um usuário admin/vendedor padrão se não existir
+  let adminUser = await prisma.users.findFirst({
+    where: { email: "admin@exemplo.com" }
+  })
+
+  if (!adminUser) {
+    adminUser = await prisma.users.create({
+      data: {
+        email: "admin@exemplo.com",
+        name: "Admin",
+        publicId: "admin-public-id",
+        password: "$2a$10$...", // hash de "senha123" (opcional)
+      }
+    })
+    console.log("Usuário admin criado")
+  }
+
+  const exampleFrames = [
     {
-      name: "Camiseta Básica Preta",
-      slug: "camiseta-basica-preta",
-      description: "Camiseta 100% algodão, confortável e durável. Perfeita para uso diário.",
-      price: 49.99,
-      comparePrice: 89.99,
-      images: [
-        "/products/camiseta-preta-1.jpg",
-        "/products/camiseta-preta-2.jpg",
-      ],
-      category: "Roupas",
-      tags: ["camiseta", "basico", "algodao"],
-      stock: 50,
-      sku: "CAM-001-PRE",
-      rating: 4.5,
-      numReviews: 12,
-      isActive: true,
-      isFeatured: true,
+      name: "Moldura Dourada",
+      description: "Uma moldura elegante com detalhes dourados",
+      imageUrl: "/frames/dourada.png",
+      thumbnailUrl: "/frames/dourada-thumb.png",
+      category: "PROFILE_PICTURE",
+      rarity: "RARO",
+      stock: 10,
+      priceCoins: 200,
+      createdBy: adminUser.id,
     },
     {
-      name: "Camiseta Básica Branca",
-      slug: "camiseta-basica-branca",
-      description: "Camiseta branca 100% algodão, ideal para estamparia.",
-      price: 49.99,
-      comparePrice: 89.99,
-      images: ["/products/camiseta-branca-1.jpg"],
-      category: "Roupas",
-      tags: ["camiseta", "basico", "algodao"],
-      stock: 45,
-      sku: "CAM-002-BRA",
-      rating: 4.8,
-      numReviews: 8,
-      isActive: true,
-      isFeatured: true,
+      name: "Moldura Neon",
+      description: "Efeito neon futurista",
+      imageUrl: "/frames/neon.png",
+      thumbnailUrl: "/frames/neon-thumb.png",
+      category: "PROFILE_PICTURE",
+      rarity: "EPICO",
+      stock: 5,
+      priceCoins: 500,
+      createdBy: adminUser.id,
     },
     {
-      name: "Calça Jeans Skinny",
-      slug: "calca-jeans-skinny",
-      description: "Calça jeans skinny com elastano, modelagem perfeita.",
-      price: 149.99,
-      comparePrice: 199.99,
-      images: ["/products/calça-jeans-1.jpg"],
-      category: "Roupas",
-      tags: ["calça", "jeans", "skinny"],
-      stock: 30,
-      sku: "CAL-001-JEA",
-      rating: 4.2,
-      numReviews: 15,
-      isActive: true,
-      isFeatured: false,
-    },
-    {
-      name: "Tênis Esportivo",
-      slug: "tenis-esportivo",
-      description: "Tênis confortável para corrida e uso diário.",
-      price: 199.99,
-      comparePrice: 299.99,
-      images: ["/products/tenis-1.jpg"],
-      category: "Calçados",
-      tags: ["tenis", "esportivo", "corrida"],
-      stock: 20,
-      sku: "TEN-001-ESP",
-      rating: 4.7,
-      numReviews: 23,
-      isActive: true,
-      isFeatured: true,
-    },
-    {
-      name: "Mochila Executiva",
-      slug: "mochila-executiva",
-      description: "Mochila para notebook de até 15.6 polegadas.",
-      price: 259.99,
-      comparePrice: 349.99,
-      images: ["/products/mochila-1.jpg"],
-      category: "Acessórios",
-      tags: ["mochila", "executiva", "notebook"],
-      stock: 15,
-      sku: "MOC-001-EXE",
-      rating: 4.9,
-      numReviews: 31,
-      isActive: true,
-      isFeatured: true,
+      name: "Moldura Mística",
+      description: "Brilho mágico e misterioso",
+      imageUrl: "/frames/mistica.png",
+      thumbnailUrl: "/frames/mistica-thumb.png",
+      category: "PROFILE_PICTURE",
+      rarity: "LENDARIO",
+      stock: 2,
+      priceCoins: 1000,
+      createdBy: adminUser.id,
     },
   ]
 
-  for (const product of products) {
-    await prisma.products.upsert({
-      where: { sku: product.sku },
-      update: {},
-      create: product as any,
+  for (const frame of exampleFrames) {
+    const existing = await prisma.cosmetic_frame.findFirst({
+      where: { name: frame.name }
     })
-    console.log(`Created product: ${product.name}`)
+    
+    if (existing) {
+      await prisma.cosmetic_frame.update({
+        where: { id: existing.id },
+        data: frame,
+      })
+    } else {
+      await prisma.cosmetic_frame.create({ data: frame })
+    }
+    console.log(`Moldura: ${frame.name} (${frame.rarity}) - ${frame.priceCoins} moedas`)
   }
 
   console.log('Seed completed!')

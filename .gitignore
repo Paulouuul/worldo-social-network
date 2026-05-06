@@ -55,6 +55,7 @@ next-env.d.ts
 prisma/*.db
 prisma/*.db-journal
 prisma/migrations/*.db
+prisma/migration_lock.toml
 
 # Redis
 dump.rdb
