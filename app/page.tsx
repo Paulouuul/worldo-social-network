@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { auth } from '@/auth'
+import Link from 'next/link'
 import { LogoutButton } from '@/components/LogoutButton'
 
 export default async function Home() {
@@ -21,7 +21,7 @@ export default async function Home() {
                 Criar Conta
               </Link>
               <Link href="/login" className="btn-primary bg-green-600 hover:bg-green-700">
-                Fazer Login&nbsp;&nbsp;<i className="bi bi-arrow-right-square"></i>
+                Fazer Login&nbsp;&nbsp;<i className="bi bi-arrow-right-short"></i>
               </Link>
             </div>
           </div>
@@ -45,14 +45,6 @@ export default async function Home() {
         </div>
       )}
 
-      {/* Título e descrição */}
-      <h1 className="text-4xl font-bold text-center mb-8">
-        ✨ Bem-vindo à WORLDO ✨
-      </h1>
-      <p className="text-center text-lg mb-12">
-        Uma plataforma social com cosméticos, moedas e muito mais!
-      </p>
-      
       {/* Cards de funcionalidades */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="card-highlight p-6 rounded-lg">

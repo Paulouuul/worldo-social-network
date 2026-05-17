@@ -28,9 +28,10 @@ model accounts {
 
 model users {
   id            String     @id @default(cuid())
-  publicId      String @unique @default(uuid())
+  publicId      String     @unique @default(uuid())
   email         String     @unique
-  name          String?
+  name          String
+  username      String     @unique
   image         String?
   password      String?
   emailVerified DateTime?
@@ -48,12 +49,11 @@ model users {
   updatedAt     DateTime   @updatedAt
   deletedAt     DateTime?
   accounts      accounts[]
-
+  coins          Int       @default(0)
   posts         post[]
   comments      comment[]
   likes         like[]
   frame_items     user_frame_item[]     // Itens que possui
-  resales         cosmetic_resale[] 
   following     follow[]   @relation("follower")
   followers     follow[]   @relation("following")
   created_chats chat[] @relation("chat_creator") 
@@ -65,10 +65,13 @@ model users {
   created_frames cosmetic_frame[]
   cosmetic_reviews     cosmetic_review[]
   cosmetic_review_likes cosmetic_review_like[]
+  listings cosmetic_listing[]
 
 
 
 }
+
+
 
 model verification_tokens {
   identifier String
@@ -265,7 +268,6 @@ model cosmetic_frame {
   createdAt    DateTime @default(now())
   deletedAt    DateTime?
   totalSales   Int      @default(0)
-  resales cosmetic_resale[]
   items user_frame_item[]
   avgRating      Float            @default(0)
   totalReviews   Int              @default(0)
@@ -278,6 +280,7 @@ model cosmetic_frame {
   creator      users    @relation(fields: [createdBy], references: [id])
   purchases    cosmetic_purchase[]
   reviews        cosmetic_review[]
+  listings cosmetic_listing[]
 }
 
 model cosmetic_purchase {
@@ -299,21 +302,22 @@ model cosmetic_purchase {
 
 }
 
-model cosmetic_resale {
-  id         String   @id @default(cuid())
-  itemId     String   // Referência ao user_frame_item
-  frameId    String
-  sellerId   String
-  price      Int      // Preço de revenda (em moedas)
-  status     String   @default("ACTIVE") // ACTIVE, SOLD, CANCELLED
-  createdAt  DateTime @default(now())
-  expiresAt  DateTime? // Expiracao automática
+model cosmetic_listing {
+  id           String   @id @default(cuid())
+  frameId      String
+  sellerId     String
+  quantity     Int      @default(1)   // Quantidade disponível para venda
+  priceCoins   Int                    // Preço por unidade
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  expiresAt    DateTime?              // Expiracao opcional
   
-  item       user_frame_item @relation(fields: [itemId], references: [id])
-  frame      cosmetic_frame   @relation(fields: [frameId], references: [id])
-  seller     users            @relation(fields: [sellerId], references: [id])
+  frame        cosmetic_frame @relation(fields: [frameId], references: [id])
+  seller       users          @relation(fields: [sellerId], references: [id])
+  items        user_frame_item[]
   
-  @@index([status])
+  @@index([isActive])
   @@index([frameId])
 }
 
@@ -357,16 +361,17 @@ model user_frame_item {
   frameId    String
   ownerId    String   // Usuário que possui esta unidade
   purchaseId String   // Compra original
-  isListed   Boolean  @default(false)  // Se está à venda
-  resalePrice Int?    // Preço de revenda (opcional)
+  listingId  String?
+  isListed   Boolean  @default(false)
+  resalePrice Int?    
   createdAt  DateTime @default(now())
   soldAt     DateTime?
   soldTo     String?
-  resales    cosmetic_resale[]  // ← VÁRIAS revendas (histórico)
-  
+  isEquipped Boolean  @default(false)
   frame      cosmetic_frame @relation(fields: [frameId], references: [id])
   owner      users          @relation(fields: [ownerId], references: [id])
   purchase   cosmetic_purchase @relation(fields: [purchaseId], references: [id])
+  listing    cosmetic_listing? @relation(fields: [listingId], references: [id])
   
   @@unique([frameId, ownerId, id])
 }

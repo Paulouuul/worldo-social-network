@@ -13,6 +13,7 @@ export default function EditProfilePage() {
   const [success, setSuccess] = useState('')
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     bio: '',
     location: '',
     website: '',
@@ -25,6 +26,7 @@ export default function EditProfilePage() {
 
     setFormData({
       name: session.user.name || '',  // ← da sessão (rápido)
+      username: session.user.username || '',
       avatar: session.user.image || '', // ← da sessão
       bio: '',  // será preenchido pelo banco
       location: '',
@@ -37,6 +39,7 @@ export default function EditProfilePage() {
       .then(data => {
         setFormData(prev => ({
           ...prev,
+          username: data.username || prev.username,
           bio: data.bio || '',
           location: data.location || '',
           website: data.website || '',
@@ -75,7 +78,7 @@ export default function EditProfilePage() {
         setSuccess('Perfil atualizado com sucesso!')
         await update({
           ...session,
-          user: { ...session.user, ...formData }
+          user: { ...session.user, ...formData,}
         })
         setTimeout(() => router.push(`/perfil/${session.user?.id}`), 1500)
       }
@@ -105,12 +108,25 @@ export default function EditProfilePage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label className="block mb-2">Nome de usuário</label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase() })}
+              className="input"
+              required
+              placeholder="usuario_123"
+            />
+            <p className="text-xs text-gray-500 mt-1">Apenas letras, números e underline. 3-30 caracteres.</p>
+          </div>
+          <div>
             <label className="block mb-2">Nome</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="input"
+              required
               placeholder="Seu nome"
             />
           </div>

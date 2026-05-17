@@ -2,18 +2,20 @@ import { DefaultUser } from 'next-auth'
 
 declare module 'next-auth' {
   interface User {
-    publicId: string  // ← Adiciona publicId ao tipo User
+    publicId: string 
+    username?: string | null
   }
   
   interface Session {
     user: {
-      publicId: string  // ← Adiciona publicId ao tipo Session
+      publicId: string  
+      username?: string | null
     } & DefaultSession['user']
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    publicId: string  // ← Adiciona publicId ao tipo JWT
+    publicId: string  
   }
 }

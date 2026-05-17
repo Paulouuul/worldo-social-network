@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './globals.css'
+import Header from '@/components/Header'
 import { AuthProvider } from '@/components/providers/auth-provider'
 
 const inter = Inter({ 
@@ -10,8 +11,18 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'E-commerce Store',
-  description: 'Sua loja online completa',
+  title: 'WORLDO',
+  description: 'Sua Rede Social',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '32x32' }
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }
+    ],
+    shortcut: ['/shortcut-icon.png']
+  }
 }
 
 export default function RootLayout({
@@ -23,7 +34,9 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.className}>
         <AuthProvider> 
-        <main className="min-h-screen">
+          <Header/>
+
+        <main className="min-h-screen pt-16 md:pt-20">
           {children}
         </main>
         </AuthProvider> 

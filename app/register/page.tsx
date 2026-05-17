@@ -8,6 +8,7 @@ import Image from 'next/image' // 👈 IMPORTANTE: adicionar esta importação
 export default function RegisterPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -40,10 +41,24 @@ export default function RegisterPage() {
     return errors
   }
 
+  const validateUsername = (username: string) => {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/
+    if (!usernameRegex.test(username)) {
+      return 'Nome de usuário deve ter 3-30 caracteres e conter apenas letras, números e underline'
+    }
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setSuccess('')
+
+    const usernameError = validateUsername(username)
+    if (usernameError) {
+      setError(usernameError)
+      return
+    }
 
     const passwordErrors = validatePassword(password)
     
@@ -63,7 +78,7 @@ export default function RegisterPage() {
       return
     }
     
-    // Validação de nome (opcional mas recomendado)
+    // Validação de nome
     if (name && (name.length < 2 || name.length > 100)) {
       setError('Nome deve ter entre 2 e 100 caracteres')
       return
@@ -75,7 +90,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name })
+        body: JSON.stringify({ email, password, name, username })
       })
 
       const data = await res.json()
@@ -100,7 +115,7 @@ export default function RegisterPage() {
         <div className="flex justify-center">
           <div className="relative w-172 h-62"> {/* Alterado para tamanho válido */}
             <Image
-              src="/worldo_logo.png"
+              src="/worldo_social_network_card.png"
               alt="Logo"
               fill
               className="object-contain"
@@ -109,7 +124,7 @@ export default function RegisterPage() {
           </div>
         </div>
         
-        <h1 className="text-2xl font-bold text-center mb-6">Criar Conta</h1>
+        <h1 className="text-2xl font-bold text-center mb-6 ">Criar Conta</h1>
         
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded mb-4 text-sm border border-red-500/30">
@@ -124,6 +139,21 @@ export default function RegisterPage() {
         )}
         
         <form onSubmit={handleSubmit}>
+
+          <div className="mb-4">
+            <label className="block mb-2">Nome de usuário *</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              className="input"
+              required
+              placeholder="usuario_123"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Apenas letras, números e underline. 3-30 caracteres.
+            </p>
+          </div>
           <div className="mb-4">
             <label className="block mb-2">Nome (opcional)</label>
             <input

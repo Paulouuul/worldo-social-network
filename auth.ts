@@ -18,12 +18,43 @@ const pool = new Pool({
 })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
+
+async function generateUniqueUsername(email: string): Promise<string> {
+  const baseName = email.split('@')[0]
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+  
+  const uuid = crypto.randomUUID().substring(0, 8)
+  let username = `user_${baseName}_${uuid}`
+  
+  // Limita a 30 caracteres
+  if (username.length > 30) {
+    username = `user_${uuid}`
+  }
+  
+  // Verificação extra de segurança
+  const existing = await prisma.users.findUnique({
+    where: { username }
+  })
+  
+  if (existing) {
+    // Se por algum milagre colidir, tenta de novo
+    return generateUniqueUsername(email)
+  }
+  
+  return username
+}
+
 const customAdapter = {
   async createUser(user: any) {
     const newUser = await prisma.users.create({
       data: {
         email: user.email,
         name: user.name,
+        username: await generateUniqueUsername(user.email.split('@')[0]),
         image: user.image,
         emailVerified: user.emailVerified,
       }
@@ -33,6 +64,7 @@ const customAdapter = {
       publicId: newUser.publicId,
       email: newUser.email,
       name: newUser.name,
+      username: newUser.username,
       image: newUser.image,
       emailVerified: newUser.emailVerified,
     }
@@ -44,6 +76,7 @@ const customAdapter = {
       publicId: user.publicId,
       email: user.email,
       name: user.name,
+      username: user.username,
       image: user.image,
       emailVerified: user.emailVerified,
     } : null
@@ -55,6 +88,7 @@ const customAdapter = {
       publicId: user.publicId,
       email: user.email,
       name: user.name,
+      username: user.username,
       image: user.image,
       emailVerified: user.emailVerified,
     } : null
@@ -69,6 +103,7 @@ const customAdapter = {
       publicId: account.users.publicId,
       email: account.users.email,
       name: account.users.name,
+      username: account.users.username,
       image: account.users.image,
       emailVerified: account.users.emailVerified,
     } : null
@@ -175,6 +210,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           publicId: user.publicId,
           email: user.email,
           name: user.name,
+          username: user.username,
           image: user.image,
         }
       }
@@ -194,6 +230,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       token.id = user.id
       token.publicId = user.publicId
       token.name = user.name
+      token.username = user.username
       token.email = user.email
       token.image = user.image
     }
@@ -201,6 +238,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // Quando o perfil é atualizado (trigger = 'update')
     if (trigger === 'update' && session?.user) {
       if (session.user.name) token.name = session.user.name
+      if (session.user.username) token.username = session.user.username
       if (session.user.image) token.image = session.user.image
     }
     
@@ -211,6 +249,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.id = token.id as string
       session.user.publicId = token.publicId as string
       session.user.name = token.name as string
+      session.user.username = token.username as string
       session.user.email = token.email as string
       session.user.image = token.image as string
     }

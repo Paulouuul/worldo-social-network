@@ -9,12 +9,12 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, name } = body
+    const { email, password, name, username } = body
 
     // Validar campos obrigatórios
-    if (!email || !password) {
+    if (!email || !password || !username) {
       return NextResponse.json(
-        { success: false, error: 'Email e senha são obrigatórios' },
+        { success: false, error: 'Email, senha e nome de usuário são obrigatórios' },
         { status: 400 }
       )
     }
@@ -28,6 +28,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/
+    if (!usernameRegex.test(username)) {
+      return NextResponse.json(
+        { success: false, error: 'Username deve ter 3-30 caracteres e conter apenas letras, números e underline' },
+        { status: 400 }
+      )
+    }
+
     // Validar tamanho da senha
     if (password.length < 6) {
       return NextResponse.json(
@@ -37,13 +45,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se usuário já existe
-    const existingUser = await prisma.users.findUnique({
+    const existingUserEmail = await prisma.users.findUnique({
       where: { email }
     })
 
-    if (existingUser) {
+    if (existingUserEmail) {
       return NextResponse.json(
         { success: false, error: 'Usuário já existe com este email' },
+        { status: 400 }
+      )
+    }
+
+    const existingUsername = await prisma.users.findUnique({
+      where: { username }
+    })
+
+    if (existingUsername) {
+      return NextResponse.json(
+        { success: false, error: 'Este username já está em uso' },
         { status: 400 }
       )
     }
@@ -61,6 +80,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         name: name || email.split('@')[0],
+        username: username,
         publicId: crypto.randomUUID(),
         emailVerified: null, // Inicialmente não verificado
       }

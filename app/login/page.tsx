@@ -67,7 +67,7 @@ export default function LoginPage() {
         <div className="flex justify-center">
           <div className="relative w-172 h-62">
             <Image
-              src="/worldo_logo.png"
+              src="/worldo_social_network_card.png"
               alt="Logo"
               fill
               className="object-contain"
@@ -129,13 +129,13 @@ export default function LoginPage() {
               onClick={() => signIn('google', { callbackUrl: '/' })}
               className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
             >
-              Google
+             <i className="bi bi-google"></i> Google
             </button>
             <button
               onClick={() => signIn('github', { callbackUrl: '/' })}
               className="w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600 transition"
             >
-              GitHub
+              <i className="bi bi-github"></i> GitHub
             </button>
           </div>
         </div>

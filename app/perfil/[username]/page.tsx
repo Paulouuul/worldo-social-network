@@ -20,13 +20,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       OR: [
         { publicId: decodedUsername },
         { id: decodedUsername },
-        { name: decodedUsername }
+        { username: decodedUsername }
       ]
     },
     select: {
       id: true,
       publicId: true,
       name: true,
+      username: true,
       email: true,
       image: true,
       bio: true,
@@ -98,7 +99,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           <div className="flex justify-end pt-2">
             {isOwnProfile && (
               <Link href="/perfil/editar" className="btn-secondary text-sm">
-                <i className="bi bi-pencil-square"></i>   Editar Perfil
+                <i className="bi bi-pencil-square"></i>&nbsp;&nbsp;Editar Perfil
               </Link>
             )}
           </div>
@@ -106,9 +107,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           {/* User Info */}
           <div className="mt-12">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-              {user.name || 'Usuário'}
+              {user.name}
             </h1>
-            <p className="text-gray-400 mt-1">{user.email}</p>
+            <p className="text-gray-400 mt-1"><i className="bi bi-person-fill"></i> {user.username}
+            <br/><i className="bi bi-envelope-at-fill"></i> {user.email}</p>
             
             {/* Stats Cards */}
             <div className="flex gap-4 mt-4">
@@ -129,7 +131,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {/* Bio */}
             {user.bio && (
               <div className="mt-4 p-4 bg-gray-800/30 rounded-lg">
-                <p className="text-gray-300 italic">“{user.bio}”</p>
+                <p className="italic">“{user.bio}”</p>
               </div>
             )}
 
