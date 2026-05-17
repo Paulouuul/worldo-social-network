@@ -30,6 +30,7 @@ const customAdapter = {
     })
     return {
       id: newUser.id,
+      publicId: newUser.publicId,
       email: newUser.email,
       name: newUser.name,
       image: newUser.image,
@@ -40,6 +41,7 @@ const customAdapter = {
     const user = await prisma.users.findUnique({ where: { id } })
     return user ? {
       id: user.id,
+      publicId: user.publicId,
       email: user.email,
       name: user.name,
       image: user.image,
@@ -50,6 +52,7 @@ const customAdapter = {
     const user = await prisma.users.findUnique({ where: { email } })
     return user ? {
       id: user.id,
+      publicId: user.publicId,
       email: user.email,
       name: user.name,
       image: user.image,
@@ -63,6 +66,7 @@ const customAdapter = {
     })
     return account?.users ? {
       id: account.users.id,
+      publicId: account.users.publicId,
       email: account.users.email,
       name: account.users.name,
       image: account.users.image,
@@ -80,6 +84,7 @@ const customAdapter = {
     })
     return {
       id: updated.id,
+      publicId: updated.publicId,
       email: updated.email,
       name: updated.name,
       image: updated.image,
@@ -167,6 +172,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         return {
           id: user.id,
+          publicId: user.publicId,
           email: user.email,
           name: user.name,
           image: user.image,
@@ -183,18 +189,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 dias
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.id = user.id
-      }
-      return token
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string
-      }
-      return session
+      token.id = user.id
+      token.publicId = user.publicId
+      token.name = user.name
+      token.email = user.email
+      token.image = user.image
     }
+    
+    // Quando o perfil é atualizado (trigger = 'update')
+    if (trigger === 'update' && session?.user) {
+      if (session.user.name) token.name = session.user.name
+      if (session.user.image) token.image = session.user.image
+    }
+    
+    return token
   },
+  async session({ session, token }) {
+    if (session.user) {
+      session.user.id = token.id as string
+      session.user.publicId = token.publicId as string
+      session.user.name = token.name as string
+      session.user.email = token.email as string
+      session.user.image = token.image as string
+    }
+    return session
+  }
+},
   secret: process.env.NEXTAUTH_SECRET,
 })

@@ -71,17 +71,14 @@ background:
     background-color: var(--color-blue-700);
   }
   
-  .btn-secondary {
-    background-color: var(--color-gray-200);
-    color: var(--color-gray-800);
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: background-color 200ms;
-  }
-  
-  .btn-secondary:hover {
-    background-color: var(--color-gray-300);
+
+  .btn-primary,
+  button,
+  a[href],
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    cursor: pointer;
   }
   
   .input {
