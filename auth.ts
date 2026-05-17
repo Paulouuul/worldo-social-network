@@ -106,47 +106,6 @@ const customAdapter = {
       }
     })
   },
-  async createSession(session: any) {
-    return await prisma.sessions.create({
-      data: {
-        sessionToken: session.sessionToken,
-        userId: session.userId,
-        expires: session.expires,
-      }
-    })
-  },
-  async getSessionAndUser(sessionToken: string) {
-    const session = await prisma.sessions.findUnique({
-      where: { sessionToken },
-      include: { users: true }
-    })
-    if (!session) return null
-    return {
-      session: {
-        sessionToken: session.sessionToken,
-        userId: session.userId,
-        expires: session.expires,
-      },
-      user: {
-        id: session.users.id,
-        email: session.users.email,
-        name: session.users.name,
-        image: session.users.image,
-        emailVerified: session.users.emailVerified,
-      }
-    }
-  },
-  async updateSession(session: any) {
-    return await prisma.sessions.update({
-      where: { sessionToken: session.sessionToken },
-      data: {
-        expires: session.expires,
-      }
-    })
-  },
-  async deleteSession(sessionToken: string) {
-    await prisma.sessions.delete({ where: { sessionToken } })
-  },
   async createVerificationToken(verificationToken: any) {
     return await prisma.verification_tokens.create({
       data: {

@@ -1,21 +1,59 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #0a0a0a;
-  --color-gray-50: #f9fafb;
-  --color-gray-900: #111827;
-  --color-blue-600: #2563eb;
-  --color-blue-700: #1d4ed8;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-800: #1f2937;
+  --color-background: #1e1f22;
+  --color-foreground: #dbdee1;
+  --color-gray-50: #1e1f22;
+  --color-gray-900: #dbdee1;
+  --color-blue-600: #5865f2;
+  --color-blue-700: #4752c4;
+  --color-gray-200: #2b2d31;
+  --color-gray-300: #2b2d31;
+  --color-gray-800: #949ba4;
 }
 
 @layer base {
   body {
-    background-color: var(--color-gray-50);
+background: 
+      /* Nebulosas e gradientes (mesmo da opção anterior) */
+      radial-gradient(ellipse at 50% 50%, rgba(138, 43, 226, 0.4) 0%, rgba(75, 0, 130, 0.3) 30%, transparent 70%),
+      radial-gradient(ellipse at 20% 60%, rgba(255, 0, 128, 0.25) 0%, rgba(138, 43, 226, 0.2) 25%, rgba(25, 25, 112, 0.1) 50%, transparent 80%),
+      radial-gradient(ellipse at 85% 30%, rgba(0, 102, 204, 0.25) 0%, rgba(102, 0, 204, 0.2) 30%, rgba(25, 25, 112, 0.1) 55%, transparent 85%),
+      linear-gradient(145deg, #05000a 0%, #0d001f 8%, #1a0033 16%, #26004d 24%, #330066 32%, #400080 40%, #4d0099 48%, #5c00b3 56%, #4d0099 64%, #3d007a 72%, #2e005c 80%, #1f003d 88%, #0f001f 96%, #05000a 100%);
+    
+    background-attachment: fixed;
+    background-blend-mode: overlay, overlay, overlay, normal;
     color: var(--color-gray-900);
+    position: relative;
+  }
+  
+  /* Estrelas pequenas */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(2px 2px at 10% 20%, white, transparent),
+      radial-gradient(1px 1px at 25% 45%, white, transparent),
+      radial-gradient(3px 3px at 40% 10%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 55% 70%, white, transparent),
+      radial-gradient(2px 2px at 70% 30%, white, transparent),
+      radial-gradient(1px 1px at 85% 55%, white, transparent),
+      radial-gradient(2px 2px at 15% 85%, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 45% 90%, white, transparent),
+      radial-gradient(3px 3px at 75% 85%, white, transparent),
+      radial-gradient(1px 1px at 95% 15%, white, transparent),
+      radial-gradient(2px 2px at 5% 50%, white, transparent),
+      radial-gradient(1px 1px at 35% 35%, white, transparent),
+      radial-gradient(2px 2px at 65% 65%, white, transparent),
+      radial-gradient(1px 1px at 90% 80%, white, transparent);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.8;
   }
 }
 
@@ -49,13 +87,60 @@
   .input {
     width: 100%;
     padding: 0.5rem 1rem;
+    background-color: var(--color-gray-200);
     border: 1px solid var(--color-gray-300);
     border-radius: 0.5rem;
     outline: none;
+    color: var(--color-gray-900);
   }
   
   .input:focus {
     outline: 2px solid var(--color-blue-600);
     border-color: transparent;
   }
+
+.card-highlight {
+  background: linear-gradient(135deg,
+    #140a1a 0%,
+    #0e0813 30%,
+    #08050a 70%,
+    #000000 100%);
+  border: 1px solid #404249;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(88, 101, 242, 0.2),
+                0 0 10px rgba(155, 89, 182, 0.1);
+    border-color: #404249;
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(88, 101, 242, 0.5),
+                0 0 30px rgba(155, 89, 182, 0.3),
+                0 0 5px rgba(88, 101, 242, 0.8);
+    border-color: #5865f2;
+  }
+}
+
+.card-highlight:hover {
+  animation: neonPulseFast 0.5s ease-in-out infinite;
+  transform: scale(1.02);
+}
+
+@keyframes neonPulseFast {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(88, 101, 242, 0.5),
+                0 0 20px rgba(155, 89, 182, 0.3);
+    border-color: #5865f2;
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(88, 101, 242, 0.8),
+                0 0 45px rgba(155, 89, 182, 0.5),
+                0 0 10px rgba(231, 76, 60, 0.3);
+    border-color: #9b59b6;
+  }
+}
 }

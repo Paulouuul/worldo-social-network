@@ -26,22 +26,9 @@ model accounts {
 }
 
 
-
-
-
-
-
-model sessions {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model users {
   id            String     @id @default(cuid())
-  publicId  String @unique @default(uuid())
+  publicId      String @unique @default(uuid())
   email         String     @unique
   name          String?
   image         String?
@@ -61,7 +48,6 @@ model users {
   updatedAt     DateTime   @updatedAt
   deletedAt     DateTime?
   accounts      accounts[]
-  sessions      sessions[]
 
   posts         post[]
   comments      comment[]

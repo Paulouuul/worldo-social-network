@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -39,7 +40,6 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        // Mapear erros para mensagens amigáveis
         if (result.error.includes('verifique seu email') || 
             result.error.includes('Verifique seu email')) {
           setError('Por favor, verifique seu email antes de fazer login')
@@ -62,41 +62,53 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4">
+      <div className="max-w-md w-full rounded-lg shadow-xl p-8 card-highlight">
+        <div className="flex justify-center">
+          <div className="relative w-172 h-62">
+            <Image
+              src="/worldo_logo.png"
+              alt="Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+        </div>
+        
+        <h1 className="text-2xl font-bold text-center">Login</h1>
         
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm border border-red-200">
+          <div className="bg-red-500/10 text-red-400 p-3 rounded mb-4 text-sm border border-red-500/30">
             {error}
           </div>
         )}
         
         {success && (
-          <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm border border-green-200">
+          <div className="bg-green-500/10 text-green-400 p-3 rounded mb-4 text-sm border border-green-500/30">
             {success}
           </div>
         )}
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Email</label>
+            <label className="block mb-2">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
               required
             />
           </div>
           
           <div className="mb-6">
-            <label className="block text-gray-700 mb-2">Senha</label>
+            <label className="block mb-2">Senha</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
               required
             />
           </div>
@@ -104,14 +116,14 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            className="btn-primary w-full"
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
         
         <div className="mt-4 text-center">
-          <p className="text-gray-600 text-sm">Ou continue com</p>
+          <p className="text-gray-800 text-sm">Ou continue com</p>
           <div className="space-y-2 mt-2">
             <button
               onClick={() => signIn('google', { callbackUrl: '/' })}
@@ -121,16 +133,16 @@ export default function LoginPage() {
             </button>
             <button
               onClick={() => signIn('github', { callbackUrl: '/' })}
-              className="w-full bg-gray-800 text-white py-2 rounded-lg hover:bg-gray-900 transition"
+              className="w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600 transition"
             >
               GitHub
             </button>
           </div>
         </div>
         
-        <p className="text-center text-gray-600 mt-4 text-sm">
+        <p className="text-center text-gray-800 mt-4 text-sm">
           Não tem uma conta?{' '}
-          <Link href="/register" className="text-blue-600 hover:underline">
+          <Link href="/register" className="text-blue-400 hover:underline">
             Registre-se
           </Link>
         </p>
