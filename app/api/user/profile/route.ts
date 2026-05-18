@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest) {
         location: location || null,
         website: website || null,
         avatar: avatar || null,
-        image: avatar || null, // manter compatibilidade
+        image: avatar || null,
       }
     })
 

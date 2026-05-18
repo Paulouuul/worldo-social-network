@@ -2,18 +2,20 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-
+import { notFound, redirect } from 'next/navigation'
 interface ProfilePageProps {
   params: Promise<{
-    username: string
+    user_identifier: string
   }>
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const session = await auth()
-  const { username } = await params
-  const decodedUsername = decodeURIComponent(username)
+   if (!session?.user) {
+    redirect('/login/')
+  }
+  const { user_identifier } = await params
+  const decodedUsername = decodeURIComponent(user_identifier)
   
   const user = await prisma.users.findFirst({
     where: {

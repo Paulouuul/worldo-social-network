@@ -3,11 +3,11 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: ecommerce-db
+    container_name: worldo-db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: ecommerce
+      POSTGRES_DB: worldo
     ports:
       - "5432:5432"
     volumes:

@@ -1,5 +1,5 @@
 {
-  "name": "ecommerce",
+  "name": "worldo-social-network",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -58,18 +58,18 @@
     "tsx": "^4.21.0",
     "typescript": "^5.8.3"
   },
-  "description": "E-commerce full-stack com Next.js 16, Prisma 7, Stripe e Tailwind CSS",
+  "description": "Social network full-stack com Next.js 16, Prisma 7, Stripe e Tailwind CSS",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Paulouuul/e-commerce.git"
+    "url": "git+https://github.com/Paulouuul/worldo-social-network.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/Paulouuul/e-commerce/issues"
+    "url": "https://github.com/Paulouuul/worldo-social-network/issues"
   },
-  "homepage": "https://github.com/Paulouuul/e-commerce#readme"
+  "homepage": "https://github.com/Paulouuul/worldo-social-network#readme"
 }

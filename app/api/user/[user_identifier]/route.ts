@@ -3,17 +3,17 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: Promise<{ user_identifier: string }> }
 ) {
   try {
-    const { username } = await params  // ← DESEMBRULHAR com await
-    const decodedUsername = decodeURIComponent(username)
+    const { user_identifier } = await params  // ← DESEMBRULHAR com await
+    const decodedUserIdentifier = decodeURIComponent(user_identifier)
     
     const user = await prisma.users.findFirst({
       where: {
         OR: [
-          { id: decodedUsername },
-          { name: decodedUsername }
+          { id: decodedUserIdentifier },
+          { username: decodedUserIdentifier }
         ]
       },
       select: {

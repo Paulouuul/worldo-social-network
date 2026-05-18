@@ -2,7 +2,7 @@
 import { useRef } from 'react'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, redirect } from 'next/navigation'
 import Image from 'next/image'
 
 export default function EditProfilePage() {
@@ -48,12 +48,12 @@ export default function EditProfilePage() {
   }
 }, [session])
 
-  if (status === 'loading') {
-    return <div className="text-center py-12">Carregando...</div>
-  }
+  // if (status === 'loading') {
+  //   return <div className="text-center py-12">Carregando...</div>
+  // }
 
   if (!session?.user) {
-    router.push('/login')
+    redirect('/login/');
     return null
   }
 
