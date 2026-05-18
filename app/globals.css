@@ -122,11 +122,6 @@ background:
   }
 }
 
-.card-highlight:hover {
-  animation: neonPulseFast 0.5s ease-in-out infinite;
-  transform: scale(1.02);
-}
-
 @keyframes neonPulseFast {
   0%, 100% {
     box-shadow: 0 0 10px rgba(88, 101, 242, 0.5),

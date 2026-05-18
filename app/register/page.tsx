@@ -72,12 +72,18 @@ export default function RegisterPage() {
       return
     }
     
-    // Validação de email básica
-    if (!email.includes('@') || !email.includes('.')) {
+    // Validação de email
+    const validateEmail = (email: string) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      return emailRegex.test(email)
+    }
+
+    // No handleSubmit, substitua a validação atual por:
+    if (!validateEmail(email)) {
       setError('Email inválido')
       return
     }
-    
+
     // Validação de nome
     if (name && (name.length < 2 || name.length > 100)) {
       setError('Nome deve ter entre 2 e 100 caracteres')
@@ -155,12 +161,13 @@ export default function RegisterPage() {
             </p>
           </div>
           <div className="mb-4">
-            <label className="block mb-2">Nome (opcional)</label>
+            <label className="block mb-2">Nome</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input"
+              required
               placeholder="Seu nome"
             />
           </div>
@@ -196,6 +203,7 @@ export default function RegisterPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="input"
+              placeholder="Repita sua senha"
               required
             />
           </div>

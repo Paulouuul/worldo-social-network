@@ -98,7 +98,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           {/* Edit Button */}
           <div className="flex justify-end pt-2">
             {isOwnProfile && (
-              <Link href="/perfil/editar" className="btn-secondary text-sm">
+              <Link href="/perfil/edit" className="btn-secondary text-sm">
                 <i className="bi bi-pencil-square"></i>&nbsp;&nbsp;Editar Perfil
               </Link>
             )}

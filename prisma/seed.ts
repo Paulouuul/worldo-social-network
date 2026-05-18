@@ -93,6 +93,7 @@ async function main() {
       data: {
         email: "admin@exemplo.com",
         name: "Admin",
+        username: "admin",
         publicId: "admin-public-id",
         password: "$2a$10$...", // hash de "senha123" (opcional)
       }
@@ -106,7 +107,6 @@ async function main() {
       description: "Uma moldura elegante com detalhes dourados",
       imageUrl: "/frames/dourada.png",
       thumbnailUrl: "/frames/dourada-thumb.png",
-      category: "PROFILE_PICTURE",
       rarity: "RARO",
       stock: 10,
       priceCoins: 200,
@@ -117,7 +117,6 @@ async function main() {
       description: "Efeito neon futurista",
       imageUrl: "/frames/neon.png",
       thumbnailUrl: "/frames/neon-thumb.png",
-      category: "PROFILE_PICTURE",
       rarity: "EPICO",
       stock: 5,
       priceCoins: 500,
@@ -128,7 +127,6 @@ async function main() {
       description: "Brilho mágico e misterioso",
       imageUrl: "/frames/mistica.png",
       thumbnailUrl: "/frames/mistica-thumb.png",
-      category: "PROFILE_PICTURE",
       rarity: "LENDARIO",
       stock: 2,
       priceCoins: 1000,

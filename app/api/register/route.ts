@@ -12,9 +12,9 @@ export async function POST(request: NextRequest) {
     const { email, password, name, username } = body
 
     // Validar campos obrigatórios
-    if (!email || !password || !username) {
+    if (!email || !password || !username || !name) {
       return NextResponse.json(
-        { success: false, error: 'Email, senha e nome de usuário são obrigatórios' },
+        { success: false, error: 'Email, senha, nome e nome de usuário são obrigatórios' },
         { status: 400 }
       )
     }
@@ -36,10 +36,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
+
+  const validatePassword = (pass: string) => {
+    const errors = []
+    
+    if (pass.length < 6) {
+      errors.push('pelo menos 6 caracteres')
+    }
+    if (pass.length > 50) {
+      errors.push('no máximo 50 caracteres')
+    }
+    if (!/[A-Z]/.test(pass)) {
+      errors.push('pelo menos 1 letra maiúscula')
+    }
+    if (!/[a-z]/.test(pass)) {
+      errors.push('pelo menos 1 letra minúscula')
+    }
+    if (!/[0-9]/.test(pass)) {
+      errors.push('pelo menos 1 número')
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) {
+      errors.push('pelo menos 1 caractere especial (!@#$%^&* etc)')
+    }
+    
+    return errors
+  }
+
+  var errors_password = validatePassword(password);
     // Validar tamanho da senha
-    if (password.length < 6) {
+    if (errors_password.length > 0) {
       return NextResponse.json(
-        { success: false, error: 'Senha deve ter pelo menos 6 caracteres' },
+        { success: false, error: `Senha fraca: ${errors_password.join(', ')}`},
+        { status: 400 }
+      )
+    }
+
+    if (name && (name.length < 2 || name.length > 100)) {
+      return NextResponse.json(
+        { success: false, error: 'Nome deve ter entre 2 e 100 caracteres' },
         { status: 400 }
       )
     }
@@ -79,7 +113,7 @@ export async function POST(request: NextRequest) {
       data: {
         email,
         password: hashedPassword,
-        name: name || email.split('@')[0],
+        name: name,
         username: username,
         publicId: crypto.randomUUID(),
         emailVerified: null, // Inicialmente não verificado
@@ -105,7 +139,7 @@ export async function POST(request: NextRequest) {
       subject: 'Verifique seu email - Marketplace Social',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Bem-vindo ao Marketplace Social! 🎉</h1>
+          <h1 style="color: #333;">Bem-vindo ao WORDO! 🎉</h1>
           <p>Olá <strong>${name || email.split('@')[0]}</strong>,</p>
           <p>Por favor, verifique seu email clicando no link abaixo:</p>
           <a href="${verificationLink}" 

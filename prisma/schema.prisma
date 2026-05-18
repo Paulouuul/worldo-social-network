@@ -258,7 +258,6 @@ model cosmetic_frame {
   description  String?
   imageUrl     String
   thumbnailUrl String
-  category     String   @default("PROFILE_PICTURE") // PROFILE_PICTURE, POST, CHAT_BUBBLE
   rarity       String   @default("COMUM") // COMUM, RARO, EPICO, LENDARIO
   stock        Int      @default(1)  // Quantidade disponível para venda
   soldCount    Int      @default(0)  // Quantas já foram vendidas
