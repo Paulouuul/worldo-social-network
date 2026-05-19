@@ -74,13 +74,15 @@ export default function EditProfilePage() {
 
       if (!res.ok) {
         setError(data.error || 'Erro ao atualizar perfil')
+        window.scrollTo({ top: 0})
       } else {
         setSuccess('Perfil atualizado com sucesso!')
+        window.scrollTo({ top: 0})
         await update({
           ...session,
           user: { ...session.user, ...formData,}
         })
-        setTimeout(() => router.push(`/perfil/${session.user?.id}`), 1500)
+        setTimeout(() => setSuccess(''), 1500)
       }
     } catch (err) {
       setError('Erro ao conectar com o servidor')
@@ -115,6 +117,7 @@ export default function EditProfilePage() {
               onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase() })}
               className="input"
               required
+              disabled={loading}
               placeholder="usuario_123"
             />
             <p className="text-xs text-gray-500 mt-1">Apenas letras, números e underline. 3-30 caracteres.</p>
@@ -127,6 +130,7 @@ export default function EditProfilePage() {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="input"
               required
+              disabled={loading}
               placeholder="Seu nome"
             />
           </div>
@@ -137,6 +141,7 @@ export default function EditProfilePage() {
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               className="input"
+              disabled={loading}
               rows={4}
               placeholder="Conte um pouco sobre você..."
             />
@@ -149,6 +154,7 @@ export default function EditProfilePage() {
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="input"
+              disabled={loading}
               placeholder="Cidade, Estado"
             />
           </div>
@@ -160,6 +166,7 @@ export default function EditProfilePage() {
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               className="input"
+              disabled={loading}
               placeholder="https://seusite.com"
             />
           </div>
@@ -171,6 +178,7 @@ export default function EditProfilePage() {
               value={formData.avatar}
               onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
               className="input"
+              disabled={loading}
               placeholder="https://exemplo.com/foto.jpg"
             />
           </div>
