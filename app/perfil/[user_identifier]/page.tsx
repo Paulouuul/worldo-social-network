@@ -3,6 +3,22 @@ import { auth } from '@/auth'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { 
+  Pencil, 
+  MapPin, 
+  Link as LinkIcon, 
+  Calendar, 
+  User as UserIcon, 
+  Mail, 
+  Sparkles,
+  Users,
+  UserCheck,
+  Package,
+  MessageSquare,
+  Star,
+  Image as ImageIcon
+} from 'lucide-react'
+
 interface ProfilePageProps {
   params: Promise<{
     user_identifier: string
@@ -11,9 +27,10 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const session = await auth()
-   if (!session?.user) {
+  if (!session?.user) {
     redirect('/login/')
   }
+  
   const { user_identifier } = await params
   const decodedUsername = decodeURIComponent(user_identifier)
   
@@ -44,144 +61,200 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     }
   })
 
+  // Se não encontrar o usuário no banco, dispara o erro 404 nativo imediatamente
   if (!user) {
     notFound()
   }
 
   const isOwnProfile = session?.user?.id === user.id
+  
   const memberSince = new Date(user.createdAt).toLocaleDateString('pt-BR', {
     year: 'numeric',
     month: 'long'
   })
 
+  // Higienização básica para evitar XSS no atributo href do link
+  const validWebsite = user.website?.startsWith('http') ? user.website : `https://${user.website}`
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Card principal */}
-      <div className="card-highlight rounded-xl overflow-hidden">
-        {/* Cover Image */}
-        <div className="relative h-48 bg-gradient-to-r from-purple-900/80 to-indigo-900/80">
+    <div className="max-w-4xl mx-auto px-4 py-12 antialiased text-slate-100 selection:bg-purple-500/30">
+      
+      {/* Card Principal do Perfil */}
+      <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl relative">
+        
+        {/* Imagem de Capa (Cover Image) */}
+        <div className="relative h-52 md:h-64 w-full bg-gradient-to-r from-slate-950 via-purple-950/40 to-slate-950 border-b border-slate-800/50 overflow-hidden">
           {user.coverImage ? (
             <Image
               src={user.coverImage}
-              alt="Cover"
+              alt="Capa do Perfil"
               fill
+              priority
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-center">
-                <span className="text-5xl opacity-50">✨</span>
-                <p className="text-sm opacity-50 mt-2">Capa do perfil</p>
+            <div className="w-full h-full flex items-center justify-center relative">
+              {/* Efeito de partículas cósmicas discretas na capa padrão */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950"></div>
+              <div className="relative z-10 flex flex-col items-center gap-2 opacity-30">
+                <ImageIcon className="w-8 h-8 text-purple-400" />
+                <p className="text-xs font-medium tracking-widest uppercase">Espaço da Capa</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Profile Content */}
-        <div className="relative px-6 pb-6">
-          {/* Avatar */}
-          <div className="absolute -top-12 left-6">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-800 border-4 border-gray-800 shadow-lg">
-              {user.avatar && user.avatar !== "None" ? (
-                <Image
-                  src={user.avatar || ''}
-                  alt={user.name || 'Avatar'}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-gradient-to-br from-purple-600 to-indigo-600">
-                  {user.name?.[0]?.toUpperCase() || user.email[0]?.toUpperCase()}
+        {/* Conteúdo de Informações e Foto */}
+        <div className="relative px-6 pb-8">
+          
+          {/* Grid de Estrutura Superior (Avatar e Botão Alinhados) */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-16 sm:-mt-20 mb-6 gap-4">
+            
+            {/* Bloco do Avatar */}
+            <div className="relative shrink-0">
+              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full p-1 bg-slate-900 border-2 border-slate-800/80 shadow-2xl overflow-hidden flex items-center justify-center group">
+                <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 relative">
+                  {user.avatar && user.avatar !== "None" ? (
+                    <Image
+                      src={user.avatar}
+                      alt={user.name || 'Avatar'}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl font-black bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-600 text-white select-none">
+                      {user.name?.[0]?.toUpperCase() || user.email[0]?.toUpperCase()}
+                    </div>
+                  )}
                 </div>
+              </div>
+            </div>
+
+            {/* Ações (Editar Perfil) */}
+            <div className="pt-2 sm:pt-0 self-start sm:self-end">
+              {isOwnProfile && (
+                <Link 
+                  href="/perfil/edit" 
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-800 border border-slate-700/60 hover:bg-slate-700/80 text-slate-200 transition-all shadow-lg active:scale-[0.98]"
+                >
+                  <Pencil className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Editar Perfil</span>
+                </Link>
               )}
             </div>
           </div>
 
-          {/* Edit Button */}
-          <div className="flex justify-end pt-2">
-            {isOwnProfile && (
-              <Link href="/perfil/edit" className="btn-secondary text-sm">
-                <i className="bi bi-pencil-square"></i>&nbsp;&nbsp;Editar Perfil
-              </Link>
-            )}
-          </div>
-
-          {/* User Info */}
-          <div className="mt-12">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-              {user.name}
-            </h1>
-            <p className="text-gray-400 mt-1"><i className="bi bi-person-fill"></i> {user.username}
-            <br/><i className="bi bi-envelope-at-fill"></i> {user.email}</p>
+          {/* Dados Textuais do Usuário */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white flex items-center gap-2">
+                <span>{user.name}</span>
+              </h1>
+              
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-400 font-medium">
+                <div className="flex items-center gap-1.5">
+                  <UserIcon className="w-4 h-4 text-slate-500" />
+                  <span className="text-slate-300">@{user.username}</span>
+                </div>
+                
+                {isOwnProfile && (
+                  <div className="flex items-center gap-2 bg-purple-500/5 border border-purple-500/10 rounded-lg px-2.5 py-0.5 text-xs text-purple-400">
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
+                    <span className="max-w-[180px] truncate">{user.email}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest bg-purple-500/10 border border-purple-500/20 px-1 rounded">Privado</span>
+                  </div>
+                )}
+              </div>
+            </div>
             
-            {/* Stats Cards */}
-            <div className="flex gap-4 mt-4">
-              <div className="bg-gray-800/50 rounded-lg px-4 py-2 text-center min-w-[100px]">
-                <span className="font-bold text-xl text-purple-400">{user.followersCount}</span>
-                <p className="text-xs text-gray-400">seguidores</p>
+            {/* Cards de Métricas e Estatísticas */}
+            <div className="flex flex-wrap gap-4">
+              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-[110px] flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
+                <span className="block font-black text-2xl text-purple-400 tracking-tight">{user.followersCount}</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
+                  <Users className="w-3 h-3" /> Seguidores
+                </span>
               </div>
-              <div className="bg-gray-800/50 rounded-lg px-4 py-2 text-center min-w-[100px]">
-                <span className="font-bold text-xl text-purple-400">{user.followingCount}</span>
-                <p className="text-xs text-gray-400">seguindo</p>
+              
+              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-[110px] flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
+                <span className="block font-black text-2xl text-purple-400 tracking-tight">{user.followingCount}</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
+                  <UserCheck className="w-3 h-3" /> Seguindo
+                </span>
               </div>
-              <div className="bg-gray-800/50 rounded-lg px-4 py-2 text-center min-w-[100px]">
-                <span className="font-bold text-xl text-purple-400">0</span>
-                <p className="text-xs text-gray-400">cosméticos</p>
+              
+              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-[110px] flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
+                <span className="block font-black text-2xl text-slate-500 tracking-tight">0</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
+                  <Sparkles className="w-3 h-3" /> Cosméticos
+                </span>
               </div>
             </div>
 
-            {/* Bio */}
+            {/* Caixa de Biografia (Bio) */}
             {user.bio && (
-              <div className="mt-4 p-4 bg-gray-800/30 rounded-lg">
-                <p className="italic">“{user.bio}”</p>
+              <div className="relative rounded-xl border border-slate-800/40 bg-slate-950/30 p-4 shadow-inner">
+                <p className="text-slate-300 text-sm italic leading-relaxed">
+                  &ldquo;{user.bio}&rdquo;
+                </p>
               </div>
             )}
 
-            {/* Location & Website */}
-            <div className="mt-4 space-y-1 text-sm text-gray-400">
+            {/* Localização, Website e Data de Criação */}
+            <div className="flex flex-wrap gap-x-6 gap-y-3 pt-2 text-xs font-semibold text-slate-400 tracking-wide">
               {user.location && (
-                <div className="flex items-center gap-2">
-                  <span>📍</span>
+                <div className="flex items-center gap-2 bg-slate-950/30 border border-slate-800/40 px-3 py-1.5 rounded-lg">
+                  <MapPin className="w-3.5 h-3.5 text-rose-400" />
                   <span>{user.location}</span>
                 </div>
               )}
+              
               {user.website && (
-                <div className="flex items-center gap-2">
-                  <span>🔗</span>
-                  <a href={user.website} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">
+                <div className="flex items-center gap-2 bg-slate-950/30 border border-slate-800/40 px-3 py-1.5 rounded-lg">
+                  <LinkIcon className="w-3.5 h-3.5 text-blue-400" />
+                  <a href={validWebsite} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 hover:underline truncate max-w-[200px]">
                     {user.website.replace(/^https?:\/\//, '')}
                   </a>
                 </div>
               )}
+
+              <div className="flex items-center gap-2 bg-slate-950/30 border border-slate-800/40 px-3 py-1.5 rounded-lg sm:ml-auto">
+                <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-slate-500">Membro desde <span className="text-slate-400">{memberSince}</span></span>
+              </div>
             </div>
 
-            {/* Member since */}
-            <div className="mt-4 pt-4 border-t border-gray-700">
-              <p className="text-xs text-gray-500">
-                🗓️ Membro desde {memberSince}
-              </p>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Abas / Seções adicionais (opcional) */}
-      <div className="mt-6">
-        <div className="flex gap-2 border-b border-gray-700">
-          <button className="px-4 py-2 text-purple-400 border-b-2 border-purple-400 font-medium">
-            📦 Cosméticos
+      {/* Navegação por Abas do Painel */}
+      <div className="mt-8 space-y-4">
+        <div className="flex gap-1 border-b border-slate-800/80 overflow-x-auto scrollbar-none">
+          <button className="flex items-center gap-2 px-5 py-3 text-purple-400 border-b-2 border-purple-500 font-bold text-sm tracking-wide whitespace-nowrap">
+            <Package className="w-4 h-4" />
+            <span>Cosméticos</span>
           </button>
-          <button className="px-4 py-2 text-gray-400 hover:text-gray-300 transition">
-            💬 Atividades
+          
+          <button className="flex items-center gap-2 px-5 py-3 text-slate-400 hover:text-slate-200 font-semibold text-sm tracking-wide transition whitespace-nowrap">
+            <MessageSquare className="w-4 h-4" />
+            <span>Atividades</span>
           </button>
-          <button className="px-4 py-2 text-gray-400 hover:text-gray-300 transition">
-            ⭐ Favoritos
+          
+          <button className="flex items-center gap-2 px-5 py-3 text-slate-400 hover:text-slate-200 font-semibold text-sm tracking-wide transition whitespace-nowrap">
+            <Star className="w-4 h-4" />
+            <span>Favoritos</span>
           </button>
         </div>
-        <div className="p-6 text-center text-gray-500">
-          Em breve mais funcionalidades...
+        
+        {/* Placeholder de Funcionalidades Futuras */}
+        <div className="rounded-2xl border border-dashed border-slate-800 p-12 text-center bg-slate-900/5">
+          <p className="text-sm font-medium text-slate-500 tracking-wide">
+            Novas abas de customização e histórico serão liberadas em breve...
+          </p>
         </div>
       </div>
+
     </div>
   )
 }

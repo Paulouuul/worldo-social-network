@@ -6,20 +6,24 @@ export async function GET(
   { params }: { params: Promise<{ user_identifier: string }> }
 ) {
   try {
-    const { user_identifier } = await params  // ← DESEMBRULHAR com await
-    const decodedUserIdentifier = decodeURIComponent(user_identifier)
+    const { user_identifier } = await params
     
+    // 1. Descodificar e normalizar a entrada
+    const decodedUserIdentifier = decodeURIComponent(user_identifier).trim()
+    const sanitizedIdentifier = decodedUserIdentifier.toLowerCase()
+
+    // 2. Buscar no banco (Garantindo case-insensitive para o username)
     const user = await prisma.users.findFirst({
       where: {
         OR: [
-          { id: decodedUserIdentifier },
-          { username: decodedUserIdentifier }
+          { publicId: decodedUserIdentifier }, // O ID original (mantém case original caso seja UUID/Cuid)
+          { username: sanitizedIdentifier } // O username normalizado em caixa baixa
         ]
       },
       select: {
         id: true,
         name: true,
-        email: true,
+        username: true,
         image: true,
         bio: true,
         avatar: true,

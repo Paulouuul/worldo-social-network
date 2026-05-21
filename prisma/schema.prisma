@@ -261,7 +261,6 @@ model cosmetic_frame {
   rarity       String   @default("COMUM") // COMUM, RARO, EPICO, LENDARIO
   stock        Int      @default(1)  // Quantidade disponível para venda
   soldCount    Int      @default(0)  // Quantas já foram vendidas
-  priceCoins   Int
   isActive     Boolean  @default(true)
   createdBy    String
   createdAt    DateTime @default(now())
@@ -359,7 +358,7 @@ model user_frame_item {
   id         String   @id @default(cuid())
   frameId    String
   ownerId    String   // Usuário que possui esta unidade
-  purchaseId String   // Compra original
+  purchaseId String?   // Compra original
   listingId  String?
   isListed   Boolean  @default(false)
   resalePrice Int?    
@@ -369,7 +368,7 @@ model user_frame_item {
   isEquipped Boolean  @default(false)
   frame      cosmetic_frame @relation(fields: [frameId], references: [id])
   owner      users          @relation(fields: [ownerId], references: [id])
-  purchase   cosmetic_purchase @relation(fields: [purchaseId], references: [id])
+  purchase   cosmetic_purchase? @relation(fields: [purchaseId], references: [id])
   listing    cosmetic_listing? @relation(fields: [listingId], references: [id])
   
   @@unique([frameId, ownerId, id])

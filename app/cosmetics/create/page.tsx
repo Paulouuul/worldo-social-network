@@ -1,35 +1,148 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import Image from 'next/image'
 import Link from 'next/link'
+import Image from 'next/image'
+import { 
+  Sparkles, 
+  FileText, 
+  Layers, 
+  Package, 
+  UploadCloud, 
+  Check, 
+  ChevronLeft, 
+  ChevronRight, 
+  Coins, 
+  X, 
+  Image as ImageIcon 
+} from 'lucide-react'
 
 export default function CreateCosmeticPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    imageUrl: '',
-    thumbnailUrl: '',
-    category: 'PROFILE_PICTURE',
     rarity: 'COMUM',
-    stock: 1,
-    // priceCoins: 100, ← REMOVIDO (não é mais usado aqui)
+    stock: 10,
   })
+  
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState('')
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState('')
+  
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const thumbnailInputRef = useRef<HTMLInputElement>(null)
 
-  if (status === 'loading') {
-    return <div className="text-center py-12">Carregando...</div>
+  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
+  const [showFramePreview, setShowFramePreview] = useState(false)
+  const [carouselIndex, setCarouselIndex] = useState(0)
+
+  const stockPackages = [
+    { value: 10, label: 'Pacote Básico', units: '10 unidades', multiplier: 1, color: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/40 text-emerald-300' },
+    { value: 50, label: 'Pacote Comercial', units: '50 unidades', multiplier: 1.5, color: 'from-blue-500/20 to-cyan-500/20 border-blue-500/40 text-blue-300' },
+    { value: 100, label: 'Pacote Empresarial', units: '100 unidades', multiplier: 2, color: 'from-purple-500/20 to-pink-500/20 border-purple-500/40 text-purple-300' },
+    { value: 500, label: 'Pacote Máster', units: '500 unidades', multiplier: 5, color: 'from-amber-500/20 to-orange-500/20 border-amber-500/40 text-amber-300' },
+  ]
+
+  useEffect(() => {
+    if (!session?.user) return
+
+    if (session.user.avatar) {
+      setAvatarUrl(session.user.avatar)
+    }
+
+    if (!session.user.id) return
+
+    const controller = new AbortController()
+    fetch(`/api/user/${session.user.id}`, { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.avatar) setAvatarUrl(data.avatar)
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') console.error(err)
+      })
+
+    return () => controller.abort()
+  }, [session])
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview)
+      if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview)
+    }
+  }, [imagePreview, thumbnailPreview])
+
+  const getBaseCost = (rarity: string) => {
+    switch (rarity) {
+      case 'COMUM': return 50
+      case 'RARO': return 200
+      case 'EPICO': return 500
+      case 'LENDARIO': return 1000
+      default: return 50
+    }
   }
 
-  if (!session) {
-    router.push('/login')
-    return null
+  const getCreationCost = (rarity: string, stock: number) => {
+    const baseCost = getBaseCost(rarity)
+    const pkg = stockPackages.find(p => p.value === stock)
+    const multiplier = pkg ? pkg.multiplier : 1
+    return Math.floor(baseCost * multiplier)
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setError('Formato não suportado. Use JPG, PNG, GIF ou WEBP.')
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Arquivo muito grande. Máximo 10MB.')
+      return
+    }
+
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setShowFramePreview(true)
+    setError('')
+    setCarouselIndex(0)
+  }
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setError('Formato não suportado. Use JPG, PNG, GIF ou WEBP.')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Arquivo muito grande. Máximo 5MB.')
+      return
+    }
+
+    if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview)
+
+    setThumbnailFile(file)
+    setThumbnailPreview(URL.createObjectURL(file))
+    setError('')
+    if (!imagePreview) setCarouselIndex(1)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,11 +151,27 @@ export default function CreateCosmeticPage() {
     setError('')
     setSuccess('')
 
+    if (!imageFile) {
+      setError('Selecione uma imagem para a moldura')
+      setLoading(false)
+      return
+    }
+
+    const submitData = new FormData()
+    submitData.append('name', formData.name)
+    submitData.append('description', formData.description)
+    submitData.append('rarity', formData.rarity)
+    submitData.append('stock', formData.stock.toString())
+    submitData.append('image', imageFile)
+    
+    if (thumbnailFile) {
+      submitData.append('thumbnail', thumbnailFile)
+    }
+
     try {
-      const res = await fetch('/api/cosmeticos/create', {
+      const res = await fetch('/api/cosmetics/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: submitData,
       })
 
       const data = await res.json()
@@ -50,7 +179,7 @@ export default function CreateCosmeticPage() {
       if (!res.ok) {
         setError(data.error || 'Erro ao criar moldura')
       } else {
-        setSuccess('Moldura criada com sucesso! Agora você pode anunciá-la no marketplace.')
+        setSuccess(data.message || 'Moldura criada com sucesso!')
         setTimeout(() => router.push('/cosmeticos/meus'), 2000)
       }
     } catch (err) {
@@ -60,145 +189,369 @@ export default function CreateCosmeticPage() {
     }
   }
 
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+        <span className="ml-3 text-purple-300 font-medium">Carregando portal...</span>
+      </div>
+    )
+  }
+
+  if (!session) {
+    router.push('/login')
+    return null
+  }
+
+  const hasFramePreview = showFramePreview && imagePreview
+  const hasThumbPreview = !!thumbnailPreview
+  const totalSlides = (hasFramePreview ? 1 : 0) + (hasThumbPreview ? 1 : 0)
+
+  const toggleSlide = () => {
+    setCarouselIndex(prev => (prev === 0 ? 1 : 0))
+  }
+
+  const creationCost = getCreationCost(formData.rarity, formData.stock)
+  const baseCost = getBaseCost(formData.rarity)
+  const currentPackage = stockPackages.find(pkg => pkg.value === formData.stock)
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* Card principal */}
-      <div className="card-highlight rounded-xl overflow-hidden">
-        {/* Header com gradiente */}
-        <div className="relative h-32 bg-gradient-to-r from-purple-900/80 to-indigo-900/80 flex items-center justify-center">
-          <h1 className="text-2xl font-bold text-white">✨ Criar Nova Moldura ✨</h1>
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+        
+        {/* Header Cósmico */}
+        <div className="relative h-36 bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-950 flex flex-col items-center justify-center border-b border-slate-800 px-4 text-center">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent opacity-60" />
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 flex items-center gap-2 z-10 tracking-wide">
+            <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
+            FORJAR NOVA MOLDURA
+          </h1>
+          <p className="text-slate-400 text-sm mt-2 z-10 max-w-md">
+            Crie artefatos exclusivos para customização cosmética e distribua na rede.
+          </p>
         </div>
 
-        {/* Form Content */}
-        <div className="p-6">
+        <div className="p-8">
+          {/* Mensagens de Alerta */}
           {error && (
-            <div className="bg-red-500/10 text-red-400 p-3 rounded mb-4 text-sm border border-red-500/30">
+            <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-500/20 flex items-center gap-2 animate-fade-in">
+              <span className="w-2 h-2 rounded-full bg-red-500 block" />
               {error}
             </div>
           )}
 
           {success && (
-            <div className="bg-green-500/10 text-green-400 p-3 rounded mb-4 text-sm border border-green-500/30">
+            <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl mb-6 text-sm border border-emerald-500/20 flex items-center gap-2 animate-fade-in">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 block" />
               {success}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nome */}
-            <div>
-              <label className="block mb-2 font-medium">Nome da Moldura</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input"
-                required
-                placeholder="Ex: Moldura Dourada"
-              />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Formulário Principal */}
+            <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-7">
+              
+              <div>
+                <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
+                  <FileText className="w-4 h-4 text-purple-400" /> Nome da Moldura
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all"
+                  required
+                  placeholder="Ex: Singularidade Estelar"
+                />
+              </div>
 
-            {/* Descrição */}
-            <div>
-              <label className="block mb-2 font-medium">Descrição</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="input"
-                rows={3}
-                placeholder="Descreva sua moldura..."
-              />
-            </div>
-            {/* Raridade */}
-            <div>
-              <label className="block mb-2 font-medium">Raridade</label>
-              <select
-                value={formData.rarity}
-                onChange={(e) => setFormData({ ...formData, rarity: e.target.value })}
-                className="input"
-              >
-                <option value="COMUM">🟢 Comum</option>
-                <option value="RARO">🔵 Raro</option>
-                <option value="EPICO">🟣 Épico</option>
-                <option value="LENDARIO">🟠 Lendário</option>
-              </select>
-            </div>
+              <div>
+                <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
+                  <FileText className="w-4 h-4 text-purple-400" /> Descrição do Artefato
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all resize-none"
+                  rows={3}
+                  placeholder="Descreva a história ou efeitos visuais desta moldura..."
+                />
+              </div>
 
-            {/* Estoque */}
-            <div>
-              <label className="block mb-2 font-medium">Quantidade (Estoque)</label>
-              <input
-                type="number"
-                min="1"
-                max="999"
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 1 })}
-                className="input"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">Quantas unidades você quer criar?</p>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
+                    <Layers className="w-4 h-4 text-purple-400" /> Nível de Raridade
+                  </label>
+                  <select
+                    value={formData.rarity}
+                    onChange={(e) => setFormData({ ...formData, rarity: e.target.value })}
+                    className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all cursor-pointer"
+                  >
+                    <option value="COMUM">🟢 Comum</option>
+                    <option value="RARO">🔵 Raro</option>
+                    <option value="EPICO">🟣 Épico</option>
+                    <option value="LENDARIO">🟠 Lendário</option>
+                  </select>
+                </div>
 
-            {/* URL da Imagem */}
-            <div>
-              <label className="block mb-2 font-medium">URL da Imagem</label>
-              <input
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                className="input"
-                required
-                placeholder="https://exemplo.com/imagem.png"
-              />
-            </div>
-
-            {/* URL da Miniatura */}
-            <div>
-              <label className="block mb-2 font-medium">URL da Miniatura (opcional)</label>
-              <input
-                type="url"
-                value={formData.thumbnailUrl}
-                onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-                className="input"
-                placeholder="Deixe em branco para usar a mesma imagem"
-              />
-            </div>
-
-            {/* Preview da Imagem */}
-            {formData.imageUrl && (
-              <div className="mt-4 p-4 bg-gray-800/30 rounded-lg">
-                <p className="text-sm text-gray-400 mb-2">Preview:</p>
-                <div className="relative w-32 h-32 mx-auto">
-                  <Image
-                    src={formData.imageUrl}
-                    alt="Preview"
-                    fill
-                    className="object-contain rounded-lg"
-                    unoptimized
-                  />
+                <div>
+                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
+                    <Package className="w-4 h-4 text-purple-400" /> Lote de Upload
+                  </label>
+                  <div className="bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 text-sm flex items-center h-[46px]">
+                    {currentPackage?.units || 'Selecione um pacote abaixo'}
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Custo estimado */}
-            <div className="mt-4 p-4 bg-purple-900/30 rounded-lg border border-purple-500/30">
-              <p className="text-sm text-purple-300">
-                💰 Custo de criação: <strong className="text-purple-400">50 moedas</strong>
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Ao criar uma moldura, você gasta moedas. O valor é fixo por raridade.
-              </p>
+              {/* Grid de Pacotes Otimizado */}
+              <div>
+                <label className="flex items-center gap-2 text-slate-300 mb-3 font-semibold text-sm tracking-wide uppercase">
+                  <Package className="w-4 h-4 text-purple-400" /> Seleção do Pacote de Distribuição
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {stockPackages.map((pkg) => {
+                    const isSelected = formData.stock === pkg.value
+                    return (
+                      <button
+                        key={pkg.value}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, stock: pkg.value })}
+                        className={`relative text-left p-4 rounded-xl border transition-all duration-200 bg-gradient-to-br hover:border-purple-500/50 ${
+                          isSelected 
+                            ? `${pkg.color} ring-1 ring-purple-500/30 shadow-lg border-transparent` 
+                            : 'from-slate-950/40 to-slate-900/40 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className={`font-bold text-sm tracking-wide ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                              {pkg.label}
+                            </div>
+                            <div className="text-xs mt-0.5 opacity-80">{pkg.units}</div>
+                            <div className="text-[11px] mt-2 opacity-60 italic">
+                              Multiplicador de Custo: {pkg.multiplier}x
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className="p-1 bg-purple-500/30 rounded-full text-white">
+                              <Check className="w-3 h-3" strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Uploads */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
+                    <ImageIcon className="w-4 h-4 text-purple-400" /> Camada da Moldura (PNG)
+                  </label>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:border-purple-500/50 rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-[90px]"
+                  >
+                    <UploadCloud className="w-5 h-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                    <span>{imageFile ? 'Alterar Ativo Principal' : 'Carregar Moldura Transparente'}</span>
+                  </label>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    Recomendado PNG transparente. A arte pode extrapolar as dimensões do avatar circular.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
+                    <ImageIcon className="w-4 h-4 text-purple-400" /> Miniatura Comercial (Opcional)
+                  </label>
+                  <input
+                    ref={thumbnailInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleThumbnailChange}
+                    className="hidden"
+                    id="thumbnail-upload"
+                  />
+                  <label
+                    htmlFor="thumbnail-upload"
+                    className="flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:border-purple-500/50 rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-[90px]"
+                  >
+                    <UploadCloud className="w-5 h-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                    <span>{thumbnailFile ? 'Alterar Miniatura' : 'Carregar Card de Vitrine'}</span>
+                  </label>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    Imagem quadrada utilizada para exibição em feeds compactos e listagens da loja.
+                  </p>
+                </div>
+              </div>
+
+              {/* Ledger de Custos */}
+              <div className="bg-slate-950/60 rounded-xl p-5 border border-slate-800/80 space-y-3">
+                <div className="flex justify-between items-center text-sm text-slate-400">
+                  <span className="flex items-center gap-1.5"><Coins className="w-4 h-4 text-slate-500" /> Custo Base ({formData.rarity})</span>
+                  <span className="font-semibold text-slate-200">{baseCost} moedas</span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-slate-400">
+                  <span className="flex items-center gap-1.5"><Package className="w-4 h-4 text-slate-500" /> Multiplicador do Lote</span>
+                  <span className="font-semibold text-slate-200">{currentPackage?.multiplier}x ({currentPackage?.units})</span>
+                </div>
+                <div className="border-t border-slate-800/80 my-2 pt-2 flex justify-between items-center">
+                  <span className="text-sm font-semibold text-purple-300">Custo de Emissão do Contrato</span>
+                  <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                    {creationCost} moedas
+                  </span>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex-1 text-center tracking-wide"
+                >
+                  {loading ? 'FORJANDO ATIVO...' : 'CONFIRMAR CRIAÇÃO'}
+                </button>
+                <Link 
+                  href="/cosmeticos" 
+                  className="bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:flex-1 text-center"
+                >
+                  <X className="w-4 h-4" /> CANCELAR
+                </Link>
+              </div>
+            </form>
+
+            {/* Coluna de Preview Lateral */}
+            <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-4">
+              <div className="bg-slate-950/40 rounded-2xl p-6 border border-slate-800 text-center">
+                <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-6 flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-400" /> Terminais de Preview
+                </h3>
+                
+                {totalSlides === 0 ? (
+                  <div className="bg-slate-950/60 rounded-xl p-12 border border-slate-900 flex flex-col items-center justify-center min-h-[360px]">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800 text-slate-600 mb-4 shadow-inner">
+                      <ImageIcon className="w-8 h-8" />
+                    </div>
+                    <p className="text-slate-500 text-sm max-w-[200px] leading-relaxed">
+                      Aguardando upload de ativos para renderização...
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative group">
+                    <div className="bg-slate-950/90 rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl relative min-h-[380px] flex items-center justify-center">
+                      
+                      {/* Grid de background futurista */}
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:1rem_1rem] opacity-30" />
+                      
+                      {/* Slide 0 - Preview da Moldura */}
+                      <div className={`transition-all duration-300 absolute inset-0 flex flex-col items-center justify-center p-6 h-full ${carouselIndex === 0 && hasFramePreview ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0 pointer-events-none'}`}>
+                        {hasFramePreview && (
+                          <div className="flex flex-col items-center justify-center h-full w-full">
+                            <div className="relative w-48 h-48 flex items-center justify-center">
+                              <div className="absolute w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-4 ring-purple-500/20 z-0">
+                                <Image 
+                                  src={avatarUrl} 
+                                  alt="Seu avatar" 
+                                  fill
+                                  sizes="(max-w-192px) 100vw, 192px"
+                                  className="object-cover" 
+                                />
+                              </div>
+                              <div className="absolute w-48 h-48 z-10 drop-shadow-[0_10px_20px_rgba(147,51,234,0.3)] animate-float">
+                                <Image 
+                                  src={imagePreview} 
+                                  alt="Moldura Cosmética" 
+                                  fill
+                                  sizes="(max-w-192px) 100vw, 192px"
+                                  unoptimized
+                                  className="object-contain" 
+                                />
+                              </div>
+                            </div>
+                            <div className="mt-8 bg-purple-500/10 px-4 py-1.5 rounded-full border border-purple-500/20 shadow-sm backdrop-blur-md">
+                              <p className="text-xs font-semibold tracking-wider text-purple-300 uppercase">Ajuste no Avatar</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Slide 1 - Preview da Miniatura */}
+                      <div className={`transition-all duration-300 absolute inset-0 flex flex-col items-center justify-center p-6 h-full ${carouselIndex === 1 || (!hasFramePreview && hasThumbPreview) ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0 pointer-events-none'}`}>
+                        {hasThumbPreview && (
+                          <div className="flex flex-col items-center justify-center h-full w-full">
+                            <div className="relative w-44 h-44 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 ring-4 ring-indigo-500/10">
+                              <Image 
+                                src={thumbnailPreview} 
+                                alt="Miniatura Comercial" 
+                                fill
+                                sizes="(max-w-176px) 100vw, 176px"
+                                unoptimized
+                                className="object-cover" 
+                              />
+                            </div>
+                            <div className="mt-8 bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20 shadow-sm backdrop-blur-md">
+                              <p className="text-xs font-semibold tracking-wider text-indigo-300 uppercase">Card de Vitrine</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Setas de Navegação */}
+                      {totalSlides > 1 && (
+                        <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none z-20">
+                          <button 
+                            type="button" 
+                            onClick={toggleSlide} 
+                            className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 pointer-events-auto backdrop-blur-sm transition-all active:scale-95"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={toggleSlide} 
+                            className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 pointer-events-auto backdrop-blur-sm transition-all active:scale-95"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Indicadores de Paginação do Carrossel */}
+                    {totalSlides > 1 && (
+                      <div className="flex justify-center gap-1.5 mt-4">
+                        <button 
+                          type="button" 
+                          onClick={() => setCarouselIndex(0)} 
+                          className={`h-1.5 rounded-full transition-all duration-300 ${carouselIndex === 0 ? 'w-6 bg-purple-500' : 'w-2 bg-slate-800'}`} 
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setCarouselIndex(1)} 
+                          className={`h-1.5 rounded-full transition-all duration-300 ${carouselIndex === 1 ? 'w-6 bg-purple-500' : 'w-2 bg-slate-800'}`} 
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Botões */}
-            <div className="flex gap-4 pt-4">
-              <button type="submit" disabled={loading} className="btn-primary flex-1">
-                {loading ? 'Criando...' : '✨ Criar Moldura'}
-              </button>
-              <Link href="/cosmeticos" className="btn-secondary flex-1 text-center">
-                Cancelar
-              </Link>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
