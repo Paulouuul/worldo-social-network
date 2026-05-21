@@ -180,7 +180,7 @@ export default function Header() {
 
       {/* Mobile Menu Lateral Drawer */}
       <div 
-        className={`fixed top-0 right-0 h-full w-72 bg-slate-900 border-l border-white/5 shadow-2xl z-40 transition-transform duration-500 ease-out md:hidden ${
+        className={`fixed top-0 right-0 h-full w-72 bg-slate-900 border-l border-white/5 shadow-2xl z-50 transition-transform duration-500 ease-out md:hidden ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -193,7 +193,7 @@ export default function Header() {
             <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-tr from-blue-600 to-purple-600 p-[1px]">
               <div className="w-full h-full bg-slate-950 rounded-[7px] overflow-hidden flex items-center justify-center">
                 <Image 
-                  src="/logo-icon.png" 
+                  src="/worldo_icon.png" 
                   alt="Worldo Logo Icon"
                   width={32}
                   height={32}
@@ -202,7 +202,7 @@ export default function Header() {
               </div>
             </div>
             <span className="text-xl font-black tracking-wider galaxy-text select-none">
-              𝕎𝕠𝕣𝕝𝕕𝕠
+              Menu
             </span>
           </div>
 

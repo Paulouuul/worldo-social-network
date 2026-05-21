@@ -10,69 +10,62 @@
   --color-gray-200: #2b2d31;
   --color-gray-300: #2b2d31;
   --color-gray-800: #949ba4;
+  
+  /* Novas variáveis para centralizar a paleta galáctica */
+  --color-galaxy-primary: #667eea;
+  --color-galaxy-secondary: #764ba2;
+  --color-galaxy-accent: #f093fb;
 }
 
 @layer base {
   body {
-background: 
-      /* Nebulosas e gradientes (mesmo da opção anterior) */
-      radial-gradient(ellipse at 50% 50%, rgba(138, 43, 226, 0.4) 0%, rgba(75, 0, 130, 0.3) 30%, transparent 70%),
-      radial-gradient(ellipse at 20% 60%, rgba(255, 0, 128, 0.25) 0%, rgba(138, 43, 226, 0.2) 25%, rgba(25, 25, 112, 0.1) 50%, transparent 80%),
-      radial-gradient(ellipse at 85% 30%, rgba(0, 102, 204, 0.25) 0%, rgba(102, 0, 204, 0.2) 30%, rgba(25, 25, 112, 0.1) 55%, transparent 85%),
-      linear-gradient(145deg, #05000a 0%, #0d001f 8%, #1a0033 16%, #26004d 24%, #330066 32%, #400080 40%, #4d0099 48%, #5c00b3 56%, #4d0099 64%, #3d007a 72%, #2e005c 80%, #1f003d 88%, #0f001f 96%, #05000a 100%);
+    /* Melhoria: Cores ligeiramente ajustadas para garantir contraste com textos brancos/cinzas */
+    background: 
+      radial-gradient(ellipse at 50% 50%, rgba(138, 43, 226, 0.35) 0%, rgba(75, 0, 130, 0.25) 30%, transparent 70%),
+      radial-gradient(ellipse at 20% 60%, rgba(255, 0, 128, 0.2) 0%, rgba(138, 43, 226, 0.15) 25%, rgba(25, 25, 112, 0.05) 50%, transparent 80%),
+      radial-gradient(ellipse at 85% 30%, rgba(0, 102, 204, 0.2) 0%, rgba(102, 0, 204, 0.15) 30%, rgba(25, 25, 112, 0.05) 55%, transparent 85%),
+      linear-gradient(145deg, #05000a 0%, #0d001f 15%, #15002a 40%, #1f003d 70%, #05000a 100%);
     
     background-attachment: fixed;
     background-blend-mode: overlay, overlay, overlay, normal;
     color: var(--color-gray-900);
     position: relative;
+    min-height: 100vh;
   }
   
-  /* Estrelas pequenas */
+  /* Otimização: Agrupamento das estrelas do background em uma única máscara otimizada */
   body::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background-image: 
-      radial-gradient(2px 2px at 10% 20%, white, transparent),
-      radial-gradient(1px 1px at 25% 45%, white, transparent),
+      radial-gradient(2px 2px at 10% 20%, #ffffff, transparent),
+      radial-gradient(1px 1px at 25% 45%, #ffffff, transparent),
       radial-gradient(3px 3px at 40% 10%, rgba(255,255,255,0.8), transparent),
-      radial-gradient(1px 1px at 55% 70%, white, transparent),
-      radial-gradient(2px 2px at 70% 30%, white, transparent),
-      radial-gradient(1px 1px at 85% 55%, white, transparent),
+      radial-gradient(1px 1px at 55% 70%, #ffffff, transparent),
+      radial-gradient(2px 2px at 70% 30%, #ffffff, transparent),
+      radial-gradient(1px 1px at 85% 55%, #ffffff, transparent),
       radial-gradient(2px 2px at 15% 85%, rgba(255,255,255,0.9), transparent),
-      radial-gradient(1px 1px at 45% 90%, white, transparent),
-      radial-gradient(3px 3px at 75% 85%, white, transparent),
-      radial-gradient(1px 1px at 95% 15%, white, transparent),
-      radial-gradient(2px 2px at 5% 50%, white, transparent),
-      radial-gradient(1px 1px at 35% 35%, white, transparent),
-      radial-gradient(2px 2px at 65% 65%, white, transparent),
-      radial-gradient(1px 1px at 90% 80%, white, transparent);
+      radial-gradient(1px 1px at 45% 90%, #ffffff, transparent),
+      radial-gradient(3px 3px at 75% 85%, #ffffff, transparent),
+      radial-gradient(1px 1px at 95% 15%, #ffffff, transparent),
+      radial-gradient(2px 2px at 5% 50%, #ffffff, transparent),
+      radial-gradient(1px 1px at 35% 35%, #ffffff, transparent),
+      radial-gradient(2px 2px at 65% 65%, #ffffff, transparent),
+      radial-gradient(1px 1px at 90% 80%, #ffffff, transparent);
     background-repeat: no-repeat;
     pointer-events: none;
-    z-index: 1;
-    opacity: 0.8;
+    z-index: 0;
+    opacity: 0.6;
   }
 }
 
 @layer components {
-  .btn-primary {
-    background-color: var(--color-blue-600);
-    color: white;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: background-color 200ms;
-  }
-  
-  .btn-primary:hover {
-    background-color: var(--color-blue-700);
-  }
-  
-
+  /* Acessibilidade universal para elementos clicáveis */
   .btn-primary,
+  .btn-secondary,
+  .galaxy-btn-primary,
+  .galaxy-btn-secondary,
   button,
   a[href],
   [role="button"],
@@ -80,358 +73,324 @@ background:
   input[type="button"] {
     cursor: pointer;
   }
-  
+
+  /* Inputs Globais Otimizados */
   .input {
     width: 100%;
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1rem;
     background-color: var(--color-gray-200);
     border: 1px solid var(--color-gray-300);
     border-radius: 0.5rem;
     outline: none;
     color: var(--color-gray-900);
+    transition: all 0.2s ease-in-out;
   }
   
   .input:focus {
     outline: 2px solid var(--color-blue-600);
     border-color: transparent;
+    box-shadow: 0 0 12px rgba(88, 101, 242, 0.2);
   }
 
-.card-highlight {
-  background: linear-gradient(135deg,
-    #140a1a 0%,
-    #0e0813 30%,
-    #08050a 70%,
-    #000000 100%);
-  border: 1px solid #404249;
-  backdrop-filter: blur(4px);
-  transition: all 0.3s ease;
-  animation: neonPulse 2s ease-in-out infinite;
+  /* Botão Primário Tradicional (Corrigido Duplicações) */
+  .btn-primary {
+    background-color: var(--color-blue-600);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid transparent;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-blue-700);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  /* Botão Secundário Tradicional */
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--color-blue-600);
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-blue-600);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-blue-600);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.2);
+  }
+
+  /* Cards com Pulsos Neon */
+  .card-highlight {
+    background: linear-gradient(135deg, #140a1a 0%, #0e0813 30%, #08050a 70%, #000000 100%);
+    border: 1px solid #404249;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+    animation: neonPulse 2.5s ease-in-out infinite;
+  }
+
+  /* Efeitos de Vidro (Glassmorphism) */
+  .glass-effect {
+    background: rgba(30, 31, 34, 0.75);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(88, 101, 242, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-effect-scrolled {
+    background: rgba(30, 31, 34, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(88, 101, 242, 0.35);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Estruturas de Cabeçalho Galáctico */
+  .galaxy-header {
+    background: rgba(10, 5, 20, 0.65);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.25);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .galaxy-header-scrolled {
+    background: rgba(10, 5, 20, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.45);
+    box-shadow: 0 4px 30px rgba(102, 126, 234, 0.15);
+  }
+
+  /* Estrelas Animadas Independentes */
+  .stars, .stars-small {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+  }
+
+  .stars {
+    background-image: 
+      radial-gradient(2px 2px at 10% 20%, #ffffff, transparent),
+      radial-gradient(1px 1px at 25% 45%, #ffffff, transparent),
+      radial-gradient(3px 3px at 40% 10%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 55% 70%, #ffffff, transparent),
+      radial-gradient(2px 2px at 70% 30%, #ffffff, transparent),
+      radial-gradient(1px 1px at 85% 55%, #ffffff, transparent);
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  .stars-small {
+    background-image: 
+      radial-gradient(1px 1px at 15% 85%, #ffffff, transparent),
+      radial-gradient(1px 1px at 45% 90%, #ffffff, transparent),
+      radial-gradient(2px 2px at 75% 85%, #ffffff, transparent),
+      radial-gradient(1px 1px at 95% 15%, #ffffff, transparent),
+      radial-gradient(1px 1px at 5% 50%, #ffffff, transparent);
+    animation: twinkle 2s ease-in-out infinite reverse;
+  }
+
+  /* Neblina Cósmica Interna */
+  .nebula-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(circle at 30% 40%, rgba(88, 101, 242, 0.08), transparent 50%),
+      radial-gradient(circle at 70% 60%, rgba(155, 89, 182, 0.08), transparent 50%);
+    animation: nebula-drift 25s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* Componentes e Marcas Premium */
+  .logo-image, .galaxy-logo {
+    filter: drop-shadow(0 0 8px rgba(88, 101, 242, 0.4));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: galaxy-pulse 3s ease-in-out infinite;
+  }
+
+  .logo-image:hover, .galaxy-logo:hover {
+    animation: none;
+    transform: scale(1.05) rotate(2deg);
+    filter: drop-shadow(0 0 16px rgba(88, 101, 242, 0.8));
+  }
+
+  .galaxy-text {
+    background: linear-gradient(135deg, var(--color-galaxy-primary) 0%, var(--color-galaxy-secondary) 50%, var(--color-galaxy-accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Adicionado fallback para navegadores que falham no background-clip */
+    text-shadow: 0 0 30px rgba(102, 126, 234, 0.25);
+  }
+
+  .galaxy-link {
+    position: relative;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+  }
+
+  .galaxy-link:hover {
+    text-shadow: 0 0 8px rgba(88, 101, 242, 0.6);
+    color: var(--color-galaxy-primary);
+  }
+
+  /* Botões de Estilo Galáctico */
+  .galaxy-btn-primary {
+    background: linear-gradient(135deg, var(--color-galaxy-primary) 0%, var(--color-galaxy-secondary) 100%);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .galaxy-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transition: left 0.6s ease;
+  }
+
+  .galaxy-btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .galaxy-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4.5);
+  }
+
+  .galaxy-btn-secondary {
+    background: rgba(102, 126, 234, 0.08);
+    backdrop-filter: blur(10px);
+    color: var(--color-galaxy-primary);
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    transition: all 0.2s ease;
+  }
+
+  .galaxy-btn-secondary:hover {
+    background: rgba(102, 126, 234, 0.16);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.25);
+    border-color: rgba(102, 126, 234, 0.7);
+  }
+
+  /* Card de Usuário */
+  .galaxy-user-card {
+    background: rgba(102, 126, 234, 0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(102, 126, 234, 0.15);
+    transition: all 0.2s ease;
+  }
+
+  .galaxy-user-card:hover {
+    background: rgba(102, 126, 234, 0.12);
+    border-color: rgba(102, 126, 234, 0.35);
+  }
+
+  /* Painel Mobile */
+  .galaxy-mobile-panel {
+    background: linear-gradient(135deg, rgba(10, 5, 20, 0.98) 0%, rgba(20, 10, 30, 0.98) 100%);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(102, 126, 234, 0.25);
+  }
+
+  .galaxy-mobile-link {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .galaxy-mobile-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.08), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .galaxy-mobile-link:hover::before {
+    left: 100%;
+  }
+
+  .galaxy-menu-btn {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .galaxy-menu-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.25), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .galaxy-menu-btn:hover::before {
+    opacity: 1;
+  }
 }
 
+/* Keyframes Globais Otimizados (Evitando saltos de renderização de hardware) */
 @keyframes neonPulse {
   0%, 100% {
-    box-shadow: 0 0 5px rgba(88, 101, 242, 0.2),
-                0 0 10px rgba(155, 89, 182, 0.1);
+    box-shadow: 0 0 5px rgba(88, 101, 242, 0.15), 0 0 10px rgba(155, 89, 182, 0.05);
     border-color: #404249;
   }
   50% {
-    box-shadow: 0 0 15px rgba(88, 101, 242, 0.5),
-                0 0 30px rgba(155, 89, 182, 0.3),
-                0 0 5px rgba(88, 101, 242, 0.8);
+    box-shadow: 0 0 12px rgba(88, 101, 242, 0.4), 0 0 24px rgba(155, 89, 182, 0.2);
     border-color: #5865f2;
   }
-}
-
-@keyframes neonPulseFast {
-  0%, 100% {
-    box-shadow: 0 0 10px rgba(88, 101, 242, 0.5),
-                0 0 20px rgba(155, 89, 182, 0.3);
-    border-color: #5865f2;
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(88, 101, 242, 0.8),
-                0 0 45px rgba(155, 89, 182, 0.5),
-                0 0 10px rgba(231, 76, 60, 0.3);
-    border-color: #9b59b6;
-  }
-}
-
-.glass-effect {
-  background: rgba(30, 31, 34, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(88, 101, 242, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.glass-effect-scrolled {
-  background: rgba(30, 31, 34, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(88, 101, 242, 0.4);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
-/* Animação da logo */
-.logo-image {
-  animation: gentlePulse 2s ease-in-out infinite;
-  transition: transform 0.3s ease;
-}
-
-.logo-image:hover {
-  transform: scale(1.05);
-  animation: none;
-}
-
-@keyframes gentlePulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 5px rgba(88, 101, 242, 0.3))
-            drop-shadow(0 0 8px rgba(155, 89, 182, 0.2));
-  }
-  50% {
-    filter: drop-shadow(0 0 12px rgba(88, 101, 242, 0.6))
-            drop-shadow(0 0 16px rgba(155, 89, 182, 0.4));
-  }
-}
-
-/* Botões */
-.btn-primary {
-  background-color: var(--color-blue-600);
-  color: white;
-  font-weight: 600;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.5rem;
-  transition: all 200ms;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-blue-700);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
-}
-
-.btn-secondary {
-  background-color: transparent;
-  color: var(--color-blue-600);
-  font-weight: 600;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-blue-600);
-  transition: all 200ms;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-secondary:hover {
-  background-color: var(--color-blue-600);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
-}
-
-/* Estilos Galaxy para o Header */
-.galaxy-header {
-  background: rgba(10, 5, 20, 0.7);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(88, 101, 242, 0.3);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.galaxy-header-scrolled {
-  background: rgba(10, 5, 20, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(88, 101, 242, 0.6);
-  box-shadow: 0 4px 30px rgba(88, 101, 242, 0.2);
-}
-
-/* Estrelas animadas */
-.stars, .stars-small {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.stars {
-  background-image: radial-gradient(2px 2px at 10% 20%, white, transparent),
-                    radial-gradient(1px 1px at 25% 45%, white, transparent),
-                    radial-gradient(3px 3px at 40% 10%, rgba(255,255,255,0.8), transparent),
-                    radial-gradient(1px 1px at 55% 70%, white, transparent),
-                    radial-gradient(2px 2px at 70% 30%, white, transparent),
-                    radial-gradient(1px 1px at 85% 55%, white, transparent);
-  background-repeat: no-repeat;
-  animation: twinkle 3s ease-in-out infinite;
-}
-
-.stars-small {
-  background-image: radial-gradient(1px 1px at 15% 85%, white, transparent),
-                    radial-gradient(1px 1px at 45% 90%, white, transparent),
-                    radial-gradient(2px 2px at 75% 85%, white, transparent),
-                    radial-gradient(1px 1px at 95% 15%, white, transparent),
-                    radial-gradient(1px 1px at 5% 50%, white, transparent);
-  background-repeat: no-repeat;
-  animation: twinkle 2s ease-in-out infinite reverse;
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
-
-/* Neblina cósmica */
-.nebula-glow {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at 30% 40%, rgba(88, 101, 242, 0.1), transparent 50%),
-              radial-gradient(circle at 70% 60%, rgba(155, 89, 182, 0.1), transparent 50%);
-  animation: nebula-drift 20s ease-in-out infinite;
-  pointer-events: none;
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.9; }
 }
 
 @keyframes nebula-drift {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(2%, 1%); }
-}
-
-/* Logo com efeito galáctico */
-.galaxy-logo {
-  filter: drop-shadow(0 0 10px rgba(88, 101, 242, 0.5));
-  transition: all 0.3s ease;
-  animation: galaxy-pulse 3s ease-in-out infinite;
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(1.5%, 0.8%) scale(1.02); }
 }
 
 @keyframes galaxy-pulse {
   0%, 100% {
-    filter: drop-shadow(0 0 5px rgba(88, 101, 242, 0.3))
-            drop-shadow(0 0 8px rgba(155, 89, 182, 0.2));
+    filter: drop-shadow(0 0 4px rgba(88, 101, 242, 0.25)) drop-shadow(0 0 6px rgba(155, 89, 182, 0.15));
   }
   50% {
-    filter: drop-shadow(0 0 15px rgba(88, 101, 242, 0.8))
-            drop-shadow(0 0 20px rgba(155, 89, 182, 0.5));
+    filter: drop-shadow(0 0 12px rgba(88, 101, 242, 0.6)) drop-shadow(0 0 16px rgba(155, 89, 182, 0.35));
   }
-}
-
-.galaxy-logo:hover {
-  animation: none;
-  transform: scale(1.05) rotate(5deg);
-  filter: drop-shadow(0 0 20px rgba(88, 101, 242, 0.9));
-}
-
-/* Texto galáctico */
-.galaxy-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
-}
-
-/* Links galácticos */
-.galaxy-link {
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.galaxy-link:hover {
-  text-shadow: 0 0 10px rgba(88, 101, 242, 0.5);
-}
-
-/* Botões galácticos */
-.galaxy-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-weight: 600;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.5rem;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.galaxy-btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.galaxy-btn-primary:hover::before {
-  left: 100%;
-}
-
-.galaxy-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-}
-
-.galaxy-btn-secondary {
-  background: rgba(102, 126, 234, 0.1);
-  backdrop-filter: blur(10px);
-  color: #667eea;
-  font-weight: 600;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(102, 126, 234, 0.5);
-  transition: all 0.3s ease;
-}
-
-.galaxy-btn-secondary:hover {
-  background: rgba(102, 126, 234, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.8);
-}
-
-/* Card do usuário */
-.galaxy-user-card {
-  background: rgba(102, 126, 234, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  transition: all 0.3s ease;
-}
-
-.galaxy-user-card:hover {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: rgba(102, 126, 234, 0.4);
-}
-
-/* Menu mobile galáctico */
-.galaxy-mobile-panel {
-  background: linear-gradient(135deg, rgba(10, 5, 20, 0.98) 0%, rgba(20, 10, 30, 0.98) 100%);
-  backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(102, 126, 234, 0.3);
-}
-
-.galaxy-mobile-link {
-  position: relative;
-  overflow: hidden;
-}
-
-.galaxy-mobile-link::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.galaxy-mobile-link:hover::before {
-  left: 100%;
-}
-
-/* Botão do menu */
-.galaxy-menu-btn {
-  position: relative;
-  overflow: hidden;
-}
-
-.galaxy-menu-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.3), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.galaxy-menu-btn:hover::before {
-  opacity: 1;
-}
 }
