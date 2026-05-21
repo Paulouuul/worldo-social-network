@@ -1,0 +1,37 @@
+worldo-public/
+├── avatars/
+│   └── {userId}/
+│       └── current.{jpg|png|gif|webp}
+│
+├── covers/
+│   └── {userId}/
+│       └── current.{jpg|png|webp}
+│
+├── posts/
+│   └── {userId}/
+│       └── {postId}/
+│           ├── {timestamp}.{jpg|png|gif|webp}
+│           └── {timestamp}.mp4 (se for vídeo)
+│
+├── frames/
+│   └── {frameId}/
+│       ├── image.png (moldura em PNG com transparência)
+│       └── thumbnail.png (versão reduzida)
+│
+└── comments/
+    └── {commentId}/
+        └── {timestamp}.{jpg|png|gif} (imagens em comentários)
+
+worldo-private/
+└── chat_messages/
+    └── {chatId}/
+        └── {messageId}/
+            └── {timestamp}.{jpg|png|gif|mp4}
+
+
+
+lib/r2.ts - Cliente R2
+
+lib/r2-upload.ts - Funções de upload
+
+app/api/upload/avatar/route.ts - API de upload de avatar

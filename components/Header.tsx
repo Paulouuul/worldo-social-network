@@ -21,9 +21,18 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    console.log('Sessão atualizada - image:', session?.user?.avatar)
+  }, [session])
+
   // Fechar menu ao clicar em um link
   const handleLinkClick = () => {
     setIsMenuOpen(false)
+  }
+
+  // Helper para obter a inicial do nome/email
+  const getUserInitial = () => {
+    return session?.user?.name?.[0] || session?.user?.email?.[0]?.toUpperCase() || '?'
   }
 
   return (
@@ -90,20 +99,20 @@ export default function Header() {
               ) : (
                 <>
                   <div className="flex items-center gap-3 galaxy-user-card px-3 py-1.5 rounded-lg">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">
-                        {session.user?.image ? (
-                            <img 
-                            src={session.user.image} 
-                            alt="Avatar" 
-                            className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <span className="text-white text-sm font-bold">
-                            {session.user?.name?.[0] || session.user?.email?.[0]?.toUpperCase()}
-                            </span>
-                        )}
-                      </span>
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center relative">
+                      {session.user?.avatar && session.user.avatar !== "None" ? (
+                        <Image 
+                          src={session.user.avatar} 
+                          alt="Avatar" 
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-white text-sm font-bold">
+                          {getUserInitial()}
+                        </span>
+                      )}
                     </div>
                     <span className="text-sm">
                       Olá, {session.user?.name || session.user?.email?.split('@')[0]}
@@ -158,26 +167,26 @@ export default function Header() {
           {isLoggedIn && (
             <div className="px-6 pb-6 mb-6 border-b border-purple-500/20 relative">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                  <span className="text-white text-lg font-bold">
-                   {session.user?.image ? (
-                            <img 
-                            src={session.user.image} 
-                            alt="Avatar" 
-                            className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <span className="text-white text-sm font-bold">
-                            {session.user?.name?.[0] || session.user?.email?.[0]?.toUpperCase()}
-                            </span>
-                    )}
-                  </span>
+                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                  {session.user?.avatar && session.user.avatar !== "None" ? (
+                    <Image 
+                      src={session.user.avatar} 
+                      alt="Avatar" 
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-base font-bold">
+                      {getUserInitial()}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <p className="text-white font-medium">
                     {session.user?.name || session.user?.email?.split('@')[0]}
                   </p>
-                  <p className="text-xs mt-1">
+                  <p className="text-xs mt-1 text-gray-400">
                     {session.user?.email}
                   </p>
                 </div>
@@ -205,7 +214,7 @@ export default function Header() {
                 >
                   <i className="bi bi-person text-xl group-hover:scale-110 transition-transform"></i>
                   <span>Perfil</span>
-                </Link>
+                </                Link>
                 <Link 
                   href="/explorar" 
                   onClick={handleLinkClick}

@@ -22,6 +22,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.googleusercontent.com',
       },
+       {
+        protocol: 'https',
+        hostname: 'pub-*.r2.dev',  // ← ADICIONAR PARA R2
+      },
     ],
   },
 }

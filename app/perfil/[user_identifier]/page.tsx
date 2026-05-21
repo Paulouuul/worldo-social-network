@@ -82,9 +82,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           {/* Avatar */}
           <div className="absolute -top-12 left-6">
             <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-800 border-4 border-gray-800 shadow-lg">
-              {user.avatar || user.image ? (
+              {user.avatar && user.avatar !== "None" ? (
                 <Image
-                  src={user.avatar || user.image || ''}
+                  src={user.avatar || ''}
                   alt={user.name || 'Avatar'}
                   fill
                   className="object-cover"

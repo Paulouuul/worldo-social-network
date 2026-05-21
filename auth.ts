@@ -55,7 +55,7 @@ const customAdapter = {
         email: user.email,
         name: user.name,
         username: await generateUniqueUsername(user.email.split('@')[0]),
-        image: user.image,
+        avatar: user.avatar,
         emailVerified: user.emailVerified,
       }
     })
@@ -65,7 +65,7 @@ const customAdapter = {
       email: newUser.email,
       name: newUser.name,
       username: newUser.username,
-      image: newUser.image,
+      avatar: newUser.avatar,
       emailVerified: newUser.emailVerified,
     }
   },
@@ -77,7 +77,7 @@ const customAdapter = {
       email: user.email,
       name: user.name,
       username: user.username,
-      image: user.image,
+      avatar: user.avatar,
       emailVerified: user.emailVerified,
     } : null
   },
@@ -89,7 +89,7 @@ const customAdapter = {
       email: user.email,
       name: user.name,
       username: user.username,
-      image: user.image,
+      avatar: user.avatar,
       emailVerified: user.emailVerified,
     } : null
   },
@@ -104,7 +104,7 @@ const customAdapter = {
       email: account.users.email,
       name: account.users.name,
       username: account.users.username,
-      image: account.users.image,
+      avatar: account.users.avatar,
       emailVerified: account.users.emailVerified,
     } : null
   },
@@ -113,7 +113,7 @@ const customAdapter = {
       where: { id: user.id },
       data: {
         name: user.name,
-        image: user.image,
+        avatar: user.avatar,
         emailVerified: user.emailVerified,
       }
     })
@@ -122,7 +122,7 @@ const customAdapter = {
       publicId: updated.publicId,
       email: updated.email,
       name: updated.name,
-      image: updated.image,
+      avatar: updated.avatar,
       emailVerified: updated.emailVerified,
     }
   },
@@ -211,7 +211,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           username: user.username,
-          image: user.image,
+          avatar: user.avatar,
         }
       }
     })
@@ -232,14 +232,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       token.name = user.name
       token.username = user.username
       token.email = user.email
-      token.image = user.image
+      token.avatar = user.avatar
     }
     
     // Quando o perfil é atualizado (trigger = 'update')
     if (trigger === 'update' && session?.user) {
       if (session.user.name) token.name = session.user.name
       if (session.user.username) token.username = session.user.username
-      if (session.user.image) token.image = session.user.image
+      if (session.user.avatar) token.avatar = session.user.avatar
     }
     
     return token
@@ -251,7 +251,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.name = token.name as string
       session.user.username = token.username as string
       session.user.email = token.email as string
-      session.user.image = token.image as string
+      session.user.avatar = token.avatar as string
     }
     return session
   }

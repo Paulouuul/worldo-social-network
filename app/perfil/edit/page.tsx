@@ -19,42 +19,82 @@ export default function EditProfilePage() {
     website: '',
     avatar: '',
   })
+  // Estado para controle do upload
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string>('')
+  const [removeAvatar, setRemoveAvatar] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const hasFetched = useRef(false)
+
   useEffect(() => {
-  if (session?.user?.id && !hasFetched.current) {
-    hasFetched.current = true
+    if (session?.user?.id && !hasFetched.current) {
+      hasFetched.current = true
 
-    setFormData({
-      name: session.user.name || '',  // ← da sessão (rápido)
-      username: session.user.username || '',
-      avatar: session.user.image || '', // ← da sessão
-      bio: '',  // será preenchido pelo banco
-      location: '',
-      website: '',
-    })
-    
-    // Busca dados complementares no banco
-    fetch(`/api/user/${session.user.id}`)
-      .then(res => res.json())
-      .then(data => {
-        setFormData(prev => ({
-          ...prev,
-          username: data.username || prev.username,
-          bio: data.bio || '',
-          location: data.location || '',
-          website: data.website || '',
-        }))
+      setFormData({
+        name: session.user.name || '',
+        username: session.user.username || '',
+        avatar: session.user.avatar || '',
+        bio: '',
+        location: '',
+        website: '',
       })
-  }
-}, [session])
-
-  // if (status === 'loading') {
-  //   return <div className="text-center py-12">Carregando...</div>
-  // }
+      setAvatarPreview(session.user.avatar || '')
+      
+      fetch(`/api/user/${session.user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          setFormData(prev => ({
+            ...prev,
+            username: data.username || prev.username,
+            bio: data.bio || '',
+            location: data.location || '',
+            website: data.website || '',
+            avatar: data.avatar || prev.avatar,
+          }))
+          setAvatarPreview(data.avatar || session.user.avatar || 'None')
+        })
+    }
+  }, [session])
 
   if (!session?.user) {
-    redirect('/login/');
+    redirect('/login/')
     return null
+  }
+
+  // Handle file selection
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validar tipo
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setError('Formato não suportado. Use JPG, PNG, GIF ou WEBP.')
+      return
+    }
+
+    // Validar tamanho (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Arquivo muito grande. Máximo 5MB.')
+      return
+    }
+
+    setAvatarFile(file)
+    setRemoveAvatar(false)
+    // Criar preview local
+    const previewUrl = URL.createObjectURL(file)
+    setAvatarPreview(previewUrl)
+    setError('')
+  }
+
+  // Handle remove avatar
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null)
+    setRemoveAvatar(true)
+    setAvatarPreview('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,24 +104,50 @@ export default function EditProfilePage() {
     setSuccess('')
 
     try {
+      const submitData = new FormData()
+      submitData.append('name', formData.name)
+      submitData.append('username', formData.username)
+      submitData.append('bio', formData.bio)
+      submitData.append('location', formData.location)
+      submitData.append('website', formData.website)
+      
+      if (avatarFile) {
+        submitData.append('avatar', avatarFile)
+      }
+      
+      if (removeAvatar) {
+        submitData.append('removeAvatar', 'true')
+      }
+
       const res = await fetch('/api/user/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: submitData,  // Não colocar headers Content-Type
       })
 
       const data = await res.json()
+      console.log('Dados retornados da API:', data)  // ← ADICIONAR
 
       if (!res.ok) {
         setError(data.error || 'Erro ao atualizar perfil')
-        window.scrollTo({ top: 0})
+        window.scrollTo({ top: 0 })
       } else {
         setSuccess('Perfil atualizado com sucesso!')
-        window.scrollTo({ top: 0})
+        window.scrollTo({ top: 0 })
+        
+        // Atualizar sessão com novos dados
         await update({
           ...session,
-          user: { ...session.user, ...formData,}
+          user: { 
+            ...session.user, 
+            ...data.user,
+            avatar: data.user.avatar || "None", 
+          }
         })
+        
+        // Limpar estados do upload
+        setAvatarFile(null)
+        setRemoveAvatar(false)
+        
         setTimeout(() => setSuccess(''), 1500)
       }
     } catch (err) {
@@ -89,6 +155,12 @@ export default function EditProfilePage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCancel = () => {
+      // Voltar para o perfil com refresh
+      router.push(`/perfil/${session.user?.id}`)
+      router.refresh()
   }
 
   return (
@@ -109,6 +181,60 @@ export default function EditProfilePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Avatar Upload */}
+          <div>
+            <label className="block mb-2">Foto de perfil</label>
+            <div className="flex items-center gap-4">
+              {/* Preview do avatar */}
+              <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-700">
+                {avatarPreview && avatarPreview !== "None" ? (
+                  <Image
+                    src={avatarPreview}
+                    alt="Preview"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-2xl bg-purple-600">
+                    {formData.name?.[0]?.toUpperCase() || '?'}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                  id="avatar-upload"
+                  disabled={loading}
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="btn-secondary cursor-pointer inline-block text-center"
+                >
+                  Escolher arquivo
+                </label>
+                
+                {(avatarPreview || formData.avatar) && !removeAvatar && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="ml-2 text-red-400 hover:text-red-300 text-sm"
+                    disabled={loading}
+                  >
+                    Remover
+                  </button>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  JPG, PNG, GIF ou WEBP. Máximo 5MB.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block mb-2">Nome de usuário</label>
             <input
@@ -122,6 +248,7 @@ export default function EditProfilePage() {
             />
             <p className="text-xs text-gray-500 mt-1">Apenas letras, números e underline. 3-30 caracteres.</p>
           </div>
+
           <div>
             <label className="block mb-2">Nome</label>
             <input
@@ -171,25 +298,13 @@ export default function EditProfilePage() {
             />
           </div>
 
-          <div>
-            <label className="block mb-2">Foto de perfil (URL)</label>
-            <input
-              type="url"
-              value={formData.avatar}
-              onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-              className="input"
-              disabled={loading}
-              placeholder="https://exemplo.com/foto.jpg"
-            />
-          </div>
-
           <div className="flex gap-4 pt-4">
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? 'Salvando...' : 'Salvar Alterações'}
             </button>
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={handleCancel}
               className="btn-secondary"
             >
               Cancelar
