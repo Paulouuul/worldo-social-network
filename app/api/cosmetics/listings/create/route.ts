@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
     console.log('[LISTING] Frame encontrado:', frame.name)
 
-    // Verificar se o usuário tem este frame no inventário
+    // Verificar se o usuário tem este frame no inventário (não listados)
     console.log('[LISTING] Buscando itens do usuário...')
     const userItems = await prisma.user_frame_item.findMany({
       where: {
@@ -54,22 +54,52 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Criar o anúncio
-    console.log('[LISTING] Iniciando transação...')
-    const listing = await prisma.$transaction(async (tx) => {
-      console.log('[LISTING] Criando listing...')
-      const newListing = await tx.cosmetic_listing.create({
-        data: {
-          frameId,
-          sellerId: session.user.id,
-          quantity,
-          priceCoins,
-          isActive: true,
-        }
-      })
-      console.log('[LISTING] Listing criado:', newListing.id)
+    // 🔥 NOVA LÓGICA: Verificar se já existe um anúncio ativo para este frame
+    console.log('[LISTING] Verificando anúncio existente para este frame...')
+    const existingListing = await prisma.cosmetic_listing.findFirst({
+      where: {
+        frameId: frameId,
+        sellerId: session.user.id,
+        isActive: true,
+      }
+    })
 
-      // Marcar os itens como listados
+    // Criar ou atualizar o anúncio
+    console.log('[LISTING] Iniciando transação...')
+    const result = await prisma.$transaction(async (tx) => {
+      let listing
+      
+      if (existingListing) {
+        // 🔥 ATUALIZAR ANÚNCIO EXISTENTE
+        console.log('[LISTING] Anúncio existente encontrado:', existingListing.id)
+        console.log(`[LISTING] Quantidade atual: ${existingListing.quantity}, Adicionando: ${quantity}`)
+        
+        // Atualizar a quantidade do anúncio existente
+        listing = await tx.cosmetic_listing.update({
+          where: { id: existingListing.id },
+          data: {
+            quantity: existingListing.quantity + quantity,
+            priceCoins: priceCoins, // Opcional: atualiza o preço ou mantém o antigo?
+            updatedAt: new Date()
+          }
+        })
+        console.log('[LISTING] Anúncio atualizado:', listing.id)
+      } else {
+        // 🔥 CRIAR NOVO ANÚNCIO
+        console.log('[LISTING] Criando novo anúncio...')
+        listing = await tx.cosmetic_listing.create({
+          data: {
+            frameId,
+            sellerId: session.user.id,
+            quantity,
+            priceCoins,
+            isActive: true,
+          }
+        })
+        console.log('[LISTING] Novo anúncio criado:', listing.id)
+      }
+
+      // Marcar os itens como listados (usando o listingId correto)
       const itemsToUpdate = userItems.slice(0, quantity)
       console.log(`[LISTING] Marcando ${itemsToUpdate.length} itens como listados...`)
       
@@ -80,19 +110,24 @@ export async function POST(request: NextRequest) {
         data: {
           isListed: true,
           resalePrice: priceCoins,
-          listingId: newListing.id,
+          listingId: listing.id, // Usa o ID do anúncio (novo ou existente)
         }
       })
       console.log('[LISTING] Itens atualizados')
 
-      return newListing
+      return { listing, isNew: !existingListing }
     })
 
-    console.log('🎉 [LISTING] Anúncio criado com sucesso!')
+    const mensagem = result.isNew
+      ? `${quantity} unidade(s) colocadas à venda por ${priceCoins} moedas cada!`
+      : `${quantity} unidade(s) adicionadas ao anúncio existente! Total: ${result.listing.quantity} unidades`
+
+    console.log('🎉 [LISTING] Operação concluída com sucesso!', mensagem)
     return NextResponse.json({ 
       success: true, 
-      listing,
-      message: `${quantity} unidade(s) colocadas à venda por ${priceCoins} moedas cada!`
+      listing: result.listing,
+      isNewListing: result.isNew,
+      message: mensagem
     }, { status: 201 })
 
   } catch (error: any) {

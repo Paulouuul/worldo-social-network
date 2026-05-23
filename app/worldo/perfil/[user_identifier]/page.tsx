@@ -35,7 +35,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     where: {
       OR: [
         { publicId: decodedUsername },
-        { id: decodedUsername },
         { username: decodedUsername }
       ]
     },

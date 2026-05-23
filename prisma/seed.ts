@@ -109,7 +109,6 @@ async function main() {
       thumbnailUrl: "/frames/dourada-thumb.png",
       rarity: "RARO",
       stock: 10,
-      priceCoins: 200,
       createdBy: adminUser.id,
     },
     {
@@ -119,7 +118,6 @@ async function main() {
       thumbnailUrl: "/frames/neon-thumb.png",
       rarity: "EPICO",
       stock: 5,
-      priceCoins: 500,
       createdBy: adminUser.id,
     },
     {
@@ -129,7 +127,6 @@ async function main() {
       thumbnailUrl: "/frames/mistica-thumb.png",
       rarity: "LENDARIO",
       stock: 2,
-      priceCoins: 1000,
       createdBy: adminUser.id,
     },
   ]
@@ -147,7 +144,7 @@ async function main() {
     } else {
       await prisma.cosmetic_frame.create({ data: frame })
     }
-    console.log(`Moldura: ${frame.name} (${frame.rarity}) - ${frame.priceCoins} moedas`)
+    console.log(`Moldura: ${frame.name} (${frame.rarity})`)
   }
 
   console.log('Seed completed!')

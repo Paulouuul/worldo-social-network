@@ -125,6 +125,7 @@ model comment {
   postId     String
   content    String   @db.Text
   createdAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
   deletedAt DateTime?
   
   user       users    @relation(fields: [userId], references: [id])
@@ -180,6 +181,7 @@ model chat_member {
   userId     String
   role       String   @default("member") // owner, admin, member
   joinedAt   DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   
   chat      chat    @relation(fields: [chatId], references: [id], onDelete: Cascade)
   user       users    @relation(fields: [userId], references: [id])
@@ -265,6 +267,7 @@ model cosmetic_frame {
   isActive     Boolean  @default(true)
   createdBy    String
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   deletedAt    DateTime?
   totalSales   Int      @default(0)
   items user_frame_item[]
@@ -294,6 +297,8 @@ model cosmetic_purchase {
   sellerEarnings Int
   purchasedAt    DateTime @default(now())
   items user_frame_item[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt  // ← ADICIONAR
   
   frame          cosmetic_frame @relation(fields: [frameId], references: [id], onDelete: Cascade)
   buyer          users          @relation("buyer_purchases", fields: [buyerId], references: [id])
@@ -365,6 +370,7 @@ model user_frame_item {
   isListed   Boolean  @default(false)
   resalePrice Int?    
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   soldAt     DateTime?
   soldTo     String?
   isEquipped Boolean  @default(false)

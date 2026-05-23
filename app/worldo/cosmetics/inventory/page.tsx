@@ -11,13 +11,32 @@ import {
   Store, Box, Coins, MinusCircle, Edit2, ArrowLeft 
 } from 'lucide-react'
 
-// ... (Interfaces)
-interface InventoryItem {
+// // ... (Interfaces)
+// interface InventoryItem {
+//   id: string
+//   frameId: string
+//   isListed: boolean
+//   resalePrice: number | null
+//   listingId?: string | null
+//   count: number
+//   frame: {
+//     id: string
+//     name: string
+//     description: string
+//     thumbnailUrl: string
+//     imageUrl: string
+//     rarity: string
+//     stock: number
+//   }
+// }
+
+interface GroupedItem {
   id: string
   frameId: string
   isListed: boolean
   resalePrice: number | null
   listingId?: string | null
+  count: number
   frame: {
     id: string
     name: string
@@ -27,10 +46,6 @@ interface InventoryItem {
     rarity: string
     stock: number
   }
-}
-
-interface GroupedItem extends InventoryItem {
-  count: number
 }
 
 type FilterType = 'all' | 'listed' | 'unlisted'
@@ -97,10 +112,14 @@ const rarityDesigns: Record<string, {
 
 export default function MyCosmeticsPage() {
   const { data: session, status } = useSession()
-  const [items, setItems] = useState<InventoryItem[]>([])
+  const [items, setItems] = useState<GroupedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterType>('unlisted')
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [statsData, setStatsData] = useState({ all: 0, listed: 0, unlisted: 0 })
   
   const [selectedItem, setSelectedItem] = useState<GroupedItem | null>(null)
   const [modalMode, setModalMode] = useState<ModalMode>(null)
@@ -111,6 +130,7 @@ export default function MyCosmeticsPage() {
   const [successMessage, setSuccessMessage] = useState('')
 
   const hasInitialized = useRef(false)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
   
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
   
@@ -120,24 +140,52 @@ export default function MyCosmeticsPage() {
     return rarityDesigns[selectedItem.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
   }, [selectedItem]);
 
-  const fetchInventory = async () => {
+  const fetchInventory = async (page: number, isLoadMore = false) => {
     try {
-      const res = await fetch(`/api/cosmetics/inventory`)
+      if (isLoadMore) {
+        setLoadingMore(true)
+      } else {
+        setLoading(true)
+      }
+      
+      const res = await fetch(`/api/cosmetics/inventory/grouped?page=${page}&limit=32&filter=${activeFilter}`)
       if (!res.ok) throw new Error('Falha ao sincronizar inventário')
+      
       const data = await res.json()
-      setItems(data)
+      
+      if (isLoadMore) {
+        setItems(prev => [...prev, ...data.items])
+      } else {
+        setItems(data.items)
+      }
+      
+      setHasMore(data.pagination.hasNextPage)
+      setCurrentPage(page)
+      
     } catch (err) {
       console.error('Erro ao processar inventário:', err)
       setErrorMessage('Não foi possível atualizar seu inventário.')
     } finally {
       setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/cosmetics/inventory/stats')
+      const data = await res.json()
+      setStatsData(data)
+    } catch (err) {
+      console.error('Erro ao buscar stats:', err)
     }
   }
 
   useEffect(() => {
-    if (status !== 'authenticated' || !session?.user?.id || hasInitialized.current) return
-    hasInitialized.current = true
-    fetchInventory()
+  if (status !== 'authenticated' || !session?.user?.id || hasInitialized.current) return
+  hasInitialized.current = true
+  fetchStats()
+  fetchInventory(1, false)
   }, [session, status])
   useEffect(() => {
     if (!session?.user) return
@@ -172,30 +220,52 @@ export default function MyCosmeticsPage() {
     }
   }, [successMessage]);
 
-  const fullInventoryList = useMemo(() => {
-    const grouped = items.reduce((acc, item) => {
-      const key = `${item.frameId}-${item.isListed}`
-      if (!acc[key]) {
-        acc[key] = { ...item, count: 0, listingId: item.listingId }
-      }
-      acc[key].count++
-      return acc
-    }, {} as Record<string, GroupedItem>)
-    return Object.values(grouped)
-  }, [items])
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.id) {
+      setItems([])
+      setCurrentPage(1)
+      setHasMore(true)
+      fetchInventory(1, false)
+    }
+  }, [activeFilter])
 
-  const stats = useMemo(() => {
-    const allItems = fullInventoryList.reduce((acc, item) => acc + item.count, 0)
-    const listedItems = fullInventoryList.filter(item => item.isListed).reduce((acc, item) => acc + item.count, 0)
-    const unlistedItems = allItems - listedItems
-    return { all: allItems, listed: listedItems, unlisted: unlistedItems }
-  }, [fullInventoryList])
+  useEffect(() => {
+    if (loading || loadingMore || !hasMore) return
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          fetchInventory(currentPage + 1, true)
+        }
+      },
+      { threshold: 0.1 }
+    )
+    
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current)
+    }
+    
+    return () => observer.disconnect()
+  }, [loading, loadingMore, hasMore, currentPage])
+  const fullInventoryList = items
+  // const fullInventoryList = useMemo(() => {
+  //   const grouped = items.reduce((acc, item) => {
+  //     const key = `${item.frameId}-${item.isListed}`
+  //     if (!acc[key]) {
+  //       acc[key] = { ...item, count: 0, listingId: item.listingId }
+  //     }
+  //     acc[key].count++
+  //     return acc
+  //   }, {} as Record<string, GroupedItem>)
+  //   return Object.values(grouped)
+  // }, [items])
+
 
   const displayedInventory = useMemo(() => {
-    if (activeFilter === 'all') return fullInventoryList
-    if (activeFilter === 'listed') return fullInventoryList.filter(item => item.isListed)
-    return fullInventoryList.filter(item => !item.isListed)
-  }, [fullInventoryList, activeFilter])
+    if (activeFilter === 'all') return items
+    if (activeFilter === 'listed') return items.filter(item => item.isListed)
+    return items.filter(item => !item.isListed)
+  }, [items, activeFilter])
 
   const handleOpenItem = (item: GroupedItem) => {
     setSelectedItem(item)
@@ -242,7 +312,8 @@ export default function MyCosmeticsPage() {
       const data = await res.json()
       if (res.ok) {
         setSuccessMessage('Anúncio publicado no mercado!')
-        await fetchInventory()
+        await fetchInventory(1, false)
+        await fetchStats()
         setTimeout(closeModal, 1500)
       } else {
         setErrorMessage(data.error || 'Erro na validação do anúncio.')
@@ -256,7 +327,20 @@ export default function MyCosmeticsPage() {
 
   const handleUpdatePrice = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedItem?.listingId || submitting) return
+    console.log('🔵 [FRONTEND] handleUpdatePrice chamado', { 
+    listingId: selectedItem?.listingId, 
+    price,
+    submitting,
+    selectedItem: selectedItem
+  })
+  
+  if (!selectedItem?.listingId || submitting) {
+    console.log('🔴 [FRONTEND] Bloqueado:', { 
+      hasListingId: !!selectedItem?.listingId, 
+      submitting 
+    })
+    return
+  }
     setSubmitting(true)
     setErrorMessage('')
     try {
@@ -268,7 +352,7 @@ export default function MyCosmeticsPage() {
       const data = await res.json()
       if (res.ok) {
         setSuccessMessage('Preço atualizado com sucesso!')
-        await fetchInventory()
+        await fetchInventory(1, false)
         setSelectedItem({ ...selectedItem, resalePrice: price })
         setTimeout(() => setModalMode('view'), 1000)
       } else {
@@ -295,7 +379,8 @@ export default function MyCosmeticsPage() {
       const data = await res.json()
       if (res.ok) {
         setSuccessMessage(`${quantity} unidade(s) retiradas do mercado!`)
-        await fetchInventory()
+        await fetchInventory(1, false)
+        await fetchStats()
         if (quantity >= selectedItem.count) {
           setTimeout(closeModal, 1500)
         } else {
@@ -349,7 +434,7 @@ export default function MyCosmeticsPage() {
           </h1>
           <p className="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium">Gerencie seu inventário e comercialize suas molduras</p>
         </div>
-        {fullInventoryList.length > 0 && (
+        {items.length > 0 && (
           <Link 
             href="/worldo/cosmetics/create" 
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50 text-purple-300 py-3 sm:py-2.5 px-5 rounded-xl transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold shadow-lg shadow-purple-900/10"
@@ -361,13 +446,13 @@ export default function MyCosmeticsPage() {
 
       <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-8 bg-slate-900/60 border border-slate-800/80 rounded-xl p-1.5 w-full sm:w-fit shadow-inner backdrop-blur-sm">
         <button onClick={() => setActiveFilter('unlisted')} className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'unlisted' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}>
-          <Box className="w-4 h-4 shrink-0" /> <span className="hidden min-[400px]:inline">Disponíveis</span> <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{stats.unlisted}</span>
+          <Box className="w-4 h-4 shrink-0" /> <span className="hidden min-[400px]:inline">Disponíveis</span> <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{statsData.unlisted}</span>
         </button>
         <button onClick={() => setActiveFilter('listed')} className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'listed' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}>
-          <Store className="w-4 h-4 shrink-0" /> <span className="hidden min-[400px]:inline">No Mercado</span> <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{stats.listed}</span>
+          <Store className="w-4 h-4 shrink-0" /> <span className="hidden min-[400px]:inline">No Mercado</span> <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{statsData.listed}</span>
         </button>
         <button onClick={() => setActiveFilter('all')} className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'all' ? 'bg-slate-700 text-white shadow-lg shadow-slate-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}>
-          <Package className="w-4 h-4 shrink-0" /> Todos <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{stats.all}</span>
+          <Package className="w-4 h-4 shrink-0" /> Todos <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{statsData.all}</span>
         </button>
       </div>
 
@@ -388,6 +473,16 @@ export default function MyCosmeticsPage() {
             )
           })}
       </div>
+
+      {loadingMore && (
+        <div className="flex justify-center py-8">
+          <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+        </div>
+      )}
+
+      {hasMore && !loading && !loadingMore && (
+        <div ref={loadMoreRef} className="h-10" />
+      )}
 
       {/* MODAL TEMÁTICO */}
       {selectedItem && modalMode && (
