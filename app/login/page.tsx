@@ -3,13 +3,17 @@
 import { Suspense, useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ClientImage } from '@/components/ClientImage' 
+import { useSession } from 'next-auth/react'
+import { auth } from '@/auth'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Sparkles, Mail, Lock, LogIn, ArrowRight } from 'lucide-react'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { status } = useSession()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -74,12 +78,13 @@ function LoginContent() {
         {/* Espaço para a Logo / Header */}
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="relative w-48 h-16 mb-4">
-            <Image
+            <ClientImage
               src="/worldo_logo.png"
               alt="Logo Worldo"
               fill
               className="object-contain"
-              priority
+              priority 
+              draggable={false}
             />
           </div>
           <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 flex items-center gap-2 tracking-wide uppercase">
@@ -167,7 +172,7 @@ function LoginContent() {
         {/* Provedores OAuth com SVG customizado */}
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => signIn('google', { callbackUrl: '/' })}
+            onClick={() => signIn('google', { callbackUrl: '/worldo' })}
             className="flex items-center justify-center gap-2 bg-slate-950 border border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white py-2.5 px-4 rounded-xl transition text-xs font-semibold"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
@@ -180,7 +185,7 @@ function LoginContent() {
           </button>
           
           <button
-            onClick={() => signIn('github', { callbackUrl: '/' })}
+            onClick={() => signIn('github', { callbackUrl: '/worldo' })}
             className="flex items-center justify-center gap-2 bg-slate-950 border border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white py-2.5 px-4 rounded-xl transition text-xs font-semibold"
           >
             <svg className="w-4 h-4 fill-current text-slate-400" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

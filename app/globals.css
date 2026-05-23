@@ -394,3 +394,50 @@
     filter: drop-shadow(0 0 12px rgba(88, 101, 242, 0.6)) drop-shadow(0 0 16px rgba(155, 89, 182, 0.35));
   }
 }
+
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+img[draggable="true"] {
+  -webkit-user-drag: element;
+}
+
+/* Proteção extra para imagens Next.js */
+img[data-nimg] {
+  -webkit-user-drag: none;
+  user-drag: none;
+  user-select: none;
+}
+
+/* Previne seleção de texto acidental em imagens */
+img::selection {
+  background: none;
+  color: transparent;
+}
+
+video {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Remove botão de download do Chrome em vídeos */
+video::-internal-media-controls-download-button {
+  display: none;
+}
+
+video::-webkit-media-controls-enclosure {
+  overflow: hidden;
+}
+
+video::-webkit-media-controls-panel {
+  width: calc(100% + 30px);
+}
+
+/* Protege imagens de fundo também */
+* {
+  -webkit-tap-highlight-color: transparent;
+}

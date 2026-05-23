@@ -1,11 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import { ClientImage } from '@/components/ClientImage' 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+
 import { LogoutButton } from '@/components/LogoutButton'
 import { CoinBalance } from '@/components/CoinBalance'
+import { AvatarWithFrame } from './AvatarWithFrame'
+
 import { 
   Home, 
   User, 
@@ -17,11 +21,11 @@ import {
 } from 'lucide-react'
 
 export default function Header() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const isLoggedIn = !!session
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-
+  const router = useRouter();
   // Detectar scroll para mudar o estilo do header
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +34,11 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  if (status === 'loading') return null
+  if (status !== 'authenticated') return null
+
+  
 
   // Fechar menu ao clicar em um link
   const handleLinkClick = () => {
@@ -40,7 +49,6 @@ export default function Header() {
   const getUserInitial = () => {
     return session?.user?.name?.[0] || session?.user?.email?.[0]?.toUpperCase() || '?'
   }
-
   return (
     <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 antialiased ${
@@ -62,7 +70,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-3 group shrink-0 select-none">
               <div className="relative w-9 h-9 md:w-10 md:h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-[1px] shadow-[0_0_15px_rgba(147,51,234,0.3)] group-hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300 transform group-hover:scale-[1.02]">
                 <div className="w-full h-full bg-slate-950 rounded-[11px] overflow-hidden flex items-center justify-center">
-                  <Image 
+                  <ClientImage 
                     src="/worldo_icon.png" 
                     alt="Worldo Logo Icon"
                     width={40}
@@ -90,7 +98,7 @@ export default function Header() {
               {isLoggedIn && (
                 <>
                   <Link 
-                    href="/perfil" 
+                    href="/worldo/perfil" 
                     className="px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
                   >
                     <span>Perfil</span>
@@ -108,45 +116,19 @@ export default function Header() {
             </nav>
 
             {/* Desktop Actions */}
-            <div className="hidden md:flex items-center gap-4">
-              {!isLoggedIn ? (
-                <div className="flex items-center gap-3">
-                  <Link 
-                    href="/login" 
-                    className="galaxy-btn-primary flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider py-2.5 px-5 rounded-xl border border-white/5 bg-white/5 text-white hover:bg-white/10 transition-all"
-                  >
-                    <LogIn className="w-3.5 h-3.5" />
-                    <span>Entrar</span>
-                  </Link>
-                  <Link 
-                    href="/register" 
-                    className="galaxy-btn-secondary flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider py-2.5 px-5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/20 hover:opacity-95 transition-all"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>Cadastrar</span>
-                  </Link>
-                </div>
-              ) : (
+            <div className="hidden md:flex">
                 <div className="flex items-center gap-4">
                   <CoinBalance />
                   
                   {/* Cartão de Usuário Glassmorphic */}
                   <div className="flex items-center gap-3 galaxy-user-card bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl backdrop-blur-sm shadow-inner">
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 flex items-center justify-center relative ring-2 ring-white/10">
-                      {session.user?.avatar && session.user.avatar !== "None" ? (
-                        <Image 
-                          src={session.user.avatar} 
-                          alt="Avatar" 
-                          width={32}
-                          height={32}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-white text-xs font-black tracking-tight">
-                          {getUserInitial()}
-                        </span>
-                      )}
-                    </div>
+                          <AvatarWithFrame 
+                            avatarUrl={session.user?.avatar}
+                            name={session?.user?.name} 
+                            frameUrl={(session.user as any)?.equippedFrame?.imageUrl}
+                            rarity={(session.user as any)?.equippedFrame?.rarity || 'COMUM'}
+                            size="smsm" // Defina um tamanho pequeno para o Header
+                          />
                     <span className="text-xs font-medium text-slate-200 pr-1 max-w-[120px] truncate">
                       Olá, {session.user?.name || session.user?.email?.split('@')[0]}
                     </span>
@@ -154,7 +136,6 @@ export default function Header() {
                   
                   <LogoutButton />
                 </div>
-              )}
             </div>
 
             {/* Mobile Menu Trigger */}
@@ -192,7 +173,7 @@ export default function Header() {
           <div className="px-6 pb-4 flex items-center gap-3 border-b border-white/5">
             <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-tr from-blue-600 to-purple-600 p-[1px]">
               <div className="w-full h-full bg-slate-950 rounded-[7px] overflow-hidden flex items-center justify-center">
-                <Image 
+                <ClientImage 
                   src="/worldo_icon.png" 
                   alt="Worldo Logo Icon"
                   width={32}
@@ -210,22 +191,14 @@ export default function Header() {
           {isLoggedIn && (
             <div className="px-5 py-4 mb-2 border-b border-white/5">
               <div className="flex items-center gap-3 bg-white/5 border border-white/5 p-3 rounded-2xl">
-                <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center shrink-0 ring-2 ring-white/10">
-                  {session.user?.avatar && session.user.avatar !== "None" ? (
-                    <Image 
-                      src={session.user.avatar} 
-                      alt="Avatar" 
-                      fill
-                      sizes="44px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="text-white text-sm font-black">
-                      {getUserInitial()}
-                    </span>
-                  )}
-                </div>
-
+                      <AvatarWithFrame 
+                        avatarUrl={session.user?.avatar}
+                        name={session?.user?.name} 
+                        frameUrl={(session.user as any)?.equippedFrame?.imageUrl}
+                        rarity={(session.user as any)?.equippedFrame?.rarity || 'COMUM'}
+                        size="sm" // Defina um tamanho pequeno para o Header
+                        // className="w-8 h-8"
+                      />
                 <div className="overflow-hidden">
                   <p className="text-white text-sm font-bold truncate">
                     {session.user?.name || session.user?.email?.split('@')[0]}
@@ -257,7 +230,7 @@ export default function Header() {
             {isLoggedIn && (
               <>
                 <Link 
-                  href="/perfil" 
+                  href="/worldo/perfil" 
                   onClick={handleLinkClick}
                   className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
                 >
@@ -278,28 +251,9 @@ export default function Header() {
 
           {/* Actions Fixadas na Base Mobile */}
           <div className="px-4 pt-4 border-t border-white/5">
-            {!isLoggedIn ? (
-              <div className="space-y-2">
-                <Link 
-                  href="/login" 
-                  onClick={handleLinkClick}
-                  className="galaxy-btn-primary block text-center py-3 text-sm font-bold rounded-xl border border-white/5 bg-white/5 text-white"
-                >
-                  Entrar
-                </Link>
-                <Link 
-                  href="/register" 
-                  onClick={handleLinkClick}
-                  className="galaxy-btn-secondary block text-center py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                >
-                  Cadastrar
-                </Link>
-              </div>
-            ) : (
               <div onClick={handleLinkClick} className="w-full">
                 <LogoutButton />
               </div>
-            )}
           </div>
           
         </div>

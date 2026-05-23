@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import { ClientImage } from '@/components/ClientImage' 
 import Link from 'next/link'
 
 interface MarketplaceListing {
@@ -64,7 +64,7 @@ export default function MarketplacePage() {
       {listings.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <p>Nenhuma moldura disponível no momento.</p>
-          <Link href="/cosmetics/create" className="btn-primary inline-block mt-4">
+          <Link href="/worldo/cosmetics/create" className="btn-primary inline-block mt-4">
             Criar minha primeira moldura
           </Link>
         </div>
@@ -73,7 +73,7 @@ export default function MarketplacePage() {
           {listings.map((item) => (
             <div key={item.id} className="card-highlight rounded-xl overflow-hidden">
               <div className="relative h-48">
-                <Image
+                <ClientImage
                   src={item.frame.thumbnailUrl || item.frame.imageUrl}
                   alt={item.frame.name}
                   fill
@@ -92,7 +92,7 @@ export default function MarketplacePage() {
                 <p className="text-xs text-gray-500 mt-2">por {item.seller.name}</p>
                 <p className="text-xs text-gray-500">📦 {item.quantity} disponível</p>
                 <Link
-                  href={`/cosmeticos/${item.frameId}`}
+                  href={`/worldo/cosmetics/${item.frameId}`}
                   className="btn-primary w-full mt-4 text-center block"
                 >
                   Ver detalhes

@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { ClientImage } from '@/components/ClientImage' 
 import { Sparkles, User, AtSign, FileText, MapPin, Link2, Upload, Trash2, Save, X } from 'lucide-react'
 
 export default function EditProfilePage() {
@@ -27,13 +27,6 @@ export default function EditProfilePage() {
   const [removeAvatar, setRemoveAvatar] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hasFetched = useRef(false)
-
-  // CORREÇÃO 1: Proteção de rota segura para Client Components via useEffect
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
 
   useEffect(() => {
     if (session?.user?.id && !hasFetched.current) {
@@ -166,7 +159,7 @@ export default function EditProfilePage() {
         setRemoveAvatar(false)
         
         // setTimeout(() => {
-        //   router.push(`/perfil/${data.user?.username || formData.username}`)
+        //   router.push(`/worldo/perfil/${data.user?.username || formData.username}`)
         //   router.refresh()
         // }, 1200)
       }
@@ -178,7 +171,7 @@ export default function EditProfilePage() {
   }
 
   const handleCancel = () => {
-    router.push(`/perfil/${formData.username || session.user?.id}`)
+    router.push(`/worldo/perfil/${formData.username || session.user?.id}`)
   }
 
   return (
@@ -226,15 +219,15 @@ export default function EditProfilePage() {
             <div className="flex items-center gap-5">
               <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-purple-500/30 bg-slate-950 shrink-0 shadow-inner">
                 {avatarPreview && avatarPreview !== "None" ? (
-                  <Image
+                  <ClientImage
                     src={avatarPreview}
                     alt="Preview"
                     fill
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-black">
-                    {formData.name?.[0]?.toUpperCase() || '?'}
+                  <div className="w-full h-full flex items-center justify-center text-xl to-indigo-600 text-white font-black">
+                    ?
                   </div>
                 )}
               </div>

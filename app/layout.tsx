@@ -2,8 +2,13 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './globals.css'
+import { BFCacheGuard } from '@/components/BFCacheGuard'
 import Header from '@/components/Header'
+import { MainWrapper } from '@/components/MainWrapper'
 import { AuthProvider } from '@/components/providers/auth-provider'
+import { AuthRedirect } from '@/components/AuthRedirect'
+import { GlobalMediaProtector } from '@/components/GlobalMediaProtector'
+
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -24,6 +29,9 @@ export const metadata: Metadata = {
     shortcut: ['/shortcut-icon.png']
   }
 }
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 export default function RootLayout({
   children,
@@ -33,12 +41,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <AuthProvider> 
+        <AuthProvider>
+          <GlobalMediaProtector />
           <Header/>
 
-        <main className="min-h-screen pt-16 md:pt-20">
-          {children}
-        </main>
+        <MainWrapper>{children}</MainWrapper>
         </AuthProvider> 
       </body>
     </html>

@@ -1,10 +1,10 @@
-'use client'
-
+'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { ClientImage } from '@/components/ClientImage' 
+import { AvatarWithFrame } from '@/components/AvatarWithFrame'
 import { 
   Sparkles, 
   FileText, 
@@ -87,6 +87,7 @@ const baseCosts: Record<string, number> = {
   LENDARIO: 1000,
 }
 
+
 // Componente de Loading isolado
 function LoadingSpinner() {
   return (
@@ -137,7 +138,7 @@ function PreviewCarousel({
             <div className="flex flex-col items-center justify-center h-full w-full">
               <div className="relative w-48 h-48 flex items-center justify-center">
                 <div className="absolute w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-4 ring-purple-500/20 z-0">
-                  <Image 
+                  <ClientImage 
                     src={avatarUrl} 
                     alt="Seu avatar" 
                     fill
@@ -147,7 +148,7 @@ function PreviewCarousel({
                   />
                 </div>
                 <div className={`absolute w-48 h-48 z-10 ${currentStyle.glow} animate-float transition-all duration-500`}>
-                  <Image 
+                  <ClientImage 
                     src={imagePreview} 
                     alt="Moldura Cosmética" 
                     fill
@@ -169,7 +170,7 @@ function PreviewCarousel({
           {hasThumbPreview && (
             <div className="flex flex-col items-center justify-center h-full w-full">
               <div className="relative w-44 h-44 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 ring-4 ring-indigo-500/10">
-                <Image 
+                <ClientImage 
                   src={thumbnailPreview} 
                   alt="Miniatura Comercial" 
                   fill
@@ -256,6 +257,8 @@ export default function CreateCosmeticPage() {
 
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
   const [showFramePreview, setShowFramePreview] = useState(false)
+  const [showThumbnail, setShowThumbnail] = useState(false);
+
 
   // Memoized values
   const currentStyle = useMemo(() => 
@@ -419,7 +422,7 @@ export default function CreateCosmeticPage() {
       } else {
         setSuccess(data.message || 'Moldura criada com sucesso!')
         // Redireciona imediatamente sem reabilitar o botão
-        router.push('/cosmetics/inventory')
+        router.push('/worldo/cosmetics/inventory')
         // Não chamamos setLoading(false) aqui - o botão continua desabilitado
       }
     } catch {
@@ -434,16 +437,9 @@ export default function CreateCosmeticPage() {
     e.preventDefault()
     setFormData(prev => ({ ...prev, stock: value }))
   }, [])
-
-  // Early return para loading
+  
   if (status === 'loading') {
     return <LoadingSpinner />
-  }
-
-  // Early return para não autenticado
-  if (!session) {
-    router.push('/login')
-    return null
   }
 
   return (
@@ -476,9 +472,9 @@ export default function CreateCosmeticPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="flex flex-col space-y-8">
             
-            <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-7">
+            <form onSubmit={handleSubmit} className="space-y-6 w-full">
               
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
@@ -642,33 +638,86 @@ export default function CreateCosmeticPage() {
                 </div>
               </div>
 
-                            <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-4">
-              <div className={`bg-slate-950/40 rounded-2xl p-6 border ${currentStyle.border} text-center transition-all duration-500`}>
-                <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-6 flex items-center justify-center gap-2">
-                  <Sparkles className={`w-4 h-4 ${currentStyle.text}`} /> Terminais de Preview
-                </h3>
-                
-                {(hasFramePreview || hasThumbPreview) ? (
-                  <PreviewCarousel
-                    hasFramePreview={hasFramePreview}
-                    hasThumbPreview={hasThumbPreview}
-                    imagePreview={imagePreview}
-                    thumbnailPreview={thumbnailPreview}
-                    avatarUrl={avatarUrl}
-                    currentStyle={currentStyle}
-                  />
-                ) : (
-                  <div className="bg-slate-950/60 rounded-xl p-12 border border-slate-900 flex flex-col items-center justify-center min-h-[360px]">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800 text-slate-600 mb-4 shadow-inner">
-                      <ImageIcon className="w-8 h-8" />
-                    </div>
-                    <p className="text-slate-500 text-sm max-w-[200px] leading-relaxed">
-                      Aguardando upload de ativos para renderização...
-                    </p>
-                  </div>
-                )}
-              </div>
+                          <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-4">
+ <div className={`bg-slate-950/40 rounded-2xl p-8 border ${currentStyle.border} text-center transition-all duration-500`}>
+  
+  {/* Header Centralizado */}
+  <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-10 flex items-center justify-center gap-2">
+    <Sparkles className={`w-4 h-4 ${currentStyle.text}`} /> 
+    Galeria de Visualização
+  </h3>
+  
+  {imagePreview ? (
+    <div className="flex flex-col md:flex-row items-stretch justify-center gap-6">
+      
+      {/* PAINEL 1: Moldura de Perfil (O principal) */}
+      <div className="flex-1 bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
+        
+        {/* Componente Principal */}
+        <div className="relative min-h-[160px] flex items-center justify-center">
+          <AvatarWithFrame
+            avatarUrl={avatarUrl && avatarUrl !== "None" ? avatarUrl : null} 
+            name={session?.user?.name}
+            frameUrl={imagePreview}
+            rarity={formData.rarity}
+            size="md" // Aumentei um pouco o tamanho para destacar
+            glowClass={currentStyle.glow}
+            priority
+          />
+        </div>
+
+        {/* Etiqueta de Identificação */}
+        <div className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.border} shadow-sm backdrop-blur-md`}>
+          <p className={`text-xs font-semibold tracking-wider ${currentStyle.text} uppercase`}>
+            Visualização no Perfil
+          </p>
+        </div>
+      </div>
+
+      {/* PAINEL 2: Miniatura (Aparece se existir thumbnailPreview) */}
+      {thumbnailPreview && (
+        <div className="flex-1 bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
+          
+          {/* Container da Miniatura */}
+          <div className="relative group">
+            {/* Efeito de brilho de fundo na miniatura (hover) */}
+            <div className={`absolute -inset-1 rounded-xl bg-gradient-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}></div>
+            
+            <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+              <ClientImage
+                src={thumbnailPreview}
+                alt="Miniatura"
+                fill
+                className="object-cover"
+              />
             </div>
+          </div>
+
+          {/* Etiqueta de Identificação */}
+          <div className={`bg-slate-800/40 px-4 py-1.5 rounded-full border border-slate-800 shadow-sm backdrop-blur-md`}>
+            <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+              Formato Lista / Grid
+            </p>
+          </div>
+        </div>
+      )}
+
+    </div>
+  ) : (
+    // ESTADO VAZIO (Mantido e ajustado para o design novo)
+    <div className="bg-slate-950/60 rounded-xl p-16 border border-slate-900 flex flex-col items-center justify-center min-h-[360px]">
+      <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800 text-slate-600 mb-6 shadow-inner">
+        <ImageIcon className="w-10 h-10" />
+      </div>
+      <p className="text-slate-500 text-sm max-w-[240px] leading-relaxed">
+        Selecione uma imagem para visualizar como o cosmético ficará no perfil e nas listas do sistema.
+      </p>
+    </div>
+  )}
+</div>
+</div>
+
+                           
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button 
                   type="submit" 
@@ -687,7 +736,6 @@ export default function CreateCosmeticPage() {
                 </Link>
               </div>
             </form>
-
           </div>
         </div>
       </div>

@@ -29,7 +29,7 @@ function SuccessPageContent() {
   // Efeito 2: Monitora o countdown e dispara a navegação de forma isolada e segura
   useEffect(() => {
     if (countdown === 0) {
-      router.push('/coins')
+      router.push('/worldo/coins')
     }
   }, [countdown, router])
 
@@ -65,7 +65,7 @@ function SuccessPageContent() {
 
         {/* Botão de Escape de Emergência */}
         <Link 
-          href="/coins" 
+          href="/worldo/coins" 
           className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 group"
         >
           <span>Voltar para Loja Agora</span>

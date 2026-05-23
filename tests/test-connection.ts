@@ -20,7 +20,7 @@ async function test() {
     const frames = await prisma.cosmetic_frame.findMany()
     console.log(`Molduras: ${frames.length}`)
     frames.forEach(frame => {
-      console.log(`   - ${frame.name} (${frame.rarity}): ${frame.priceCoins} moedas`)
+      console.log(`   - ${frame.name} (${frame.rarity})`)
     })
     
     // 4. Listar custos de criação

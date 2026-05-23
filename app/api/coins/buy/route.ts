@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/coins/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/coins/cancel`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/worldo/coins/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/worldo/coins/cancel`,
       metadata: {
         userId: session.user.id,
         packageId: packageId,

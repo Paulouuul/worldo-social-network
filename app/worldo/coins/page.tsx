@@ -42,13 +42,6 @@ export default function CoinsPage() {
   
   const hasFetched = useRef(false)
 
-  // Roteamento seguro usando apenas a flag de status string
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
-
   // Controle estrito de requisições de API
   useEffect(() => {
     if (status === 'authenticated' && !hasFetched.current) {

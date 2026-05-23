@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
-import Image from 'next/image'
+import { ClientImage } from '@/components/ClientImage'
 import Link from 'next/link'
+import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { 
   Package, Tag, ShoppingBag, Plus, X, Loader2, Info, 
   AlertTriangle, Sparkles, Shield, Orbit, Layers, 
   Store, Box, Coins, MinusCircle, Edit2, ArrowLeft 
 } from 'lucide-react'
 
-// ... (Interfaces permanecem iguais)
+// ... (Interfaces)
 interface InventoryItem {
   id: string
   frameId: string
@@ -35,7 +36,7 @@ interface GroupedItem extends InventoryItem {
 type FilterType = 'all' | 'listed' | 'unlisted'
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | null
 
-// ... (rarityDesigns permanece igual)
+// ... (rarityDesigns)
 const rarityDesigns: Record<string, {
   cardClass: string
   imgBorder: string
@@ -119,7 +120,6 @@ export default function MyCosmeticsPage() {
     return rarityDesigns[selectedItem.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
   }, [selectedItem]);
 
-  // ... (funções fetchInventory, useEffect, etc. permanecem iguais)
   const fetchInventory = async () => {
     try {
       const res = await fetch(`/api/cosmetics/inventory`)
@@ -166,7 +166,7 @@ export default function MyCosmeticsPage() {
     if (successMessage) {
       const timer = setTimeout(() => {
         setSuccessMessage('');
-      }, 3000); // A mensagem sumirá após 3 segundos
+      }, 3000); 
       
       return () => clearTimeout(timer); // Limpa o timer se o componente for desmontado
     }
@@ -341,7 +341,7 @@ export default function MyCosmeticsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 sm:py-12 relative min-h-screen">
-      {/* ... (Cabeçalho, filtros e grid permanecem iguais) */}
+      {/* ... (Cabeçalho, filtros e grids) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 pb-6 border-b border-slate-800/60">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 tracking-wide flex items-center gap-3">
@@ -351,7 +351,7 @@ export default function MyCosmeticsPage() {
         </div>
         {fullInventoryList.length > 0 && (
           <Link 
-            href="/cosmeticos/criar" 
+            href="/worldo/cosmetics/create" 
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50 text-purple-300 py-3 sm:py-2.5 px-5 rounded-xl transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold shadow-lg shadow-purple-900/10"
           >
             <Plus className="w-4 h-4" /> Criar Nova Moldura
@@ -381,7 +381,7 @@ export default function MyCosmeticsPage() {
                 <div className="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 font-black text-[10px] px-2 py-0.5 rounded-md shadow-md z-20">x{item.count}</div>
                 {config.bgDecoration}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:0.4rem_0.4rem] opacity-[0.03]" />
-                <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 mb-3 ${config.imgBorder}`}><Image src={item.frame.thumbnailUrl} alt={item.frame.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="(max-width: 640px) 64px, 80px" unoptimized /></div>
+                <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 mb-3 ${config.imgBorder}`}><ClientImage src={item.frame.thumbnailUrl} alt={item.frame.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="(max-width: 640px) 64px, 80px" unoptimized /></div>
                 {config.badge}
                 <span className={`text-[10px] sm:text-[11px] text-center z-10 px-0.5 mt-auto w-full truncate mb-1 ${config.textClass}`}>{item.frame.name}</span>
               </button>
@@ -424,35 +424,25 @@ export default function MyCosmeticsPage() {
 
               {/* Preview Dinâmico */}
               <div className="flex flex-col items-center justify-center w-full mb-6">
-                <div className="relative w-48 h-48 flex items-center justify-center">
-                  <div className="absolute w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-4 ring-slate-800 z-0 bg-slate-800 flex items-center justify-center">
-                    <Image 
-                      src={avatarUrl} 
-                      alt="Seu avatar" 
-                      fill
-                      sizes="128px"
-                      className="object-cover"
-                      priority
-                      />
-                  </div>
-                  <div className="absolute w-48 h-48 z-10">
-                    <img src={selectedItem.frame.imageUrl} alt="Moldura" className="w-full h-full object-contain pointer-events-none" />
-                  </div>
-                </div>
-                {/* O Badge de ajuste agora respeita o esquema de cores da raridade */}
-                <div className={`mt-8 px-4 py-1.5 rounded-full border shadow-sm backdrop-blur-md ${rarityConfig.imgBorder}`}>
-                  <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>Ajuste no Avatar</p>
-                </div>
+                <AvatarWithFrame 
+                              avatarUrl={avatarUrl}              
+                              name={session?.user?.name} 
+                              frameUrl={selectedItem.frame.imageUrl} // Ajuste 'imageUrl' para o nome exato da coluna da imagem da moldura no seu banco
+                              className="w-28 h-28 md:w-36 md:h-36"
+                              rarity={selectedItem.frame.rarity}
+                              priority
+                            />
               </div>
+
 
               <div className="text-center mb-4">
-                 {/* O título do item agora usa a classe de texto da raridade */}
-                 <h3 className={`font-bold text-lg ${rarityConfig.textClass}`}>{selectedItem.frame.name}</h3>
-                 <p className="text-slate-400 text-xs mt-1 uppercase tracking-widest">{selectedItem.frame.rarity}</p>
+                 <h3 className={`font-bold text-lg ${rarityConfig.textClass}`}>{selectedItem.frame.name}</h3><br/>
+                                                     <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>------------------------</p>
+                  <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>{selectedItem.frame.rarity}</p>
+                                    <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>------------------------</p>
+
               </div>
 
-              {/* Formulários (vão seguir o mesmo padrão de inputs já estabelecido) */}
-              {/* ... (Os blocos de formulário permanecem iguais) */}
               {modalMode === 'view' && (
                 <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-right-4 duration-200">
                   <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex flex-col gap-2 sm:gap-3 shadow-inner">

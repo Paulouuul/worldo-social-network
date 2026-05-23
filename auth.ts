@@ -30,18 +30,15 @@ async function generateUniqueUsername(email: string): Promise<string> {
   const uuid = crypto.randomUUID().substring(0, 8)
   let username = `user_${baseName}_${uuid}`
   
-  // Limita a 30 caracteres
   if (username.length > 30) {
     username = `user_${uuid}`
   }
   
-  // Verificação extra de segurança
   const existing = await prisma.users.findUnique({
     where: { username }
   })
   
   if (existing) {
-    // Se por algum milagre colidir, tenta de novo
     return generateUniqueUsername(email)
   }
   
@@ -165,6 +162,7 @@ const customAdapter = {
     }
   }
 }
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: customAdapter,
   providers: [
@@ -212,6 +210,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           username: user.username,
           avatar: user.avatar,
+          equippedProfileFrameId: user.equippedProfileFrameId,
         }
       }
     })
@@ -222,39 +221,50 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 dias
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      if (user) {
-      token.id = user.id
-      token.publicId = user.publicId
-      token.name = user.name
-      token.username = user.username
-      token.email = user.email
-      token.avatar = user.avatar
+    // 1. Quando o usuário faz login (user existe)
+    if (user) {
+      const dbUser = await prisma.users.findUnique({
+        where: { id: user.id },
+        include: { equippedFrame: true } // Busca a relação completa
+      });
+      
+      token.id = user.id;
+      token.publicId = user.publicId;
+      token.name = user.name;
+      token.username = user.username;
+      token.email = user.email;
+      token.avatar = user.avatar;
+      // Salva o objeto completo da moldura no token
+      token.equippedFrame = dbUser?.equippedFrame;
     }
     
-    // Quando o perfil é atualizado (trigger = 'update')
+    // 2. Quando você atualiza a sessão (ex: mudou de moldura)
     if (trigger === 'update' && session?.user) {
-      if (session.user.name) token.name = session.user.name
-      if (session.user.username) token.username = session.user.username
-      if (session.user.avatar) token.avatar = session.user.avatar
+      if (session.user.name) token.name = session.user.name;
+      if (session.user.avatar) token.avatar = session.user.avatar;
+      if (session.user.equippedFrame) token.equippedFrame = session.user.equippedFrame;
     }
     
-    return token
+    return token;
   },
+
   async session({ session, token }) {
     if (session.user) {
-      session.user.id = token.id as string
-      session.user.publicId = token.publicId as string
-      session.user.name = token.name as string
-      session.user.username = token.username as string
-      session.user.email = token.email as string
-      session.user.avatar = token.avatar as string
+      session.user.id = token.id as string;
+      session.user.publicId = token.publicId as string;
+      session.user.name = token.name as string;
+      session.user.username = token.username as string;
+      session.user.email = token.email as string;
+      session.user.avatar = token.avatar as string;
+      // Disponibiliza a moldura para o front-end
+      (session.user as any).equippedFrame = token.equippedFrame;
     }
-    return session
+    return session;
   }
-},
+  },
   secret: process.env.NEXTAUTH_SECRET,
 })

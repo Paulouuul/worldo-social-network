@@ -59,6 +59,7 @@ model users {
   created_chats chat[] @relation("chat_creator") 
   buyer_purchases  cosmetic_purchase[] @relation("buyer_purchases")
   seller_purchases cosmetic_purchase[] @relation("seller_purchases")
+  equippedFrame cosmetic_frame? @relation("equipped_frame", fields: [equippedProfileFrameId], references: [id])  
   chat_members chat_member[]
   coin_transactions coin_transaction[]
   coin_purchases coin_purchase[]
@@ -277,6 +278,7 @@ model cosmetic_frame {
   
   creator      users    @relation(fields: [createdBy], references: [id])
   purchases    cosmetic_purchase[]
+  equippedBy users[] @relation("equipped_frame")
   reviews        cosmetic_review[]
   listings cosmetic_listing[]
 }

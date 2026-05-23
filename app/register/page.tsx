@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import { ClientImage } from '@/components/ClientImage' 
+import { redirect } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Sparkles, User, AtSign, Mail, Lock, UserPlus, ArrowLeft } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -16,6 +18,8 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const { status } = useSession()
+
 
   const validatePassword = (pass: string) => {
     const errors = []
@@ -122,7 +126,7 @@ export default function RegisterPage() {
         {/* Logo / Header */}
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="relative w-48 h-16 mb-4">
-            <Image
+            <ClientImage
               src="/worldo_logo.png"
               alt="Logo Worldo"
               fill

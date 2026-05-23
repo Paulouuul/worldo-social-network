@@ -5,6 +5,7 @@ declare module 'next-auth' {
     publicId: string 
     username?: string | null
     avatar?: string | null
+    equippedProfileFrameId?: string | null
   }
   
   interface Session {

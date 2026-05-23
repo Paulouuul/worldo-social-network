@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
-import Image from 'next/image'
+import { ClientImage } from '@/components/ClientImage' 
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { 
   Pencil, 
   MapPin, 
@@ -27,10 +28,6 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const session = await auth()
-  if (!session?.user) {
-    redirect('/login/')
-  }
-  
   const { user_identifier } = await params
   const decodedUsername = decodeURIComponent(user_identifier)
   
@@ -55,6 +52,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       location: true,
       website: true,
       equippedProfileFrameId: true,
+      equippedFrame: { select: { imageUrl: true, rarity: true } },
       followersCount: true,
       followingCount: true,
       createdAt: true,
@@ -85,7 +83,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         {/* Imagem de Capa (Cover Image) */}
         <div className="relative h-52 md:h-64 w-full bg-gradient-to-r from-slate-950 via-purple-950/40 to-slate-950 border-b border-slate-800/50 overflow-hidden">
           {user.coverImage ? (
-            <Image
+            <ClientImage
               src={user.coverImage}
               alt="Capa do Perfil"
               fill
@@ -112,29 +110,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             
             {/* Bloco do Avatar */}
             <div className="relative shrink-0">
-              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full p-1 bg-slate-900 border-2 border-slate-800/80 shadow-2xl overflow-hidden flex items-center justify-center group">
-                <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 relative">
-                  {user.avatar && user.avatar !== "None" ? (
-                    <Image
-                      src={user.avatar}
-                      alt={user.name || 'Avatar'}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl font-black bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-600 text-white select-none">
-                      {user.name?.[0]?.toUpperCase() || user.email[0]?.toUpperCase()}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <AvatarWithFrame 
+                avatarUrl={user.avatar && user.avatar !== "None" ? user.avatar : null}                
+                name={session?.user?.name} 
+                frameUrl={user.equippedFrame?.imageUrl} // Ajuste 'imageUrl' para o nome exato da coluna da imagem da moldura no seu banco
+                className="w-28 h-28 md:w-36 md:h-36"
+                rarity={user.equippedFrame?.rarity}
+                priority
+              />
             </div>
 
             {/* Ações (Editar Perfil) */}
             <div className="pt-2 sm:pt-0 self-start sm:self-end">
               {isOwnProfile && (
                 <Link 
-                  href="/perfil/edit" 
+                  href="/worldo/perfil/edit" 
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-800 border border-slate-700/60 hover:bg-slate-700/80 text-slate-200 transition-all shadow-lg active:scale-[0.98]"
                 >
                   <Pencil className="w-3.5 h-3.5 text-purple-400" />
