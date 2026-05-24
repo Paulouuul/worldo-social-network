@@ -34,8 +34,8 @@ function AuthErrorContent() {
         <ClientImage
           src="/worldo_social_network_card.png"
           alt="Logo"
-          width={172}
-          height={62}
+          width={240}
+          height={86}
           className="object-contain drop-shadow-md"
           priority
           draggable={false}

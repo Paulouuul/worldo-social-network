@@ -79,8 +79,8 @@ export default function EditProfilePage() {
       return
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo 5MB.')
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Arquivo muito grande. Máximo 10MB.')
       return
     }
 
@@ -263,7 +263,7 @@ export default function EditProfilePage() {
                   )}
                 </div>
                 <p className="text-[11px] text-slate-500 leading-normal">
-                  Suportados: JPG, PNG, GIF ou WEBP. Tamanho máximo permitido: 5MB.
+                  Suportados: JPG, PNG, GIF ou WEBP. Tamanho máximo permitido: 10MB.
                 </p>
               </div>
             </div>
@@ -377,7 +377,7 @@ export default function EditProfilePage() {
               disabled={loading}
             >
               <X className="w-4 h-4" />
-              <span>Abortar</span>
+              <span>Finalizar</span>
             </button>
           </div>
         </form>

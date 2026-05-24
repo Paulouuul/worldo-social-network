@@ -1,9 +1,9 @@
 'use client'
 
 import { Suspense, useState, useEffect } from 'react'
+import { ClientImage } from '@/components/ClientImage' 
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ClientImage } from '@/components/ClientImage' 
 import { useSession } from 'next-auth/react'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
@@ -66,6 +66,7 @@ function LoginContent() {
       setLoading(false)
     }
   }
+    
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-slate-950 relative overflow-hidden">
@@ -76,22 +77,22 @@ function LoginContent() {
       <div className="max-w-md w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
         
         {/* Espaço para a Logo / Header */}
-        <div className="flex flex-col items-center justify-center mb-6">
+        <div className="flex flex-col items-center text-center mb-6">
           <div className="relative w-48 h-16 mb-4">
             <ClientImage
               src="/worldo_logo.png"
               alt="Logo Worldo"
               fill
               className="object-contain"
-              priority 
-              draggable={false}
+              priority
             />
           </div>
           <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 flex items-center gap-2 tracking-wide uppercase">
             <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
-            Acessar Rede
+            Bem-Vindo ao Worldo
+            <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
           </h1>
-          <p className="text-slate-400 text-xs mt-1">Conecte-se ao seu terminal de usuário</p>
+          <p className="text-slate-400 text-xs mt-1">Informe seu login e senha</p>
         </div>
         
         {/* Alertas de Erro */}

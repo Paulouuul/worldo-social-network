@@ -148,7 +148,7 @@ export default function MyCosmeticsPage() {
         setLoading(true)
       }
       
-      const res = await fetch(`/api/cosmetics/inventory/grouped?page=${page}&limit=32&filter=${activeFilter}`)
+      const res = await fetch(`/api/cosmetics/inventory/grouped?page=${page}&limit=50&filter=${activeFilter}`)
       if (!res.ok) throw new Error('Falha ao sincronizar inventário')
       
       const data = await res.json()

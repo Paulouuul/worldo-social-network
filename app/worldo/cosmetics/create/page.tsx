@@ -368,8 +368,8 @@ export default function CreateCosmeticPage() {
       return
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo 5MB.')
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Arquivo muito grande. Máximo 10MB.')
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }

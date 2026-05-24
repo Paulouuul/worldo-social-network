@@ -18,8 +18,8 @@ export async function proxy(req: NextRequest) {
   }
 
   // Usuário NÃO autenticado em /worldo/* → /
-  if (!token && pathname.startsWith("/worldo")) {
-    return NextResponse.redirect(new URL("/", req.url))
+  if (!token && (pathname.startsWith("/worldo") || pathname === "/")) {
+    return NextResponse.redirect(new URL("/login", req.url))
   }
 
   return NextResponse.next()
