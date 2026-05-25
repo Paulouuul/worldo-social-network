@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { ClientImage } from '@/components/ClientImage' 
-import { Sparkles, User, AtSign, FileText, MapPin, Link2, Upload, Trash2, Save, X } from 'lucide-react'
+import { Sparkles, User, AtSign, FileText, MapPin, Link2, Upload, Trash2, Save, X, Image as ImageIcon } from 'lucide-react'
 
 export default function EditProfilePage() {
   const { data: session, status, update } = useSession()
@@ -20,12 +20,21 @@ export default function EditProfilePage() {
     location: '',
     website: '',
     avatar: '',
+    coverImage: '',
   })
   
+  // Estados para o Avatar
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string>('')
   const [removeAvatar, setRemoveAvatar] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  // Estados para o Cover
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string>('')
+  const [removeCover, setRemoveCover] = useState(false)
+  const coverInputRef = useRef<HTMLInputElement>(null)
+
   const hasFetched = useRef(false)
 
   useEffect(() => {
@@ -36,11 +45,13 @@ export default function EditProfilePage() {
         name: session.user.name || '',
         username: session.user.username || '',
         avatar: session.user.avatar || '',
+        coverImage: session.user.coverImage || '',
         bio: '',
         location: '',
         website: '',
       })
       setAvatarPreview(session.user.avatar || '')
+      setCoverPreview(session.user.coverImage || '')
       
       fetch(`/api/user/${session.user.publicId}`)
         .then(res => res.json())
@@ -52,14 +63,15 @@ export default function EditProfilePage() {
             location: data.location || '',
             website: data.website || '',
             avatar: data.avatar || prev.avatar,
+            coverImage: data.coverImage || prev.coverImage,
           }))
           setAvatarPreview(data.avatar || session.user.avatar || '')
+          setCoverPreview(data.coverImage || session.user.coverImage || '')
         })
         .catch(err => console.error("Erro ao buscar dados complementares:", err))
     }
   }, [session])
 
-  // Evita flash de conteúdo antes da checagem de autenticação terminar
   if (status === 'loading' || !session?.user) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
@@ -69,45 +81,55 @@ export default function EditProfilePage() {
     )
   }
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handler Genérico para Processamento de Imagens
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'avatar' | 'cover'
+  ) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
-      setError('Formato não suportado. Use JPG, PNG, GIF ou WEBP.')
+      setError(`Formato de ${type} não suportado. Use JPG, PNG, GIF ou WEBP.`)
       return
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo 10MB.')
+    // Validações de tamanho baseadas na API (Avatar: 5MB, Cover: 10MB)
+    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
       return
     }
 
-    // CORREÇÃO 2: Evita Memory Leak revogando a URL anterior se ela existir
-    if (avatarPreview && avatarPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(avatarPreview)
+    if (type === 'avatar') {
+      if (avatarPreview && avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
+      setAvatarFile(file)
+      setRemoveAvatar(false)
+      setAvatarPreview(URL.createObjectURL(file))
+    } else {
+      if (coverPreview && coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
+      setCoverFile(file)
+      setRemoveCover(false)
+      setCoverPreview(URL.createObjectURL(file))
     }
-
-    setAvatarFile(file)
-    setRemoveAvatar(false)
-    
-    const previewUrl = URL.createObjectURL(file)
-    setAvatarPreview(previewUrl)
     setError('')
   }
 
   const handleRemoveAvatar = () => {
-    if (avatarPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(avatarPreview)
-    }
-    
+    if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
     setAvatarFile(null)
     setRemoveAvatar(true)
     setAvatarPreview('')
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
+    if (avatarInputRef.current) avatarInputRef.current.value = ''
+  }
+
+  const handleRemoveCover = () => {
+    if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
+    setCoverFile(null)
+    setRemoveCover(true)
+    setCoverPreview('')
+    if (coverInputRef.current) coverInputRef.current.value = ''
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,13 +146,12 @@ export default function EditProfilePage() {
       submitData.append('location', formData.location)
       submitData.append('website', formData.website)
       
-      if (avatarFile) {
-        submitData.append('avatar', avatarFile)
-      }
+      if (avatarFile) submitData.append('avatar', avatarFile)
+      if (removeAvatar) submitData.append('removeAvatar', 'true')
       
-      if (removeAvatar) {
-        submitData.append('removeAvatar', 'true')
-      }
+      // Injeção dos dados do Cover na Request
+      if (coverFile) submitData.append('cover', coverFile)
+      if (removeCover) submitData.append('removeCover', 'true')
 
       const res = await fetch('/api/user/profile', {
         method: 'PUT',
@@ -152,16 +173,14 @@ export default function EditProfilePage() {
             ...session.user, 
             ...data.user,
             avatar: data.user?.avatar || "None", 
+            coverImage: data.user?.coverImage || "None",
           }
         })
         
         setAvatarFile(null)
         setRemoveAvatar(false)
-        
-        // setTimeout(() => {
-        //   router.push(`/worldo/perfil/${data.user?.username || formData.username}`)
-        //   router.refresh()
-        // }, 1200)
+        setCoverFile(null)
+        setRemoveCover(false)
       }
     } catch (err) {
       setError('Erro ao conectar com o servidor')
@@ -176,7 +195,6 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-950 py-12 px-4 relative overflow-hidden flex items-center justify-center">
-      {/* Background Aurora / Efeito de Fundo Cósmico */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />
 
@@ -210,8 +228,66 @@ export default function EditProfilePage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Avatar Upload */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* SEÇÃO: Imagem de Capa (Cover) */}
+          <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
+            <label className="flex items-center gap-1.5 text-slate-300 mb-3 font-semibold text-xs tracking-wide uppercase">
+              <ImageIcon className="w-3.5 h-3.5 text-purple-400" /> Capa do Perfil / Banner
+            </label>
+            
+            <div className="space-y-4">
+              <div className="relative w-full h-36 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center group shadow-inner">
+                {coverPreview && coverPreview !== "None" ? (
+                  <ClientImage
+                    src={coverPreview}
+                    alt="Cover Preview"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="text-slate-600 flex flex-col items-center gap-1">
+                    <ImageIcon className="w-8 h-8 stroke-[1.5]" />
+                    <span className="text-[10px] uppercase tracking-wider font-medium">Sem imagem de capa</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={(e) => handleFileChange(e, 'cover')}
+                    className="hidden"
+                    id="cover-upload"
+                    disabled={loading}
+                  />
+                  <label
+                    htmlFor="cover-upload"
+                    className="cursor-pointer inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white py-2 px-3.5 rounded-xl transition text-xs font-semibold"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-purple-400" /> Transmitir Capa
+                  </label>
+
+                  {coverPreview && coverPreview !== "None" && !removeCover && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveCover}
+                      className="inline-flex items-center gap-1.5 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 py-2 px-3.5 rounded-xl transition text-xs font-semibold"
+                      disabled={loading}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Remover
+                    </button>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-500">Máximo: 10MB</p>
+              </div>
+            </div>
+          </div>
+
+          {/* SEÇÃO: Avatar de Rede */}
           <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
             <label className="flex items-center gap-1.5 text-slate-300 mb-3 font-semibold text-xs tracking-wide uppercase">
               Avatar de Rede
@@ -221,12 +297,12 @@ export default function EditProfilePage() {
                 {avatarPreview && avatarPreview !== "None" ? (
                   <ClientImage
                     src={avatarPreview}
-                    alt="Preview"
+                    alt="Avatar Preview"
                     fill
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xl to-indigo-600 text-white font-black">
+                  <div className="w-full h-full flex items-center justify-center text-xl text-white font-black">
                     ?
                   </div>
                 )}
@@ -234,10 +310,10 @@ export default function EditProfilePage() {
               
               <div className="flex-1 space-y-2">
                 <input
-                  ref={fileInputRef}
+                  ref={avatarInputRef}
                   type="file"
                   accept="image/jpeg,image/png,image/gif,image/webp"
-                  onChange={handleAvatarChange}
+                  onChange={(e) => handleFileChange(e, 'avatar')}
                   className="hidden"
                   id="avatar-upload"
                   disabled={loading}
@@ -263,7 +339,7 @@ export default function EditProfilePage() {
                   )}
                 </div>
                 <p className="text-[11px] text-slate-500 leading-normal">
-                  Suportados: JPG, PNG, GIF ou WEBP. Tamanho máximo permitido: 10MB.
+                  Máximo permitido: 5MB.
                 </p>
               </div>
             </div>
@@ -302,6 +378,7 @@ export default function EditProfilePage() {
             </div>
           </div>
 
+          {/* Biografia */}
           <div>
             <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
               <FileText className="w-3.5 h-3.5 text-purple-400" /> Biografia da Entidade
@@ -320,6 +397,7 @@ export default function EditProfilePage() {
             </div>
           </div>
 
+          {/* Localização e Website */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
