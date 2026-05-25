@@ -10,7 +10,7 @@ export default async function Home() {
   // Se não estiver autenticado, redireciona imediatamente.
   // O Next.js para a execução do componente aqui mesmo.
   if (!session?.user) {
-    redirect('/')
+    redirect('/login')
   }
 
   // Captura o nome formatado ou o prefixo do email
@@ -58,7 +58,7 @@ export default async function Home() {
             
             {/* Botão de logout ocupando largura total no mobile */}
             <div className="w-full sm:w-auto flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity">
-              <LogoutButton />
+              <LogoutButton/>
             </div>
           </div>
         </div>

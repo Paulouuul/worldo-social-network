@@ -29,7 +29,7 @@ export default function EditProfilePage() {
   const hasFetched = useRef(false)
 
   useEffect(() => {
-    if (session?.user?.id && !hasFetched.current) {
+    if (session?.user?.publicId && !hasFetched.current) {
       hasFetched.current = true
 
       setFormData({
@@ -42,7 +42,7 @@ export default function EditProfilePage() {
       })
       setAvatarPreview(session.user.avatar || '')
       
-      fetch(`/api/user/${session.user.id}`)
+      fetch(`/api/user/${session.user.publicId}`)
         .then(res => res.json())
         .then(data => {
           setFormData(prev => ({
@@ -171,7 +171,7 @@ export default function EditProfilePage() {
   }
 
   const handleCancel = () => {
-    router.push(`/worldo/perfil/${formData.username || session.user?.id}`)
+    router.push(`/worldo/perfil/${session.user?.publicId}`)
   }
 
   return (

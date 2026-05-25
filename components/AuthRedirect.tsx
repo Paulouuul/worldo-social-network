@@ -17,7 +17,7 @@ export function AuthRedirect() {
     }
 
     if (status === 'unauthenticated' && pathname.startsWith('/worldo')) {
-      router.push('/')
+      router.push('/login')
     }
   }, [status, pathname, router])
   

@@ -58,8 +58,7 @@ function LoginContent() {
         }
         setLoading(false)
       } else {
-        router.push('/')
-        router.refresh()
+        router.push('/worldo')
       }
     } catch (err) {
       setError('Erro ao conectar com o servidor')

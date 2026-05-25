@@ -313,7 +313,7 @@ export default function CreateCosmeticPage() {
 
     const controller = new AbortController()
     
-    fetch(`/api/user/${session.user.id}`, { signal: controller.signal })
+    fetch(`/api/user/${session.user.publicId}`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         if (data?.avatar) setAvatarUrl(data.avatar)
