@@ -2,11 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './globals.css'
-import { BFCacheGuard } from '@/components/BFCacheGuard'
 import Header from '@/components/Header'
 import { MainWrapper } from '@/components/MainWrapper'
 import { AuthProvider } from '@/components/providers/auth-provider'
-import { AuthRedirect } from '@/components/AuthRedirect'
 import { GlobalMediaProtector } from '@/components/GlobalMediaProtector'
 
 
@@ -42,10 +40,9 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.className}>
         <AuthProvider>
-          <GlobalMediaProtector />
+          <GlobalMediaProtector/>
           <Header/>
-
-        <MainWrapper>{children}</MainWrapper>
+          <MainWrapper>{children}</MainWrapper>
         </AuthProvider> 
       </body>
     </html>
