@@ -147,7 +147,7 @@ function PreviewCarousel({
                     priority
                   />
                 </div>
-                <div className={`absolute w-48 h-48 z-10 ${currentStyle.glow} animate-float transition-all duration-500`}>
+                <div className={`absolute w-48 h-48 z-10 ${currentStyle.glow} transition-all duration-500`}>
                   <ClientImage 
                     src={imagePreview} 
                     alt="Moldura Cosmética" 
@@ -459,14 +459,14 @@ export default function CreateCosmeticPage() {
 
         <div className="p-8">
           {error && (
-            <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-500/20 flex items-center gap-2 animate-fade-in">
+            <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-500/20 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500 block" />
               {error}
             </div>
           )}
 
           {success && (
-            <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl mb-6 text-sm border border-emerald-500/20 flex items-center gap-2 animate-fade-in">
+            <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl mb-6 text-sm border border-emerald-500/20 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 block" />
               {success}
             </div>
@@ -728,7 +728,7 @@ export default function CreateCosmeticPage() {
                   {loading ? 'FORJANDO ATIVO...' : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link 
-                  href="worldo/cosmetics"
+                  href="/worldo/cosmetics"
                   onDoubleClick={(e) => e.preventDefault()}
                   className="bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:flex-1 text-center select-none"
                 >

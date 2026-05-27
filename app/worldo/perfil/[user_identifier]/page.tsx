@@ -219,7 +219,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       {/* Navegação por Abas do Painel */}
       <div className="mt-8 space-y-4">
-        <div className="flex gap-1 border-b border-slate-800/80 overflow-x-auto scrollbar-none">
+        <div className="flex gap-1 border-b border-slate-800/80 overflow-x-auto">
           <button className="flex items-center gap-2 px-5 py-3 text-purple-400 border-b-2 border-purple-500 font-bold text-sm tracking-wide whitespace-nowrap">
             <Package className="w-4 h-4" />
             <span>Cosméticos</span>

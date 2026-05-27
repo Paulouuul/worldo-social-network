@@ -189,7 +189,7 @@ export default function CoinsPage() {
               {/* Badges Flutuantes */}
               {pkg.popular && (
                 <div className="absolute -top-3.5 right-6 z-20">
-                  <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase shadow-lg flex items-center gap-1 animate-shimmer">
+                  <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase shadow-lg flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5 fill-slate-950" /> MAIS POPULAR
                   </span>
                 </div>
@@ -311,7 +311,7 @@ export default function CoinsPage() {
 
       {/* Modal de Confirmação Modernizado */}
       {showConfirmModal && selectedPackage && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl transition-all">
             <div className="p-6 md:p-8 text-center space-y-6">
               <div className="mx-auto w-14 h-14 bg-blue-500/10 rounded-full border border-blue-500/20 flex items-center justify-center text-blue-400">

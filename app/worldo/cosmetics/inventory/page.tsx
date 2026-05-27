@@ -502,7 +502,7 @@ export default function MyCosmeticsPage() {
               </button>
             </div>
 
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 custom-scrollbar">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5">
               
               {errorMessage && (
                 <div className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl p-3 text-xs flex items-start gap-2">
