@@ -81,7 +81,6 @@ export default function EditProfilePage() {
     )
   }
 
-  // Handler Genérico para Processamento de Imagens
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     type: 'avatar' | 'cover'
@@ -95,7 +94,6 @@ export default function EditProfilePage() {
       return
     }
 
-    // Validações de tamanho baseadas na API (Avatar: 5MB, Cover: 10MB)
     const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 10 * 1024 * 1024
     if (file.size > maxSize) {
       setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
@@ -149,7 +147,6 @@ export default function EditProfilePage() {
       if (avatarFile) submitData.append('avatar', avatarFile)
       if (removeAvatar) submitData.append('removeAvatar', 'true')
       
-      // Injeção dos dados do Cover na Request
       if (coverFile) submitData.append('cover', coverFile)
       if (removeCover) submitData.append('removeCover', 'true')
 
@@ -163,10 +160,41 @@ export default function EditProfilePage() {
       if (!res.ok) {
         setError(data.error || 'Erro ao atualizar perfil')
         window.scrollTo({ top: 0, behavior: 'smooth' })
+
+        // REVERSÃO NA UI: Como a API deu erro e descartou o upload (ou não removeu), 
+        // voltamos os previews para o que está salvo atualmente no formData original estável.
+        if (avatarFile || removeAvatar) {
+          if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
+          setAvatarFile(null)
+          setRemoveAvatar(false)
+          setAvatarPreview(formData.avatar || '')
+          if (avatarInputRef.current) avatarInputRef.current.value = ''
+        }
+
+        if (coverFile || removeCover) {
+          if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
+          setCoverFile(null)
+          setRemoveCover(false)
+          setCoverPreview(formData.coverImage || '')
+          if (coverInputRef.current) coverInputRef.current.value = ''
+        }
+
       } else {
         setSuccess('Perfil atualizado com sucesso!')
         window.scrollTo({ top: 0, behavior: 'smooth' })
         
+        // Atualiza a colagem estável do formData local com os novos dados validados vindos da API
+        setFormData(prev => ({
+          ...prev,
+          name: data.user?.name || prev.name,
+          username: data.user?.username || prev.username,
+          bio: data.user?.bio || prev.bio,
+          location: data.user?.location || prev.location,
+          website: data.user?.website || prev.website,
+          avatar: data.user?.avatar || prev.avatar,
+          coverImage: data.user?.coverImage || prev.coverImage,
+        }))
+
         await update({
           ...session,
           user: { 
@@ -184,6 +212,15 @@ export default function EditProfilePage() {
       }
     } catch (err) {
       setError('Erro ao conectar com o servidor')
+      // Em caso de queda total de rede, também resetamos para o estado estável anterior
+      if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
+      if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
+      setAvatarFile(null)
+      setCoverFile(null)
+      setRemoveAvatar(false)
+      setRemoveCover(false)
+      setAvatarPreview(formData.avatar || '')
+      setCoverPreview(formData.coverImage || '')
     } finally {
       setLoading(false)
     }
@@ -192,7 +229,7 @@ export default function EditProfilePage() {
   const handleCancel = () => {
     router.push(`/worldo/perfil/${session.user?.publicId}`)
   }
-
+  
   return (
     <div className="min-h-screen bg-slate-950 py-12 px-4 relative overflow-hidden flex items-center justify-center">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />

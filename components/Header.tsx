@@ -125,8 +125,8 @@ export default function Header() {
                           <AvatarWithFrame 
                             avatarUrl={session.user?.avatar}
                             name={session?.user?.name} 
-                            frameUrl={(session.user as any)?.equippedFrame?.imageUrl}
-                            rarity={(session.user as any)?.equippedFrame?.rarity || 'COMUM'}
+                            frameUrl={session.user?.equippedFrame?.imageUrl}
+                            rarity={session.user?.equippedFrame?.rarity || 'COMUM'}
                             size="smsm" // Defina um tamanho pequeno para o Header
                           />
                     <span className="text-xs font-medium text-slate-200 pr-1 max-w-[120px] truncate">
@@ -194,8 +194,8 @@ export default function Header() {
                       <AvatarWithFrame 
                         avatarUrl={session.user?.avatar}
                         name={session?.user?.name} 
-                        frameUrl={(session.user as any)?.equippedFrame?.imageUrl}
-                        rarity={(session.user as any)?.equippedFrame?.rarity || 'COMUM'}
+                        frameUrl={session.user?.equippedFrame?.imageUrl}
+                        rarity={session.user?.equippedFrame?.rarity || 'COMUM'}
                         size="sm" // Defina um tamanho pequeno para o Header
                         // className="w-8 h-8"
                       />

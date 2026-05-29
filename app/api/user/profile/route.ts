@@ -8,6 +8,11 @@ export async function PUT(request: NextRequest) {
   const MAX_COVER_SIZE = 10 * 1024 * 1024
   const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
   const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
+  // Rastreamento estrito para reversão (Rollback) em caso de falha no banco
+  let uploadedAvatarPath: string | null = null
+  let uploadedCoverPath: string | null = null
+  
   let newAvatarUrl: string | null | undefined = undefined
   let newCoverImageUrl: string | null | undefined = undefined
   let avatarToUpload: File | null = null
@@ -36,7 +41,6 @@ export async function PUT(request: NextRequest) {
       name = formData.get('name') as string
       username = formData.get('username') as string
       
-      // Se o campo não foi enviado no FormData, mantemos undefined para não sobrescrever no banco
       bio = formData.has('bio') ? (formData.get('bio') as string || null) : undefined
       location = formData.has('location') ? (formData.get('location') as string || null) : undefined
       website = formData.has('website') ? (formData.get('website') as string || null) : undefined
@@ -50,7 +54,6 @@ export async function PUT(request: NextRequest) {
       name = body.name
       username = body.username
       
-      // Evita setar null caso a propriedade nem tenha sido enviada no JSON payload
       bio = 'bio' in body ? (body.bio || null) : undefined
       location = 'location' in body ? (body.location || null) : undefined
       website = 'website' in body ? (body.website || null) : undefined
@@ -69,7 +72,6 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Verificar disponibilidade do username
     const existingUser = await prisma.users.findFirst({
       where: {
         username: sanitizedUsername,
@@ -81,55 +83,56 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Este username já está em uso' }, { status: 400 })
     }
 
-    // Buscar dados atuais do usuário para saber se precisaremos mexer em arquivos no R2
     const currentUser = await prisma.users.findUnique({
       where: { id: session.user.id },
       select: { avatar: true, coverImage: true }
     })
 
-    // 3. Processar Uploads/Remoções de Arquivos APÓS todas as validações passarem
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+    }
+
+    // 3. Processar Operações do Cloudflare R2 primeiro
+    // --- AVATAR ---
     if (avatarToUpload && avatarToUpload instanceof File && avatarToUpload.size > 0) {
-      const extension = avatarToUpload.name.split('.').pop()
+      const extension = avatarToUpload.name.split('.').pop()?.toLowerCase()
 
-      if (!ALLOWED_MIME_TYPES.includes(avatarToUpload.type)) {
+      if (!ALLOWED_MIME_TYPES.includes(avatarToUpload.type) || !extension || !ALLOWED_EXTENSIONS.includes(extension)) {
         return NextResponse.json({ error: 'Formato do avatar não suportado. Use JPG, PNG, GIF ou WEBP' }, { status: 400 })
-      }
-
-      if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
-        return NextResponse.json({ error: 'Formato do avatar não suportado. Use JPG, PNG, GIF ou WEBP'  }, { status: 400 })
       }
       if (avatarToUpload.size > MAX_AVATAR_SIZE) {
         return NextResponse.json({ 
-        error: `Avatar deve ter no máximo ${MAX_AVATAR_SIZE / 1024 / 1024}MB. Atual: ${(avatarToUpload.size / 1024 / 1024).toFixed(2)}MB` 
-      }, { status: 400 })}
-      const path = `avatars/${session.user.id}/avatar-${Date.now()}.${extension}`
-      newAvatarUrl = await uploadPublic(avatarToUpload, path)
+          error: `Avatar deve ter no máximo ${MAX_AVATAR_SIZE / 1024 / 1024}MB.` 
+        }, { status: 400 })
+      }
+      
+      // Define o caminho e faz o upload
+      uploadedAvatarPath = `avatars/${session.user.id}/avatar-${Date.now()}.${extension}`
+      newAvatarUrl = await uploadPublic(avatarToUpload, uploadedAvatarPath)
     } else if (shouldRemoveAvatar) {
       newAvatarUrl = null
     }
 
+    // --- COVER ---
     if (coverToUpload && coverToUpload instanceof File && coverToUpload.size > 0) {
-      const extension = coverToUpload.name.split('.').pop()
+      const extension = coverToUpload.name.split('.').pop()?.toLowerCase()
 
-      if (!ALLOWED_MIME_TYPES.includes(coverToUpload.type)) {
+      if (!ALLOWED_MIME_TYPES.includes(coverToUpload.type) || !extension || !ALLOWED_EXTENSIONS.includes(extension)) {
         return NextResponse.json({ error: 'Formato do cover não suportado. Use JPG, PNG, GIF ou WEBP' }, { status: 400 })
       }
-      if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
-        return NextResponse.json({ error: 'Formato do cover não suportado. Use JPG, PNG, GIF ou WEBP'  }, { status: 400 })
-      }
-
       if (coverToUpload.size > MAX_COVER_SIZE) {
         return NextResponse.json({ 
-        error: `Cover deve ter no máximo ${MAX_COVER_SIZE / 1024 / 1024}MB. Atual: ${(coverToUpload.size / 1024 / 1024).toFixed(2)}MB` 
-      }, { status: 400 })}
+          error: `Cover deve ter no máximo ${MAX_COVER_SIZE / 1024 / 1024}MB.` 
+        }, { status: 400 })
+      }
 
-      const path = `cover_image/${session.user.id}/cover_image-${Date.now()}.${extension}`
-      newCoverImageUrl = await uploadPublic(coverToUpload, path)
+      uploadedCoverPath = `cover_image/${session.user.id}/cover_image-${Date.now()}.${extension}`
+      newCoverImageUrl = await uploadPublic(coverToUpload, uploadedCoverPath)
     } else if (shouldRemoveCover) {
       newCoverImageUrl = null
     }
 
-    // 4. Atualizar os Dados no Banco de Dados
+    // 4. Atualizar os Dados no Banco de Dados (Ponto de não retorno)
     const updatedUser = await prisma.users.update({
       where: { id: session.user.id },
       data: {
@@ -143,25 +146,20 @@ export async function PUT(request: NextRequest) {
       }
     })
 
-    // 5. Limpeza pós-sucesso: Se o banco atualizou e havia um avatar antigo, removemos ele do R2
-    if (currentUser?.avatar && (avatarToUpload?.size || shouldRemoveAvatar)) {
-      try {
-        const oldPath = currentUser.avatar.replace(`${process.env.R2_PUBLIC_URL}/`, '')
-        await deleteFile(oldPath)
-      } catch (deleteError) {
-        // Logamos o erro mas não quebramos a requisição, pois o banco de dados já foi atualizado com sucesso
-        console.error('Aviso: Falha ao deletar avatar antigo do R2:', deleteError)
-      }
+    // 5. Limpeza pós-sucesso (Arquivos Antigos)
+    // Como o banco foi atualizado com sucesso, os arquivos antigos AGORA podem ser apagados com segurança.
+    if (currentUser.avatar && (uploadedAvatarPath || shouldRemoveAvatar)) {
+      const oldPath = currentUser.avatar.replace(`${process.env.R2_PUBLIC_URL}/`, '')
+      await deleteFile(oldPath).catch((err) => 
+        console.error('Aviso de Orfão: Falha ao deletar avatar antigo do R2:', err)
+      )
     }
 
-    if (currentUser?.coverImage && (coverToUpload?.size || shouldRemoveCover)) {
-      try {
-        const oldPath = currentUser.coverImage.replace(`${process.env.R2_PUBLIC_URL}/`, '')
-        await deleteFile(oldPath)
-      } catch (deleteError) {
-        // Logamos o erro mas não quebramos a requisição, pois o banco de dados já foi atualizado com sucesso
-        console.error('Aviso: Falha ao deletar cover antigo do R2:', deleteError)
-      }
+    if (currentUser.coverImage && (uploadedCoverPath || shouldRemoveCover)) {
+      const oldPath = currentUser.coverImage.replace(`${process.env.R2_PUBLIC_URL}/`, '')
+      await deleteFile(oldPath).catch((err) => 
+        console.error('Aviso de Orfão: Falha ao deletar cover antigo do R2:', err)
+      )
     }
 
     return NextResponse.json({
@@ -180,17 +178,26 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Erro ao atualizar perfil:', error)
+    console.error('Erro crítico na atualização do perfil, iniciando rollback:', error)
     
-    // Se fizemos o upload mas o banco falhou depois, apagamos o arquivo temporário upado
-    if (newAvatarUrl) {
-      const pathToDelete = newAvatarUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
-      await deleteFile(pathToDelete).catch(console.error)
+    // ROLLBACK RESILIENTE: Se o Cloudflare aceitou os novos arquivos, mas a transação do banco falhou
+    // Nós deletamos imediatamente os recém-criados para evitar os arquivos órfãos.
+    const rollbackPromises: Promise<void>[] = []
+
+    if (uploadedAvatarPath) {
+      rollbackPromises.push(deleteFile(uploadedAvatarPath).catch(err => 
+        console.error(`Falha crítica no Rollback do Avatar (${uploadedAvatarPath}):`, err)
+      ))
     }
 
-    if (newCoverImageUrl) {
-      const pathToDelete = newCoverImageUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
-      await deleteFile(pathToDelete).catch(console.error)
+    if (uploadedCoverPath) {
+      rollbackPromises.push(deleteFile(uploadedCoverPath).catch(err => 
+        console.error(`Falha crítica no Rollback do Cover (${uploadedCoverPath}):`, err)
+      ))
+    }
+
+    if (rollbackPromises.length > 0) {
+      await Promise.all(rollbackPromises)
     }
 
     return NextResponse.json({ error: 'Erro ao atualizar perfil' }, { status: 500 })

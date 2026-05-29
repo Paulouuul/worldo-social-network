@@ -234,27 +234,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      const oauthEmail = profile?.email || user?.email
-
-      if (account?.provider !== 'credentials' && oauthEmail) {
-        const existingAccount = await prisma.accounts.findFirst({
-          where: { 
-            provider: account?.provider, 
-            providerAccountId: account?.providerAccountId 
-          },
-          include: { users: true }
-        })
-
-        if (existingAccount?.users && existingAccount.users.email !== oauthEmail) {
-          const userAtualizado = await prisma.users.update({
-            where: { id: existingAccount.users.id },
-            data: { email: oauthEmail }
-          })
-          
-          user.email = userAtualizado.email
-        }
-      }
-      return true
+     return true
     },
 
     async jwt({ token, user, account, trigger, session }) {
@@ -276,7 +256,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (account) {
           token.provider = account.provider
           token.isOAuth = account.provider !== 'credentials'
-          token.hasPassword = dbUser ? !!dbUser.password : !!(user as any).hasPassword
+          token.hasPassword = dbUser ? !!dbUser.password : !!(user.hasPassword)
         } else if (dbUser) {
           // Fallback de segurança baseado no estado do banco
           token.hasPassword = !!dbUser.password
@@ -303,10 +283,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.username = token.username as string
         session.user.email = token.email as string
         session.user.avatar = token.avatar as string
-        ;(session.user as any).equippedFrame = token.equippedFrame
-        ;(session.user as any).isOAuth = token.isOAuth
-        ;(session.user as any).hasPassword = token.hasPassword
-        ;(session.user as any).provider = token.provider
+        session.user.equippedFrame = token.equippedFrame
+        session.user.isOAuth = token.isOAuth
+        session.user.hasPassword = token.hasPassword
+        session.user.provider = token.provider
       }
       return session
     }
