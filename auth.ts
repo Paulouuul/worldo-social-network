@@ -13,9 +13,7 @@ if (!DATABASE_URL) {
   throw new Error('DATABASE_URL não configurada no .env')
 }
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-})
+const pool = new Pool({ connectionString: DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
@@ -35,7 +33,8 @@ async function generateUniqueUsername(email: string): Promise<string> {
   }
   
   const existing = await prisma.users.findUnique({
-    where: { username }
+    where: { username },
+    select: { id: true } // Otimização: busca apenas o ID para checar existência
   })
   
   if (existing) {
@@ -47,11 +46,13 @@ async function generateUniqueUsername(email: string): Promise<string> {
 
 const customAdapter = {
   async createUser(user: any) {
+    const username = await generateUniqueUsername(user.email)
+    
     const newUser = await prisma.users.create({
       data: {
         email: user.email,
         name: user.name,
-        username: await generateUniqueUsername(user.email.split('@')[0]),
+        username,
         avatar: user.avatar,
         emailVerified: user.emailVerified,
       }
@@ -95,7 +96,10 @@ const customAdapter = {
       where: { provider, providerAccountId },
       include: { users: true }
     })
-    return account?.users ? {
+
+    if (!account?.users) return null
+    
+    return {
       id: account.users.id,
       publicId: account.users.publicId,
       email: account.users.email,
@@ -103,7 +107,7 @@ const customAdapter = {
       username: account.users.username,
       avatar: account.users.avatar,
       emailVerified: account.users.emailVerified,
-    } : null
+    }
   },
   async updateUser(user: any) {
     const updated = await prisma.users.update({
@@ -173,6 +177,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      authorization: { params: { scope: 'read:user user:email' } },
     }),
     CredentialsProvider({
       name: 'credentials',
@@ -194,7 +199,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         if (!user.emailVerified) {
-            throw new Error('Por favor, verifique seu email antes de fazer login')
+          throw new Error('Por favor, verifique seu email antes de fazer login')
         }
 
         const isValid = await bcrypt.compare(credentials.password as string, user.password)
@@ -224,47 +229,68 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-    // 1. Quando o usuário faz login (user existe)
-    if (user) {
-      const dbUser = await prisma.users.findUnique({
-        where: { id: user.id },
-        include: { equippedFrame: true } // Busca a relação completa
-      });
-      
-      token.id = user.id;
-      token.publicId = user.publicId;
-      token.name = user.name;
-      token.username = user.username;
-      token.email = user.email;
-      token.avatar = user.avatar;
-      // Salva o objeto completo da moldura no token
-      token.equippedFrame = dbUser?.equippedFrame;
-    }
-    
-    // 2. Quando você atualiza a sessão (ex: mudou de moldura)
-    if (trigger === 'update' && session?.user) {
-      if (session.user.name) token.name = session.user.name;
-      if (session.user.avatar) token.avatar = session.user.avatar;
-      if (session.user.equippedFrame) token.equippedFrame = session.user.equippedFrame;
-    }
-    
-    return token;
-  },
+    async signIn({ user, account, profile }) {
+      const oauthEmail = profile?.email || user?.email
 
-  async session({ session, token }) {
-    if (session.user) {
-      session.user.id = token.id as string;
-      session.user.publicId = token.publicId as string;
-      session.user.name = token.name as string;
-      session.user.username = token.username as string;
-      session.user.email = token.email as string;
-      session.user.avatar = token.avatar as string;
-      // Disponibiliza a moldura para o front-end
-      (session.user as any).equippedFrame = token.equippedFrame;
+      if (account?.provider !== 'credentials' && oauthEmail) {
+        const existingAccount = await prisma.accounts.findFirst({
+          where: { 
+            provider: account?.provider, 
+            providerAccountId: account?.providerAccountId 
+          },
+          include: { users: true }
+        })
+
+        if (existingAccount?.users && existingAccount.users.email !== oauthEmail) {
+          const userAtualizado = await prisma.users.update({
+            where: { id: existingAccount.users.id },
+            data: { email: oauthEmail }
+          })
+          
+          user.email = userAtualizado.email
+        }
+      }
+      return true
+    },
+
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        const dbUser = await prisma.users.findUnique({
+          where: { id: user.id },
+          include: { equippedFrame: true }
+        })
+
+        token.id = user.id
+        token.publicId = user.publicId
+        token.name = user.name
+        token.username = user.username
+        token.email = dbUser?.email || user.email
+        token.avatar = user.avatar
+        token.equippedFrame = dbUser?.equippedFrame
+      }
+
+      if (trigger === 'update' && session?.user) {
+        if (session.user.name) token.name = session.user.name
+        if (session.user.avatar) token.avatar = session.user.avatar
+        if (session.user.equippedFrame) token.equippedFrame = session.user.equippedFrame
+        if (session.user.email) token.email = session.user.email
+      }
+
+      return token
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.publicId = token.publicId as string
+        session.user.name = token.name as string
+        session.user.username = token.username as string
+        session.user.email = token.email as string
+        session.user.avatar = token.avatar as string
+        ;(session.user as any).equippedFrame = token.equippedFrame
+      }
+      return session
     }
-    return session;
-  }
   },
   secret: process.env.NEXTAUTH_SECRET,
 })
