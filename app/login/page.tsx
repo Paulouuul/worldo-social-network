@@ -29,6 +29,10 @@ function LoginContent() {
     const errorParam = searchParams.get('error')
     if (errorParam === 'CredentialsSignin') {
       setError('Email ou senha inválidos')
+    }else if (errorParam === 'OAuthAccountNotLinked') {
+      setError(
+        'Este e-mail já está cadastrado usando outro método (Google, GitHub ou E-mail/Senha). Por segurança, conecte-se utilizando a mesma forma com que você criou a sua conta.'
+      )
     }
   }, [searchParams])
 
@@ -97,7 +101,6 @@ function LoginContent() {
         {/* Alertas de Erro */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs border border-red-500/20 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 block shrink-0" />
             {error}
           </div>
         )}

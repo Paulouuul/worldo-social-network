@@ -34,7 +34,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
   
   const existing = await prisma.users.findUnique({
     where: { username },
-    select: { id: true } // Otimização: busca apenas o ID para checar existência
+    select: { id: true }
   })
   
   if (existing) {
@@ -216,6 +216,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           username: user.username,
           avatar: user.avatar,
           equippedProfileFrameId: user.equippedProfileFrameId,
+          // Otimização: Passamos para o passo JWT saber que viemos de credenciais válidas
+          hasPassword: true,
+          isOAuth: false,
+          provider: 'credentials'
         }
       }
     })
@@ -253,11 +257,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true
     },
 
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (user) {
         const dbUser = await prisma.users.findUnique({
           where: { id: user.id },
-          include: { equippedFrame: true }
+          include: { equippedFrame: true, accounts: true }
         })
 
         token.id = user.id
@@ -267,6 +271,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.email = dbUser?.email || user.email
         token.avatar = user.avatar
         token.equippedFrame = dbUser?.equippedFrame
+
+        // CORREÇÃO: Define com precisão o provedor usado NESTE login atual
+        if (account) {
+          token.provider = account.provider
+          token.isOAuth = account.provider !== 'credentials'
+          token.hasPassword = dbUser ? !!dbUser.password : !!(user as any).hasPassword
+        } else if (dbUser) {
+          // Fallback de segurança baseado no estado do banco
+          token.hasPassword = !!dbUser.password
+          token.isOAuth = dbUser.accounts.length > 0
+          token.provider = dbUser.accounts[0]?.provider || null
+        }
       }
 
       if (trigger === 'update' && session?.user) {
@@ -288,6 +304,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.email = token.email as string
         session.user.avatar = token.avatar as string
         ;(session.user as any).equippedFrame = token.equippedFrame
+        ;(session.user as any).isOAuth = token.isOAuth
+        ;(session.user as any).hasPassword = token.hasPassword
+        ;(session.user as any).provider = token.provider
       }
       return session
     }
