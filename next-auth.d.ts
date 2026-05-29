@@ -1,7 +1,7 @@
 import { DefaultSession, DefaultUser } from "next-auth"
 import { JWT as DefaultJWT } from "next-auth/jwt"
 
-// Defina a interface para o Frame equipado (ajuste as propriedades conforme seu schema do Prisma)
+// Interface para o Frame equipado
 interface EquippedFrame {
   id: string
   name: string
