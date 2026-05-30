@@ -1,34 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { ClientImage } from '@/components/ClientImage'
 import Link from 'next/link'
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { 
-  Package, Tag, ShoppingBag, Plus, X, Loader2, Info, 
+  Package, Tag, Search, Plus, X, Loader2, Info, 
   AlertTriangle, Sparkles, Shield, Orbit, Layers, 
-  Store, Box, Coins, MinusCircle, Edit2, ArrowLeft 
+  Store, Box, Coins, MinusCircle, Edit2, ArrowLeft, ExternalLink
 } from 'lucide-react'
-
-// // ... (Interfaces)
-// interface InventoryItem {
-//   id: string
-//   frameId: string
-//   isListed: boolean
-//   resalePrice: number | null
-//   listingId?: string | null
-//   count: number
-//   frame: {
-//     id: string
-//     name: string
-//     description: string
-//     thumbnailUrl: string
-//     imageUrl: string
-//     rarity: string
-//     stock: number
-//   }
-// }
 
 interface GroupedItem {
   id: string
@@ -51,7 +32,6 @@ interface GroupedItem {
 type FilterType = 'all' | 'listed' | 'unlisted'
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | null
 
-// ... (rarityDesigns)
 const rarityDesigns: Record<string, {
   cardClass: string
   imgBorder: string
@@ -116,6 +96,10 @@ export default function MyCosmeticsPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterType>('unlisted')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [rarityFilter, setRarityFilter] = useState('all')
+  const [sort, setSort] = useState('newest')
   const [loadingMore, setLoadingMore] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
@@ -129,18 +113,25 @@ export default function MyCosmeticsPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
-  const hasInitialized = useRef(false)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
-  
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
   
-  // Lógica de raridade
   const rarityConfig = useMemo(() => {
     if (!selectedItem) return rarityDesigns.COMUM;
     return rarityDesigns[selectedItem.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
   }, [selectedItem]);
 
-  const fetchInventory = async (page: number, isLoadMore = false) => {
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/cosmetics/inventory/stats')
+      const data = await res.json()
+      setStatsData(data)
+    } catch (err) {
+      console.error('Erro ao buscar stats:', err)
+    }
+  }, []);
+
+  const fetchInventory = useCallback(async (page: number, isLoadMore = false) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true)
@@ -148,7 +139,7 @@ export default function MyCosmeticsPage() {
         setLoading(true)
       }
       
-      const res = await fetch(`/api/cosmetics/inventory/grouped?page=${page}&limit=50&filter=${activeFilter}`)
+      const res = await fetch(`/api/cosmetics/inventory/grouped?page=${page}&limit=50&filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}&rarity=${rarityFilter}&sort=${sort}`)
       if (!res.ok) throw new Error('Falha ao sincronizar inventário')
       
       const data = await res.json()
@@ -169,24 +160,9 @@ export default function MyCosmeticsPage() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [activeFilter, searchTerm, rarityFilter, sort]);
 
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/cosmetics/inventory/stats')
-      const data = await res.json()
-      setStatsData(data)
-    } catch (err) {
-      console.error('Erro ao buscar stats:', err)
-    }
-  }
-
-  useEffect(() => {
-  if (status !== 'authenticated' || !session?.user?.id || hasInitialized.current) return
-  hasInitialized.current = true
-  fetchStats()
-  fetchInventory(1, false)
-  }, [session, status])
+  // Carrega avatar apenas uma vez quando houver a sessão do usuário
   useEffect(() => {
     if (!session?.user) return
 
@@ -210,25 +186,32 @@ export default function MyCosmeticsPage() {
     return () => controller.abort()
   }, [session])
 
+  // Limpa mensagens de sucesso sozinhas
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000); 
-      
-      return () => clearTimeout(timer); // Limpa o timer se o componente for desmontado
+      const timer = setTimeout(() => setSuccessMessage(''), 3000); 
+      return () => clearTimeout(timer);
     }
   }, [successMessage]);
 
+  // Hook unificado com DEBOUNCE para evitar requisições infinitas na digitação
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id) {
-      setItems([])
-      setCurrentPage(1)
-      setHasMore(true)
-      fetchInventory(1, false)
-    }
-  }, [activeFilter])
+    if (status !== 'authenticated' || !session?.user?.id) return;
 
+    fetchStats();
+
+    // Debounce de 500ms
+    const timeoutId = setTimeout(() => {
+      setItems([]);
+      setCurrentPage(1);
+      setHasMore(true);
+      fetchInventory(1, false);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [activeFilter, searchTerm, rarityFilter, sort, status, session, fetchStats, fetchInventory]);
+
+  // Intersection Observer para o Scroll Infinito
   useEffect(() => {
     if (loading || loadingMore || !hasMore) return
     
@@ -246,26 +229,7 @@ export default function MyCosmeticsPage() {
     }
     
     return () => observer.disconnect()
-  }, [loading, loadingMore, hasMore, currentPage])
-  const fullInventoryList = items
-  // const fullInventoryList = useMemo(() => {
-  //   const grouped = items.reduce((acc, item) => {
-  //     const key = `${item.frameId}-${item.isListed}`
-  //     if (!acc[key]) {
-  //       acc[key] = { ...item, count: 0, listingId: item.listingId }
-  //     }
-  //     acc[key].count++
-  //     return acc
-  //   }, {} as Record<string, GroupedItem>)
-  //   return Object.values(grouped)
-  // }, [items])
-
-
-  const displayedInventory = useMemo(() => {
-    if (activeFilter === 'all') return items
-    if (activeFilter === 'listed') return items.filter(item => item.isListed)
-    return items.filter(item => !item.isListed)
-  }, [items, activeFilter])
+  }, [loading, loadingMore, hasMore, currentPage, fetchInventory])
 
   const handleOpenItem = (item: GroupedItem) => {
     setSelectedItem(item)
@@ -327,20 +291,8 @@ export default function MyCosmeticsPage() {
 
   const handleUpdatePrice = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('🔵 [FRONTEND] handleUpdatePrice chamado', { 
-    listingId: selectedItem?.listingId, 
-    price,
-    submitting,
-    selectedItem: selectedItem
-  })
-  
-  if (!selectedItem?.listingId || submitting) {
-    console.log('🔴 [FRONTEND] Bloqueado:', { 
-      hasListingId: !!selectedItem?.listingId, 
-      submitting 
-    })
-    return
-  }
+    if (!selectedItem?.listingId || submitting) return
+
     setSubmitting(true)
     setErrorMessage('')
     try {
@@ -401,7 +353,7 @@ export default function MyCosmeticsPage() {
     }
   }
 
-  if (status === 'loading' || (loading && status === 'authenticated')) {
+  if (status === 'loading' || (loading && status === 'authenticated' && items.length === 0)) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-400">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-4" />
@@ -426,7 +378,6 @@ export default function MyCosmeticsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 sm:py-12 relative min-h-screen">
-      {/* ... (Cabeçalho, filtros e grids) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 pb-6 border-b border-slate-800/60">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 tracking-wide flex items-center gap-3">
@@ -444,6 +395,49 @@ export default function MyCosmeticsPage() {
         )}
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1 relative">
+           <button
+            onClick={() => setSearchTerm(searchInput)}
+            className="absolute left-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-700 transition z-10"
+          >
+            <Search className="w-4 h-4 text-slate-500" />
+          </button>
+          <input
+            type="text"
+            placeholder="Buscar no inventário..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
+          />
+            <button
+              onClick={() => {
+                setSearchInput('')
+                setSearchTerm('')
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-700 transition z-10"
+            >
+              <X className="w-4 h-4 text-slate-500" />
+            </button>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
+          {['all', 'COMUM', 'RARO', 'EPICO', 'LENDARIO'].map((rarity) => (
+            <button
+              key={rarity}
+              onClick={() => setRarityFilter(rarity)}
+              className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                rarityFilter === rarity
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30'
+                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+              }`}
+            >
+              {rarity === 'all' ? 'Todas' : rarity}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-8 bg-slate-900/60 border border-slate-800/80 rounded-xl p-1.5 w-full sm:w-fit shadow-inner backdrop-blur-sm">
         <button onClick={() => setActiveFilter('unlisted')} className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'unlisted' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}>
           <Box className="w-4 h-4 shrink-0" /> <span className="hidden min-[400px]:inline">Disponíveis</span> <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{statsData.unlisted}</span>
@@ -456,38 +450,95 @@ export default function MyCosmeticsPage() {
         </button>
       </div>
 
-      {/* Grid de itens */}
-      <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
-          {displayedInventory.map((item) => {
-            const config = rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM
-            return (
-              <button key={`${item.frameId}-${item.isListed}`} onClick={() => handleOpenItem(item)} className={`group relative h-48 sm:h-52 rounded-2xl border flex flex-col items-center justify-start pt-4 sm:pt-5 px-2 sm:px-3 pb-3 overflow-hidden transition-[transform,border-color,background-color,box-shadow] duration-150 cursor-pointer hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${item.isListed ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]' : ''}`}>
-                {item.isListed && (<div className="absolute top-2 left-2 z-20"><span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase"><Store className="w-2.5 h-2.5 hidden sm:block" /> Venda</span></div>)}
-                <div className="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 font-black text-[10px] px-2 py-0.5 rounded-md shadow-md z-20">x{item.count}</div>
-                {config.bgDecoration}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:0.4rem_0.4rem] opacity-[0.03]" />
-                <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 mb-3 ${config.imgBorder}`}><ClientImage src={item.frame.thumbnailUrl} alt={item.frame.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="(max-width: 640px) 64px, 80px" unoptimized /></div>
-                {config.badge}
-                <span className={`text-[10px] sm:text-[11px] text-center z-10 px-0.5 mt-auto w-full truncate mb-1 ${config.textClass}`}>{item.frame.name}</span>
-              </button>
-            )
-          })}
+      <div className="flex items-center gap-2 mb-6">
+        <span className="text-xs text-slate-500 font-medium mr-2">Ordenar por:</span>
+        <button
+          onClick={() => setSort('newest')}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            sort === 'newest' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Mais recentes
+        </button>
+        <button
+          onClick={() => setSort('oldest')}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            sort === 'oldest' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Mais antigos
+        </button>
       </div>
 
-      {loadingMore && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
-        </div>
-      )}
+      <div className="relative min-h-[400px]">
+        {loading && items.length === 0 && (
+          <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="h-48 sm:h-52 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse" />
+            ))}
+          </div>
+        )}
 
-      {hasMore && !loading && !loadingMore && (
-        <div ref={loadMoreRef} className="h-10" />
-      )}
+        {!loading && items.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-900/20 border border-slate-800/50 rounded-2xl border-dashed">
+            <Package className="w-16 h-16 text-slate-700 mb-4 animate-pulse" />
+            <h3 className="text-lg sm:text-xl font-bold text-slate-300 mb-2">Seu inventário está vazio</h3>
+            <p className="text-sm text-slate-500 max-w-md mb-6">
+              Adquira no marketplace ou crie sua própria moldura!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link 
+                href="/worldo/cosmetics/marketplace"
+                className="inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm px-6 py-3 rounded-xl transition-all"
+              >
+                <Store className="w-4 h-4" />
+                Ir ao Marketplace
+              </Link>
+              <Link 
+                href="/worldo/cosmetics/create"
+                className="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-all shadow-lg shadow-purple-900/20"
+              >
+                <Plus className="w-4 h-4" />
+                Criar moldura
+              </Link>
+            </div>
+          </div>
+        )}
 
-      {/* MODAL TEMÁTICO */}
+        {items.length > 0 && (
+          <>
+            <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
+              {items.map((item) => {
+                const config = rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM
+                return (
+                  <button key={`${item.frameId}-${item.isListed}`} onClick={() => handleOpenItem(item)} className={`group relative h-48 sm:h-52 rounded-2xl border flex flex-col items-center justify-start pt-4 sm:pt-5 px-2 sm:px-3 pb-3 overflow-hidden transition-[transform,border-color,background-color,box-shadow] duration-150 cursor-pointer hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${item.isListed ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]' : ''}`}>
+                    {item.isListed && (<div className="absolute top-2 left-2 z-20"><span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase"><Store className="w-2.5 h-2.5 hidden sm:block" /> Venda</span></div>)}
+                    <div className="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 font-black text-[10px] px-2 py-0.5 rounded-md shadow-md z-20">x{item.count}</div>
+                    {config.bgDecoration}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:0.4rem_0.4rem] opacity-[0.03]" />
+                    <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 mb-3 ${config.imgBorder}`}><ClientImage src={item.frame.thumbnailUrl} alt={item.frame.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="(max-width: 640px) 64px, 80px" unoptimized /></div>
+                    {config.badge}
+                    <span className={`text-[10px] sm:text-[11px] text-center z-10 px-0.5 mt-auto w-full truncate mb-1 ${config.textClass}`}>{item.frame.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {loadingMore && (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+              </div>
+            )}
+
+            {hasMore && !loading && !loadingMore && (
+              <div ref={loadMoreRef} className="h-10" />
+            )}
+          </>
+        )}
+      </div>
+
       {selectedItem && modalMode && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-200">
-          {/* O container principal agora usa o imgBorder dinâmico para borda e sombra */}
           <div className={`bg-slate-900 border ${rarityConfig.imgBorder} rounded-2xl max-w-md w-full shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]`}>
             
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800/60 flex items-center justify-between bg-slate-950/40 shrink-0">
@@ -517,25 +568,22 @@ export default function MyCosmeticsPage() {
                 </div>
               )}
 
-              {/* Preview Dinâmico */}
               <div className="flex flex-col items-center justify-center w-full mb-6">
                 <AvatarWithFrame 
-                              avatarUrl={avatarUrl}              
-                              name={session?.user?.name} 
-                              frameUrl={selectedItem.frame.imageUrl} // Ajuste 'imageUrl' para o nome exato da coluna da imagem da moldura no seu banco
-                              className="w-28 h-28 md:w-36 md:h-36"
-                              rarity={selectedItem.frame.rarity}
-                              priority
-                            />
+                  avatarUrl={avatarUrl}              
+                  name={session?.user?.name} 
+                  frameUrl={selectedItem.frame.imageUrl} 
+                  className="w-28 h-28 md:w-36 md:h-36"
+                  rarity={selectedItem.frame.rarity}
+                  priority
+                />
               </div>
-
 
               <div className="text-center mb-4">
                  <h3 className={`font-bold text-lg ${rarityConfig.textClass}`}>{selectedItem.frame.name}</h3><br/>
-                                                     <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>------------------------</p>
+                 <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>------------------------</p>
                   <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>{selectedItem.frame.rarity}</p>
-                                    <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>------------------------</p>
-
+                  <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>------------------------</p>
               </div>
 
               {modalMode === 'view' && (
@@ -554,6 +602,15 @@ export default function MyCosmeticsPage() {
                     <button onClick={() => { setModalMode('edit'); setPrice(selectedItem.resalePrice || 100); setErrorMessage(''); setSuccessMessage(''); }} className="flex-1 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 hover:border-indigo-500 text-indigo-300 hover:text-white font-semibold text-sm py-3 sm:py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"><Edit2 className="w-4 h-4" /> Editar Preço</button>
                     <button onClick={() => { setModalMode('remove'); setQuantity(selectedItem.count); setErrorMessage(''); setSuccessMessage(''); }} className="flex-1 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/30 hover:border-rose-500 text-rose-300 hover:text-white font-semibold text-sm py-3 sm:py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"><MinusCircle className="w-4 h-4" /> Retirar Lote</button>
                   </div>
+                  {selectedItem.listingId && (
+                  <Link
+                    href={`/worldo/cosmetics/marketplace/${selectedItem.listingId}`}
+                    className="flex items-center justify-center gap-2 w-full bg-purple-600/20 hover:bg-purple-600 border border-purple-500/30 hover:border-purple-500 text-purple-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Ver anúncio público
+                  </Link>
+                )}
                 </div>
               )}
 

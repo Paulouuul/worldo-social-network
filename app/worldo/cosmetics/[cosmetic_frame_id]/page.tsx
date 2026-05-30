@@ -142,7 +142,7 @@ export default function CosmeticDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-400">Moldura não encontrada</p>
-        <Link href="/worldo/cosmetics" className="btn-primary inline-block mt-4">Voltar ao Marketplace</Link>
+        <Link href="/worldo/cosmetics/marketplace" className="btn-primary inline-block mt-4">Voltar ao Marketplace</Link>
       </div>
     )
   }
@@ -155,7 +155,7 @@ export default function CosmeticDetailPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link href="/worldo/cosmetics" className="hover:text-white transition">Marketplace</Link>
+        <Link href="/worldo/cosmetics/marketplace" className="hover:text-white transition">Marketplace</Link>
         <span>/</span>
         <span className="text-white">{frame.name}</span>
       </div>
@@ -277,7 +277,7 @@ export default function CosmeticDetailPage() {
           {!frame.hasActiveListing && (
             <div className="p-6 bg-slate-800/30 rounded-2xl text-center">
               <p className="text-gray-400">Nenhum anúncio disponível no momento</p>
-              <Link href="worldo/cosmetics" className="btn-secondary inline-block mt-3">
+              <Link href="/worldo/cosmetics/marketplace" className="btn-secondary inline-block mt-3">
                 Ver outras molduras
               </Link>
             </div>

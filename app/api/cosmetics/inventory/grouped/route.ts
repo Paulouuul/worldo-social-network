@@ -8,10 +8,11 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
-
     const { searchParams } = new URL(request.url)
     const filter = searchParams.get('filter')
-    
+    const search = searchParams.get('search') || ''
+    const rarity = searchParams.get('rarity') || 'all'
+    const sort = searchParams.get('sort') || 'newest'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const skip = (page - 1) * limit
@@ -80,13 +81,34 @@ export async function GET(request: NextRequest) {
     })
 
     // Converter para array
-    const allGroupedItems = Array.from(groupedMap.values())
+    let allGroupedItems = Array.from(groupedMap.values())
+
+    if (search) {
+      const searchLower = search.toLowerCase()
+      allGroupedItems = allGroupedItems.filter(item => 
+        item.frame.name.toLowerCase().includes(searchLower)
+      )
+    }
+
+    if (rarity && rarity !== 'all') {
+      allGroupedItems = allGroupedItems.filter(item => 
+        item.frame.rarity.toUpperCase() === rarity.toUpperCase()
+      )
+    }
     
     // Ordenar pela data mais recente (já vem ordenado pela query)
     allGroupedItems.sort((a, b) => {
-      const dateA = new Date(a.lastActivityAt).getTime()
-      const dateB = new Date(b.lastActivityAt).getTime()
-      return dateB - dateA
+      if (sort === 'oldest') {
+        // Mais antigos primeiro
+        const dateA = new Date(a.lastActivityAt).getTime()
+        const dateB = new Date(b.lastActivityAt).getTime()
+        return dateA - dateB
+      } else {
+        // Padrão: mais recentes primeiro
+        const dateA = new Date(a.lastActivityAt).getTime()
+        const dateB = new Date(b.lastActivityAt).getTime()
+        return dateB - dateA
+      }
     })
 
     // Paginação

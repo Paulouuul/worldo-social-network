@@ -53,7 +53,7 @@ const customAdapter = {
         email: user.email,
         name: user.name,
         username,
-        avatar: user.avatar,
+        avatar: user.image || user.avatar, // Provedores OAuth usam .image por padrão
         emailVerified: user.emailVerified,
       }
     })
@@ -112,24 +112,6 @@ const customAdapter = {
       emailVerified: account.users.emailVerified,
     }
   },
-  // async updateUser(user: any) {
-  //   const updated = await prisma.users.update({
-  //     where: { id: user.id },
-  //     data: {
-  //       name: user.name,
-  //       avatar: user.avatar,
-  //       emailVerified: user.emailVerified,
-  //     }
-  //   })
-  //   return {
-  //     id: updated.id,
-  //     publicId: updated.publicId,
-  //     email: updated.email,
-  //     name: updated.name,
-  //     avatar: updated.avatar,
-  //     emailVerified: updated.emailVerified,
-  //   }
-  // },
   async deleteUser(id: string) {
     await prisma.users.delete({ where: { id } })
   },
@@ -218,8 +200,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           username: user.username,
           avatar: user.avatar,
-          equippedProfileFrameId: user.equippedProfileFrameId,
-          // Otimização: Passamos para o passo JWT saber que viemos de credenciais válidas
           hasPassword: true,
           isOAuth: false,
           provider: 'credentials'
@@ -236,61 +216,65 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
-     return true
-    },
-
     async jwt({ token, user, account, trigger, session }) {
+      // 1. Executado apenas no momento do Login Inicial
       if (user) {
-        const dbUser = await prisma.users.findUnique({
-          where: { id: user.id },
-          include: { equippedFrame: true, accounts: true }
-        })
-
         token.id = user.id
         token.publicId = user.publicId
-        token.name = dbUser?.name || user.name  
-        token.username = dbUser?.username || user.username  
-        token.email = dbUser?.email || user.email  
-        token.avatar = dbUser?.avatar || user.avatar  
-        token.coverImage = dbUser?.coverImage  
-        token.equippedFrame = dbUser?.equippedFrame
-        token.bio = dbUser?.bio || ''
-        token.location = dbUser?.location || ''
-        token.website = dbUser?.website || ''
-
-
-        // CORREÇÃO: Define com precisão o provedor usado NESTE login atual
+        
         if (account) {
           token.provider = account.provider
           token.isOAuth = account.provider !== 'credentials'
-          token.hasPassword = dbUser ? !!dbUser.password : !!(user.hasPassword)
-        } else if (dbUser) {
-          // Fallback de segurança baseado no estado do banco
-          token.hasPassword = !!dbUser.password
-          token.isOAuth = dbUser.accounts.length > 0
-          token.provider = dbUser.accounts[0]?.provider || null
         }
       }
 
-      if (trigger === 'update' && session?.user) {
-        if (session.user.name) token.name = session.user.name
-        if (session.user.avatar) token.avatar = session.user.avatar
-        if (session.user.coverImage) token.coverImage = session.user.coverImage
-        if (session.user.equippedFrame) token.equippedFrame = session.user.equippedFrame
-        if (session.user.email) token.email = session.user.email
+      // 2. Executado quando a aplicação cliente dispara um update() manually
+     if (trigger === 'update' && session?.user) {
+        if (session.user.name !== undefined) token.name = session.user.name
+        if (session.user.username !== undefined) token.username = session.user.username
+        if (session.user.bio !== undefined) token.bio = session.user.bio
+        if (session.user.location !== undefined) token.location = session.user.location
+        if (session.user.website !== undefined) token.website = session.user.website
+        if (session.user.email !== undefined) token.email = session.user.email
+        
+        // Fotos/Imagens (Aqui aceitamos a string vazia '' enviada pelo front de remoção)
+        if (session.user.avatar !== undefined) token.avatar = session.user.avatar
+        if (session.user.coverImage !== undefined) token.coverImage = session.user.coverImage
+        if (session.user.equippedFrame !== undefined) token.equippedFrame = session.user.equippedFrame
+        
+      }
 
-        if (session.user.username) token.username = session.user.username
-        if (session.user.bio) token.bio = session.user.bio
-        if (session.user.location) token.location = session.user.location
-        if (session.user.website) token.website = session.user.website
+      // 3. Resgate dinâmico do banco de dados para manter sincronia em navegações normais e F5
+      // Isso impede que mutações diretas no banco fiquem defasadas no client-side
+      if (token.id) {
+        const dbUser = await prisma.users.findUnique({
+          where: { id: token.id as string },
+          include: { equippedFrame: true, accounts: true }
+        })
+
+        if (dbUser) {
+          token.name = dbUser.name
+          token.username = dbUser.username
+          token.email = dbUser.email
+          token.avatar = dbUser.avatar
+          token.coverImage = dbUser.coverImage
+          token.equippedFrame = dbUser.equippedFrame
+          token.bio = dbUser.bio || ''
+          token.location = dbUser.location || ''
+          token.website = dbUser.website || ''
+          token.hasPassword = !!dbUser.password
+          token.isOAuth = Boolean(dbUser.accounts.length > 0)
+          if (!token.provider) {
+            token.provider = dbUser.accounts[0]?.provider || 'credentials'
+          }
+        }
       }
 
       return token
     },
 
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token) {
         session.user.id = token.id as string
         session.user.publicId = token.publicId as string
         session.user.name = token.name as string
@@ -298,13 +282,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.email = token.email as string
         session.user.avatar = token.avatar as string
         session.user.coverImage = token.coverImage as string
-        session.user.equippedFrame = token.equippedFrame
-        session.user.isOAuth = token.isOAuth
-        session.user.hasPassword = token.hasPassword
-        session.user.provider = token.provider
-        session.user.bio = token.bio as string || ''
-        session.user.location = token.location as string || ''
-        session.user.website = token.website as string || ''
+        session.user.equippedFrame = token.equippedFrame as any
+        session.user.isOAuth = token.isOAuth as boolean
+        session.user.hasPassword = token.hasPassword as boolean
+        session.user.provider = token.provider as string
+        session.user.bio = (token.bio as string) || ''
+        session.user.location = (token.location as string) || ''
+        session.user.website = (token.website as string) || ''
       }
       return session
     }

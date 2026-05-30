@@ -728,7 +728,7 @@ export default function CreateCosmeticPage() {
                   {loading ? 'FORJANDO ATIVO...' : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link 
-                  href="/worldo/cosmetics"
+                  href="/worldo/cosmetics/marketplace"
                   onDoubleClick={(e) => e.preventDefault()}
                   className="bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:flex-1 text-center select-none"
                 >

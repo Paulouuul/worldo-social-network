@@ -34,43 +34,24 @@ export default function EditProfilePage() {
   const [coverPreview, setCoverPreview] = useState<string>('')
   const [removeCover, setRemoveCover] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
-
-  const hasFetched = useRef(false)
-
+  const hasLoaded = useRef(false)
+  
   useEffect(() => {
-    if (session?.user?.publicId && !hasFetched.current) {
-      hasFetched.current = true
-
-      setFormData({
-        name: session.user.name || '',
-        username: session.user.username || '',
-        avatar: session.user.avatar || '',
-        coverImage: session.user.coverImage || '',
-        bio: '',
-        location: '',
-        website: '',
-      })
-      setAvatarPreview(session.user.avatar || '')
-      setCoverPreview(session.user.coverImage || '')
-      
-      fetch(`/api/user/${session.user.publicId}`)
-        .then(res => res.json())
-        .then(data => {
-          setFormData(prev => ({
-            ...prev,
-            username: data.username || prev.username,
-            bio: data.bio || '',
-            location: data.location || '',
-            website: data.website || '',
-            avatar: data.avatar || prev.avatar,
-            coverImage: data.coverImage || prev.coverImage,
-          }))
-          setAvatarPreview(data.avatar || session.user.avatar || '')
-          setCoverPreview(data.coverImage || session.user.coverImage || '')
-        })
-        .catch(err => console.error("Erro ao buscar dados complementares:", err))
-    }
-  }, [session])
+  if (session?.user && !hasLoaded.current) {
+    hasLoaded.current = true
+    setFormData({
+      name: session.user.name || '',
+      username: session.user.username || '',
+      bio: session.user.bio || '',
+      location: session.user.location || '',
+      website: session.user.website || '',
+      avatar: session.user.avatar || '',
+      coverImage: session.user.coverImage || '',
+    })
+    setAvatarPreview(session.user.avatar || '')
+    setCoverPreview(session.user.coverImage || '')
+  }
+}, [session])
 
   if (status === 'loading' || !session?.user) {
     return (
@@ -183,24 +164,20 @@ export default function EditProfilePage() {
         setSuccess('Perfil atualizado com sucesso!')
         window.scrollTo({ top: 0, behavior: 'smooth' })
         
+        const updatedUser = {
+          name: data.user?.name ?? formData.name,
+          username: data.user?.username ?? formData.username,
+          bio: data.user?.bio ?? '',
+          location: data.user?.location ?? '',
+          website: data.user?.website ?? '',
+          avatar: data.user?.avatar ?? formData.avatar,
+          coverImage: data.user?.coverImage ?? formData.coverImage,
+        }
         // Atualiza a colagem estável do formData local com os novos dados validados vindos da API
-        setFormData(prev => ({
-          ...prev,
-          name: data.user?.name || prev.name,
-          username: data.user?.username || prev.username,
-          bio: data.user?.bio || prev.bio,
-          location: data.user?.location || prev.location,
-          website: data.user?.website || prev.website,
-          avatar: data.user?.avatar || prev.avatar,
-          coverImage: data.user?.coverImage || prev.coverImage,
-        }))
+        setFormData(updatedUser)
 
         await update({
-          ...session,
-          user: { 
-            ...session.user, 
-            ...data.user,
-          }
+          user: updatedUser
         })
         
         setAvatarFile(null)

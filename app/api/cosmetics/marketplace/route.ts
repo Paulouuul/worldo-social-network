@@ -7,9 +7,9 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth()
     const { searchParams } = new URL(req.url)
-    
     const rarity = searchParams.get('rarity')
     const sort = searchParams.get('sort') || 'newest'
+    const search = searchParams.get('search') || ''
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const skip = (page - 1) * limit
@@ -20,8 +20,20 @@ export async function GET(req: NextRequest) {
       quantity: { gt: 0 }
     }
 
+    if (session?.user?.id) {
+      where.sellerId = { not: session.user.id }
+    }
+
     if (rarity && rarity !== 'all') {
       where.frame = { rarity }
+    }
+
+    if (search) {
+      where.frame = {
+        ...where.frame,
+        name: { contains: search, mode: 'insensitive' }  // PostgreSQL
+      }
+
     }
 
     // Ordenação
@@ -58,7 +70,7 @@ export async function GET(req: NextRequest) {
           },
           seller: {
             select: {
-              id: true,
+              publicId: true,
               name: true,
               username: true,
               avatar: true
