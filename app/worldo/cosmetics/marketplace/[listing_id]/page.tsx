@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ClientImage } from '@/components/ClientImage'
 import { AvatarWithFrame } from '@/components/AvatarWithFrame'
+import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { 
   Coins, 
   User, 
@@ -74,64 +75,7 @@ interface ListingData {
   }[]
 }
 
-// O mesmo sistema premium de raridade
-const rarityDesigns: Record<string, {
-  cardClass: string
-  imgBorder: string
-  textClass: string
-  badge: React.ReactNode
-  bgDecoration?: React.ReactNode
-}> = {
-  LENDARIO: {
-    cardClass: 'border-amber-500/40 bg-gradient-to-b from-amber-950/40 via-slate-950 to-slate-950 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)] hover:border-amber-400/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]',
-    imgBorder: 'border-amber-400/70 shadow-[0_0_15px_rgba(245,158,11,0.25)]',
-    textClass: 'text-amber-400 font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
-    badge: (
-      <span className="flex items-center justify-center gap-1 bg-gradient-to-r from-amber-600 to-yellow-500 text-slate-950 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-300/60 z-20 whitespace-nowrap">
-        <Sparkles className="w-3 h-3 animate-spin" style={{ animationDuration: '4s' }} /> Lendário
-      </span>
-    ),
-    bgDecoration: (
-      <>
-        <div className="absolute -inset-10 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08)_0%,transparent_60%)] animate-pulse pointer-events-none" />
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent pointer-events-none" />
-      </>
-    )
-  },
-  EPICO: {
-    cardClass: 'border-purple-500/40 bg-gradient-to-br from-purple-900/30 via-slate-950 to-slate-950 shadow-[inset_0_0_15px_rgba(168,85,247,0.05)] hover:border-purple-400/80 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]',
-    imgBorder: 'border-purple-400/60 shadow-[0_0_10px_rgba(168,85,247,0.2)]',
-    textClass: 'text-purple-300 font-extrabold tracking-wide',
-    badge: (
-      <span className="flex items-center justify-center gap-1 bg-purple-900/90 text-purple-200 text-[10px] font-black px-3 py-1 rounded-md uppercase tracking-wider shadow-sm border border-purple-400/50 backdrop-blur-md z-20 whitespace-nowrap">
-        <Orbit className="w-3 h-3 animate-pulse" /> Épico
-      </span>
-    ),
-    bgDecoration: (
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.08)_0%,transparent_70%)] pointer-events-none" />
-    )
-  },
-  RARO: {
-    cardClass: 'border-cyan-700/50 bg-gradient-to-b from-cyan-950/20 to-slate-950 hover:border-cyan-400/60 hover:shadow-[0_0_12px_rgba(6,182,212,0.1)]',
-    imgBorder: 'border-cyan-500/50',
-    textClass: 'text-cyan-400 font-bold',
-    badge: (
-      <span className="flex items-center justify-center gap-1 bg-cyan-950/90 text-cyan-300 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide border border-cyan-600/40 z-20 whitespace-nowrap">
-        <Shield className="w-3 h-3" /> Raro
-      </span>
-    )
-  },
-  COMUM: {
-    cardClass: 'border-slate-800/80 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-900/60',
-    imgBorder: 'border-slate-700/80',
-    textClass: 'text-slate-400 font-medium',
-    badge: (
-      <span className="flex items-center justify-center gap-1 bg-slate-900/90 text-slate-400 text-[10px] font-medium px-2 py-1 rounded uppercase tracking-wide border border-slate-700/50 z-20 whitespace-nowrap">
-        <Layers className="w-3 h-3" /> Comum
-      </span>
-    )
-  }
-}
+const rarityDesigns = getRarityDesigns('static');
 
 export default function ListingDetailPage() {
   const { data: session } = useSession()

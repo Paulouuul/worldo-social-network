@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { ClientImage } from '@/components/ClientImage'
 import Link from 'next/link'
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
+import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { 
   Package, Tag, Search, Plus, X, Loader2, Info, 
   AlertTriangle, Sparkles, Shield, Orbit, Layers, 
@@ -32,63 +33,7 @@ interface GroupedItem {
 type FilterType = 'all' | 'listed' | 'unlisted'
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | null
 
-const rarityDesigns: Record<string, {
-  cardClass: string
-  imgBorder: string
-  textClass: string
-  badge: React.ReactNode
-  bgDecoration?: React.ReactNode
-}> = {
-  LENDARIO: {
-    cardClass: 'border-amber-500/40 bg-gradient-to-b from-amber-950/40 via-slate-950 to-slate-950 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)] hover:border-amber-400/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]',
-    imgBorder: 'border-amber-400/70 shadow-[0_0_15px_rgba(245,158,11,0.25)]',
-    textClass: 'text-amber-400 font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
-    badge: (
-      <span className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-gradient-to-r from-amber-600 to-yellow-500 text-slate-950 text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-300/60 z-20 whitespace-nowrap">
-        <Sparkles className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '4s' }} /> Lendário
-      </span>
-    ),
-    bgDecoration: (
-      <>
-        <div className="absolute -inset-10 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08)_0%,transparent_60%)] animate-pulse" />
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
-      </>
-    )
-  },
-  EPICO: {
-    cardClass: 'border-purple-500/40 bg-gradient-to-br from-purple-900/30 via-slate-950 to-slate-950 shadow-[inset_0_0_15px_rgba(168,85,247,0.05)] hover:border-purple-400/80 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]',
-    imgBorder: 'border-purple-400/60 shadow-[0_0_10px_rgba(168,85,247,0.2)]',
-    textClass: 'text-purple-300 font-extrabold tracking-wide',
-    badge: (
-      <span className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-purple-900/90 text-purple-200 text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm border border-purple-400/50 backdrop-blur-md z-20 whitespace-nowrap">
-        <Orbit className="w-2.5 h-2.5 animate-pulse" /> Épico
-      </span>
-    ),
-    bgDecoration: (
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.08)_0%,transparent_70%)]" />
-    )
-  },
-  RARO: {
-    cardClass: 'border-cyan-700/50 bg-gradient-to-b from-cyan-950/20 to-slate-950 hover:border-cyan-400/60 hover:shadow-[0_0_12px_rgba(6,182,212,0.1)]',
-    imgBorder: 'border-cyan-500/50',
-    textClass: 'text-cyan-400 font-bold',
-    badge: (
-      <span className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-cyan-950/90 text-cyan-300 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide border border-cyan-600/40 z-20 whitespace-nowrap">
-        <Shield className="w-2 h-2" /> Raro
-      </span>
-    )
-  },
-  COMUM: {
-    cardClass: 'border-slate-800/80 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-900/60',
-    imgBorder: 'border-slate-700/80',
-    textClass: 'text-slate-400 font-medium',
-    badge: (
-      <span className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-slate-900/90 text-slate-400 text-[8px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide border border-slate-700/50 z-20 whitespace-nowrap">
-        <Layers className="w-2 h-2" /> Comum
-      </span>
-    )
-  }
-}
+const rarityDesigns = getRarityDesigns('bottom-10');
 
 export default function MyCosmeticsPage() {
   const { data: session, status } = useSession()

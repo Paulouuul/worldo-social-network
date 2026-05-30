@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { ClientImage } from '@/components/ClientImage' 
 import { AvatarWithFrame } from '@/components/AvatarWithFrame'
+import { rarityStyles } from '@/constants/cosmeticRarity';
 import { 
   Sparkles, 
   FileText, 
@@ -19,58 +20,6 @@ import {
   Image as ImageIcon 
 } from 'lucide-react'
 
-// 1. Mapeamento de estilos dinâmicos por raridade (constante fora do componente)
-const rarityStyles: Record<string, {
-  text: string
-  border: string
-  bgAlpha: string
-  focusRing: string
-  glow: string
-  gradientHeader: string
-  gradientText: string
-  buttonSubmit: string
-}> = {
-  COMUM: {
-    text: 'text-emerald-400',
-    border: 'border-emerald-500/30',
-    bgAlpha: 'from-emerald-950/20 via-transparent to-transparent',
-    focusRing: 'focus:border-emerald-500 focus:ring-emerald-500/30',
-    glow: 'drop-shadow-[0_10px_20px_rgba(16,185,129,0.2)]',
-    gradientHeader: 'from-slate-950 via-emerald-950/40 to-slate-950',
-    gradientText: 'from-emerald-400 via-teal-400 to-cyan-400',
-    buttonSubmit: 'from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-900/20'
-  },
-  RARO: {
-    text: 'text-blue-400',
-    border: 'border-blue-500/30',
-    bgAlpha: 'from-blue-900/20 via-transparent to-transparent',
-    focusRing: 'focus:border-blue-500 focus:ring-blue-500/30',
-    glow: 'drop-shadow-[0_10px_20px_rgba(59,130,246,0.3)]',
-    gradientHeader: 'from-slate-950 via-blue-950/50 to-slate-950',
-    gradientText: 'from-blue-400 via-cyan-400 to-indigo-400',
-    buttonSubmit: 'from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-900/20'
-  },
-  EPICO: {
-    text: 'text-purple-400',
-    border: 'border-purple-500/30',
-    bgAlpha: 'from-purple-900/20 via-transparent to-transparent',
-    focusRing: 'focus:border-purple-500 focus:ring-purple-500/30',
-    glow: 'drop-shadow-[0_10px_20px_rgba(147,51,234,0.3)]',
-    gradientHeader: 'from-purple-950/60 via-indigo-950/40 to-slate-950',
-    gradientText: 'from-purple-400 via-pink-400 to-indigo-400',
-    buttonSubmit: 'from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-900/20'
-  },
-  LENDARIO: {
-    text: 'text-amber-400',
-    border: 'border-amber-500/40',
-    bgAlpha: 'from-amber-900/20 via-transparent to-transparent',
-    focusRing: 'focus:border-amber-500 focus:ring-amber-500/30',
-    glow: 'drop-shadow-[0_10px_20px_rgba(245,158,11,0.4)]',
-    gradientHeader: 'from-slate-950 via-amber-950/40 to-yellow-950/20',
-    gradientText: 'from-amber-400 via-orange-400 to-yellow-400',
-    buttonSubmit: 'from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-900/20'
-  }
-}
 
 // Constantes fora do componente
 const stockPackages = [
