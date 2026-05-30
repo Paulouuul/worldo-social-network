@@ -76,6 +76,7 @@ const customAdapter = {
       name: user.name,
       username: user.username,
       avatar: user.avatar,
+      coverImage: user.coverImage,
       emailVerified: user.emailVerified,
     } : null
   },
@@ -88,6 +89,7 @@ const customAdapter = {
       name: user.name,
       username: user.username,
       avatar: user.avatar,
+      coverImage: user.coverImage,
       emailVerified: user.emailVerified,
     } : null
   },
@@ -106,27 +108,28 @@ const customAdapter = {
       name: account.users.name,
       username: account.users.username,
       avatar: account.users.avatar,
+      coverImage: account.users.coverImage,
       emailVerified: account.users.emailVerified,
     }
   },
-  async updateUser(user: any) {
-    const updated = await prisma.users.update({
-      where: { id: user.id },
-      data: {
-        name: user.name,
-        avatar: user.avatar,
-        emailVerified: user.emailVerified,
-      }
-    })
-    return {
-      id: updated.id,
-      publicId: updated.publicId,
-      email: updated.email,
-      name: updated.name,
-      avatar: updated.avatar,
-      emailVerified: updated.emailVerified,
-    }
-  },
+  // async updateUser(user: any) {
+  //   const updated = await prisma.users.update({
+  //     where: { id: user.id },
+  //     data: {
+  //       name: user.name,
+  //       avatar: user.avatar,
+  //       emailVerified: user.emailVerified,
+  //     }
+  //   })
+  //   return {
+  //     id: updated.id,
+  //     publicId: updated.publicId,
+  //     email: updated.email,
+  //     name: updated.name,
+  //     avatar: updated.avatar,
+  //     emailVerified: updated.emailVerified,
+  //   }
+  // },
   async deleteUser(id: string) {
     await prisma.users.delete({ where: { id } })
   },
@@ -246,11 +249,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         token.id = user.id
         token.publicId = user.publicId
-        token.name = user.name
-        token.username = user.username
-        token.email = dbUser?.email || user.email
-        token.avatar = user.avatar
+        token.name = dbUser?.name || user.name  
+        token.username = dbUser?.username || user.username  
+        token.email = dbUser?.email || user.email  
+        token.avatar = dbUser?.avatar || user.avatar  
+        token.coverImage = dbUser?.coverImage  
         token.equippedFrame = dbUser?.equippedFrame
+        token.bio = dbUser?.bio || ''
+        token.location = dbUser?.location || ''
+        token.website = dbUser?.website || ''
+
 
         // CORREÇÃO: Define com precisão o provedor usado NESTE login atual
         if (account) {
@@ -268,8 +276,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === 'update' && session?.user) {
         if (session.user.name) token.name = session.user.name
         if (session.user.avatar) token.avatar = session.user.avatar
+        if (session.user.coverImage) token.coverImage = session.user.coverImage
         if (session.user.equippedFrame) token.equippedFrame = session.user.equippedFrame
         if (session.user.email) token.email = session.user.email
+
+        if (session.user.username) token.username = session.user.username
+        if (session.user.bio) token.bio = session.user.bio
+        if (session.user.location) token.location = session.user.location
+        if (session.user.website) token.website = session.user.website
       }
 
       return token
@@ -283,10 +297,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.username = token.username as string
         session.user.email = token.email as string
         session.user.avatar = token.avatar as string
+        session.user.coverImage = token.coverImage as string
         session.user.equippedFrame = token.equippedFrame
         session.user.isOAuth = token.isOAuth
         session.user.hasPassword = token.hasPassword
         session.user.provider = token.provider
+        session.user.bio = token.bio as string || ''
+        session.user.location = token.location as string || ''
+        session.user.website = token.website as string || ''
       }
       return session
     }

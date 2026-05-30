@@ -200,8 +200,6 @@ export default function EditProfilePage() {
           user: { 
             ...session.user, 
             ...data.user,
-            avatar: data.user?.avatar || "None", 
-            coverImage: data.user?.coverImage || "None",
           }
         })
         

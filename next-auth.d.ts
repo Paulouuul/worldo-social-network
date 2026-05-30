@@ -20,7 +20,9 @@ declare module "next-auth" {
     name: string
     avatar?: string | null
     coverImage?: string | null
-    equippedProfileFrameId?: string | null
+    bio?: string | null          
+    location?: string | null      
+    website?: string | null 
     equippedFrame?: EquippedFrame | null
     hasPassword?: boolean
     isOAuth?: boolean
@@ -38,6 +40,9 @@ declare module "next-auth" {
       name: string
       avatar?: string | null
       coverImage?: string | null
+      bio?: string | null          
+      location?: string | null     
+      website?: string | null 
       equippedFrame?: EquippedFrame | null
       isOAuth: boolean
       hasPassword: boolean
@@ -57,6 +62,9 @@ declare module "next-auth/jwt" {
     name: string
     avatar?: string | null
     coverImage?: string | null
+    bio?: string | null          
+    location?: string | null 
+    website?: string | null     
     equippedFrame?: EquippedFrame | null
     isOAuth: boolean
     hasPassword: boolean
