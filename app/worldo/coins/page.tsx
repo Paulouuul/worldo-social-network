@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { useCoinStore } from '@/stores/coinStore'
 import { 
   Coins, 
   ShieldCheck, 
@@ -35,7 +36,7 @@ export default function CoinsPage() {
   const router = useRouter()
   
   const [packages, setPackages] = useState<CoinPackage[]>([])
-  const [balance, setBalance] = useState(0)
+  const { balance, fetchBalance } = useCoinStore()
   const [buyingId, setBuyingId] = useState<string | null>(null)
   const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -62,17 +63,19 @@ export default function CoinsPage() {
         })
         .catch(err => console.error('Erro ao buscar pacotes:', err))
       
-      // Busca o saldo do usuário
-      fetch('/api/coins/balance')
-        .then(res => res.json())
-        .then(data => {
-          if (typeof data.balance === 'number') {
-            setBalance(data.balance)
-          }
-        })
-        .catch(err => console.error('Erro ao buscar saldo:', err))
+      fetchBalance()
     }
   }, [status])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      const interval = setInterval(() => {
+        fetchBalance()
+      }, 5000) // Atualiza a cada 5 segundos
+      
+      return () => clearInterval(interval)
+    }
+  }, [status, fetchBalance])
 
   const handleBuyClick = (pkg: CoinPackage) => {
     setSelectedPackage(pkg)

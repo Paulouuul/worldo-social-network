@@ -39,7 +39,8 @@
     "resend": "^6.12.3",
     "stripe": "^22.1.1",
     "tailwindcss": "^4.2.4",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",

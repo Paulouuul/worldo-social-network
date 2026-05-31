@@ -1,46 +1,33 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Coins, Plus } from 'lucide-react'
+import { useCoinStore } from '@/stores/coinStore'
 
 interface CoinBalanceProps {
   onClick?: () => void
 }
 
 export function CoinBalance({ onClick }: CoinBalanceProps) {
-  const { data: session, status } = useSession()
-  const [balance, setBalance] = useState<number | null>(null)
-  const [loading, setLoading] = useState(false)
+  const { status } = useSession()
+  const { balance, isLoading, fetchBalance } = useCoinStore()
 
-  // Memoizando a função para evitar recriações desnecessárias no useEffect
-  const fetchBalance = useCallback(async () => {
-    try {
-      const res = await fetch('/api/coins/balance')
-      if (!res.ok) throw new Error('Falha ao buscar saldo')
-      
-      const data = await res.json()
-      setBalance(data.balance ?? 0)
-    } catch (error) {
-      console.error('Erro ao atualizar saldo de moedas:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
+  // Buscar saldo quando autenticar
   useEffect(() => {
-    // Só dispara a busca se o usuário estiver explicitamente autenticado
-    if (status !== 'authenticated') return
-
-    setLoading(true)
-    fetchBalance()
-
-    // Pooling de atualização a cada 30 segundos
-    const interval = setInterval(fetchBalance, 30000)
-    
-    return () => clearInterval(interval)
+    if (status === 'authenticated') {
+      fetchBalance()
+      
+      const interval = setInterval(() => {
+        fetchBalance()
+      }, 5000)
+      
+      return () => clearInterval(interval)
+    }
   }, [status, fetchBalance])
+
+  
 
   // Se o NextAuth ainda está checando ou o usuário não está logado, não renderiza nada
   if (status === 'loading' || status === 'unauthenticated') {
@@ -64,7 +51,7 @@ export function CoinBalance({ onClick }: CoinBalanceProps) {
         <span className="absolute inset-0 bg-amber-400/20 blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      {loading && balance === null ? (
+      {isLoading && balance === 0 ? (
         // Shimmer/Skeleton loading se for a primeiríssima carga do componente
         <div className="w-8 h-4 bg-purple-500/20 animate-pulse rounded" />
       ) : (
