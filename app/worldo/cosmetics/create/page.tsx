@@ -258,7 +258,7 @@ export default function CreateCosmeticPage() {
       setAvatarUrl(session.user.avatar)
     }
 
-    if (!session.user.id) return
+    if (!session.user.publicId) return
 
     const controller = new AbortController()
     
@@ -388,7 +388,12 @@ export default function CreateCosmeticPage() {
   }, [])
   
   if (status === 'loading') {
-    return <LoadingSpinner />
+  return <LoadingSpinner />
+  }
+
+  if (status !== 'authenticated') {
+    router.push('/login')
+    return null
   }
 
   return (

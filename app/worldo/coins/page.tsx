@@ -123,7 +123,7 @@ export default function CoinsPage() {
     return icons[index % icons.length]
   }
 
-  if (status === 'loading' || status === 'unauthenticated') {
+  if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">
         <div className="flex flex-col items-center gap-3">
@@ -132,6 +132,10 @@ export default function CoinsPage() {
         </div>
       </div>
     )
+  }
+
+  if (status === 'unauthenticated'){
+    router.push('/login')
   }
 
   return (

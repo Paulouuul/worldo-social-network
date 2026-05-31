@@ -104,7 +104,7 @@ export default function MyCosmeticsPage() {
       setAvatarUrl(session.user.avatar)
     }
 
-    if (!session.user.id) return
+    if (!session.user.publicId) return
 
     const controller = new AbortController()
     
@@ -122,7 +122,7 @@ export default function MyCosmeticsPage() {
 
   // Hook unificado com DEBOUNCE para evitar requisições infinitas na digitação
   useEffect(() => {
-    if (status !== 'authenticated' || !session?.user?.id) return;
+    if (status !== 'authenticated' || !session?.user?.publicId) return;
 
     fetchStats();
 
@@ -173,20 +173,6 @@ export default function MyCosmeticsPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-400">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-4" />
         <p className="text-sm font-medium text-purple-300 uppercase tracking-wider">Acessando cofre de cosméticos...</p>
-      </div>
-    )
-  }
-
-  if (status === 'unauthenticated') {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center backdrop-blur-sm shadow-xl">
-          <Info className="w-10 h-10 text-purple-400 mx-auto mb-3" />
-          <p className="text-slate-200 font-medium">Autenticação Requerida</p>
-          <Link href="/login" className="inline-block mt-4 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm py-2 px-6 rounded-xl transition shadow-lg shadow-purple-900/20">
-            Ir para Login
-          </Link>
-        </div>
       </div>
     )
   }

@@ -28,6 +28,10 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const session = await auth()
+
+  if (!session?.user) {
+    redirect('/login')
+  }
   const { user_identifier } = await params
   const decodedUsername = decodeURIComponent(user_identifier)
   
@@ -63,7 +67,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     notFound()
   }
 
-  const isOwnProfile = session?.user?.id === user.id
+  const isOwnProfile = session?.user?.publicId === user.publicId
   
   const memberSince = new Date(user.createdAt).toLocaleDateString('pt-BR', {
     year: 'numeric',

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
@@ -6,6 +7,14 @@ export async function GET(
   { params }: { params: Promise<{ user_identifier: string }> }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+          { status: 401 }
+        )
+     }
+    
     const { user_identifier } = await params
     
     // 1. Descodificar e normalizar a entrada

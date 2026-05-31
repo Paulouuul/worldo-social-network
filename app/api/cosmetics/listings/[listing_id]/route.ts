@@ -1,5 +1,7 @@
 // app/api/cosmetics/listings/[listing_id]/route.ts
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
+
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -7,6 +9,14 @@ export async function GET(
   { params }: { params: { listing_id: string } }
 ) {
   try {
+
+    const session = await auth()
+    if (!session?.user?.id) {
+          return NextResponse.json(
+            { error: 'Não autorizado' },
+            { status: 401 }
+          )
+        }
     const { listing_id } = await params
 
     // 1. Buscar o anúncio específico

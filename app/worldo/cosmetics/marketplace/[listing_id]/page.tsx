@@ -227,7 +227,7 @@ export default function ListingDetailPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* O VENDEDOR - AGORA REDIRECIONA PARA O CATÁLOGO DELE */}
             <Link 
-              href={`/worldo/perfil/${listing.seller.id}`} 
+              href={`/worldo/seller/${listing.seller.id}`} 
               className="group flex items-center gap-3 p-4 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-emerald-500/30 hover:bg-slate-800/50 transition-all relative overflow-hidden"
             >
               <AvatarWithFrame
@@ -290,7 +290,7 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            {session ? (
+
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="w-1/3">
@@ -333,11 +333,7 @@ export default function ListingDetailPage() {
                   </div>
                 )}
               </div>
-            ) : (
-              <Link href="/login" className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 border border-slate-700">
-                <User className="w-5 h-5" /> Faça login para comprar
-              </Link>
-            )}
+            
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-6 mt-4 border-t border-slate-800">
               <Calendar className="w-3 h-3" />

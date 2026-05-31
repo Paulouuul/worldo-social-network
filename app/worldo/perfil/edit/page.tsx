@@ -112,6 +112,10 @@ export default function EditProfilePage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
+
+    if(!session?.user.publicId){
+      router.push('login')
+    }
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -184,6 +188,10 @@ export default function EditProfilePage() {
         setRemoveAvatar(false)
         setCoverFile(null)
         setRemoveCover(false)
+
+        setTimeout(() => {
+          setSuccess('')
+        }, 1500)
       }
     } catch (err) {
       setError('Erro ao conectar com o servidor')
@@ -202,7 +210,11 @@ export default function EditProfilePage() {
   }
 
   const handleCancel = () => {
+    if (session?.user?.publicId) {
     router.push(`/worldo/perfil/${session.user?.publicId}`)
+    }else{
+      router.push('/login')
+    }
   }
   
   return (

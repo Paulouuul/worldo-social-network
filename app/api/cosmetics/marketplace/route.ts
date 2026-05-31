@@ -14,6 +14,12 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12')
     const skip = (page - 1) * limit
 
+    if (!session?.user?.id) {
+          return NextResponse.json(
+            { error: 'Não autorizado' },
+            { status: 401 }
+          )
+        }
     // Construir filtros
     const where: any = {
       isActive: true,

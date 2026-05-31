@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 [REMOVE] Iniciando remoção de listing...')
+    console.log('[REMOVE] Iniciando remoção de listing...')
     
     const session = await auth()
     if (!session?.user?.id) {

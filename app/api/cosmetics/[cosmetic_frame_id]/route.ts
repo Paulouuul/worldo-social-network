@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
@@ -6,6 +7,16 @@ export async function GET(
   { params }: { params: { cosmetic_frame_id: string } }
 ) {
   try {
+
+    const session = await auth()
+
+    if (!session?.user?.id) {
+          return NextResponse.json(
+            { error: 'Não autorizado' },
+            { status: 401 }
+          )
+        }
+
     const { cosmetic_frame_id } = await params
 
     const frame = await prisma.cosmetic_frame.findUnique({
