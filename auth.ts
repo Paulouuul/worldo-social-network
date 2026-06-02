@@ -214,7 +214,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 7 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
   },
   jwt: {
     async encode({ secret, token }) {
@@ -222,7 +223,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return await new SignJWT(token as any)
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
-        .setExpirationTime('30d')
+        .setExpirationTime('7d')
         .sign(secretBuffer)
     },
     async decode({ secret, token }) {
@@ -230,7 +231,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       try {
         const secretBuffer = new TextEncoder().encode(secret as string)
         const { payload } = await jwtVerify(token, secretBuffer, {
-          algorithms: [String(process.env.JWT_ALGORITHM)],
+          algorithms: [String(process.env.JWT_ALGORITHM || 'HS256')],
         })
         return payload as any
       } catch (error) {
