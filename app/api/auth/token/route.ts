@@ -1,22 +1,24 @@
 // worldo-social-network/app/api/auth/token/route.ts
-import { getToken } from 'next-auth/jwt'
+import { auth } from '@/auth'
 import { NextRequest, NextResponse } from 'next/server'
+import { generatePythonToken } from "@/lib/realtime-python-token-generator";
 
 export async function GET(req: NextRequest) {
   try {
-    // 🔥 Usar raw: true para obter o JWT bruto
-    const token = await getToken({ 
-      req, 
-      secret: process.env.NEXTAUTH_SECRET,
-      raw: true  // ← Isso retorna o JWT real
-    })
+    const session = await auth();
     
-    if (!token) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Não autenticado" },
+        { status: 401 }
+      );
     }
+
+    // 2. Gera o token JWT para o Python
+    const pythonToken = await generatePythonToken(session);
     
     // Token é o JWT
-    return NextResponse.json({ token })
+    return NextResponse.json({ pythonToken })
   } catch (error) {
     console.error('Erro ao obter token:', error)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })

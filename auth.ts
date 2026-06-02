@@ -7,7 +7,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { SignJWT, jwtVerify } from 'jose'
+// import { SignJWT, jwtVerify } from 'jose'
 
 const DATABASE_URL = process.env.DATABASE_URL
 if (!DATABASE_URL) {
@@ -217,28 +217,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 7 * 24 * 60 * 60,
     updateAge: 24 * 60 * 60,
   },
-  jwt: {
-    async encode({ secret, token }) {
-      const secretBuffer = new TextEncoder().encode(secret as string)
-      return await new SignJWT(token as any)
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setExpirationTime('7d')
-        .sign(secretBuffer)
-    },
-    async decode({ secret, token }) {
-      if (!token) return null
-      try {
-        const secretBuffer = new TextEncoder().encode(secret as string)
-        const { payload } = await jwtVerify(token, secretBuffer, {
-          algorithms: [String(process.env.JWT_ALGORITHM || 'HS256')],
-        })
-        return payload as any
-      } catch (error) {
-        return null
-      }
-    },
-  },
+  // jwt: {
+  //   async encode({ secret, token }) {
+  //     const secretBuffer = new TextEncoder().encode(secret as string)
+  //     return await new SignJWT(token as any)
+  //       .setProtectedHeader({ alg: 'HS256' })
+  //       .setIssuedAt()
+  //       .setExpirationTime('7d')
+  //       .sign(secretBuffer)
+  //   },
+  //   async decode({ secret, token }) {
+  //     if (!token) return null
+  //     try {
+  //       const secretBuffer = new TextEncoder().encode(secret as string)
+  //       const { payload } = await jwtVerify(token, secretBuffer, {
+  //         algorithms: [String(process.env.JWT_ALGORITHM || 'HS256')],
+  //       })
+  //       return payload as any
+  //     } catch (error) {
+  //       return null
+  //     }
+  //   },
+  // },
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
       // 1. Executado apenas no momento do Login Inicial
@@ -250,10 +250,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.provider = account.provider
           token.isOAuth = account.provider !== 'credentials'
         }
+        token.hasPassword = user.hasPassword ?? true
       }
 
       // 2. Executado quando a aplicação cliente dispara um update() manually
-     if (trigger === 'update' && session?.user) {
+      if (trigger === 'update' && session?.user) {
         if (session.user.name !== undefined) token.name = session.user.name
         if (session.user.username !== undefined) token.username = session.user.username
         if (session.user.bio !== undefined) token.bio = session.user.bio
@@ -304,15 +305,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.name = token.name as string
         session.user.username = token.username as string
         session.user.email = token.email as string
-        session.user.avatar = token.avatar as string
-        session.user.coverImage = token.coverImage as string
-        session.user.equippedFrame = token.equippedFrame as any
-        session.user.isOAuth = token.isOAuth as boolean
-        session.user.hasPassword = token.hasPassword as boolean
-        session.user.provider = token.provider as string
+        session.user.avatar = (token.avatar as string) || null
+        session.user.coverImage = (token.coverImage as string) || null
         session.user.bio = (token.bio as string) || ''
         session.user.location = (token.location as string) || ''
         session.user.website = (token.website as string) || ''
+        session.user.equippedFrame = token.equippedFrame || null
+        session.user.provider = (token.provider as string) || 'credentials'
+        session.user.isOAuth = (token.isOAuth as boolean) ?? false
+        session.user.hasPassword = (token.hasPassword as boolean) ?? true
       }
       return session
     }

@@ -11,7 +11,8 @@ export default function ApiTestPage() {
   const testDebug = async () => {
     // 1. Buscar token
     const tokenRes = await fetch('/api/auth/token')
-    const { token } = await tokenRes.json()
+    const data = await tokenRes.json()
+    const token = data.pythonToken || data.token
     
     console.log('Token obtido:', token)
     console.log('Token length:', token?.length)
