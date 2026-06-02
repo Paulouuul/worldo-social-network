@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { ClientImage } from '@/components/ClientImage'
 import Link from 'next/link'
-import { Search, Coins, User, Package, Sparkles, Store, Shield, Orbit, Layers,  X} from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { Search, Coins, User, Package, Sparkles, Store, X} from 'lucide-react'
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 
 interface MarketplaceListing {
@@ -27,7 +28,7 @@ interface MarketplaceListing {
 const rarityDesigns = getRarityDesigns('bottom-2');
 
 export default function MarketplacePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [listings, setListings] = useState<MarketplaceListing[]>([])
   const [ownedItems, setOwnedItems] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,6 +37,10 @@ export default function MarketplacePage() {
   const [rarityFilter, setRarityFilter] = useState('all')
   const [sort, setSort] = useState('newest')
 
+  if (status === 'unauthenticated') {
+    redirect('/login')
+  }
+  
   useEffect(() => {
   setLoading(true)
     const url = new URL('/api/cosmetics/marketplace', window.location.origin)
@@ -61,7 +66,6 @@ export default function MarketplacePage() {
       })
 }, [rarityFilter, sort, searchTerm])
 
-  const displayedListings = listings
 
   if (loading && listings.length === 0) {
     return (
@@ -76,7 +80,7 @@ export default function MarketplacePage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-3xl font-bold bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-3">
             <Store className="w-8 h-8 text-purple-500" />
             Marketplace de Molduras
           </h1>
@@ -176,11 +180,11 @@ export default function MarketplacePage() {
               <Link
                 key={listing.id}
                 href={`/worldo/cosmetics/marketplace/${listing.id}`}
-                className={`group relative flex flex-col items-center justify-between p-3 sm:p-4 h-[250px] sm:h-[270px] rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-2 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass}`}
+                className={`group relative flex flex-col items-center justify-between p-3 sm:p-4 h-62.5 sm:h-67.5 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-2 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass}`}
               >
                 {/* Efeitos de fundo da Raridade */}
                 {config.bgDecoration}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:0.4rem_0.4rem] opacity-[0.05]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05]" />
 
                 {/* Header: Preço e Status/Quantidade */}
                 <div className="w-full flex justify-between items-start z-20 mb-2 gap-2">

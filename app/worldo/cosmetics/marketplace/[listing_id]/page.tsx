@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ClientImage } from '@/components/ClientImage'
 import { AvatarWithFrame } from '@/components/AvatarWithFrame'
@@ -16,9 +16,6 @@ import {
   ShoppingBag, 
   Sparkles,
   Calendar,
-  Shield,
-  Orbit,
-  Layers,
   AlertTriangle,
   Loader2,
   ChevronRight
@@ -78,7 +75,7 @@ interface ListingData {
 const rarityDesigns = getRarityDesigns('static');
 
 export default function ListingDetailPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const params = useParams()
   const router = useRouter()
   
@@ -89,6 +86,10 @@ export default function ListingDetailPage() {
   const [error, setError] = useState('')
 
   const listingId = params.listing_id as string
+
+  if (status === 'unauthenticated') {
+    redirect('/login')
+  }
 
   useEffect(() => {
     fetch(`/api/cosmetics/listings/${listingId}`)
@@ -164,7 +165,6 @@ export default function ListingDetailPage() {
     )
   }
 
-  const isOwner = session?.user?.publicId === listing.seller.id
 
   const config = rarityDesigns[listing.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM
 
@@ -176,17 +176,17 @@ export default function ListingDetailPage() {
           <Store className="w-3.5 h-3.5" /> Marketplace
         </Link>
         <span>/</span>
-        <span className={`${config.textClass} truncate max-w-[200px] sm:max-w-md`}>{listing.frame.name}</span>
+        <span className={`${config.textClass} truncate max-w-50 sm:max-w-md`}>{listing.frame.name}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         
         {/* Lado Esquerdo: Preview com AvatarWithFrame */}
         <div className="lg:col-span-2">
-          <div className={`relative rounded-3xl border overflow-hidden flex flex-col items-center justify-center p-8 min-h-[400px] h-full ${config.cardClass}`}>
+          <div className={`relative rounded-3xl border overflow-hidden flex flex-col items-center justify-center p-8 min-h-100 h-full ${config.cardClass}`}>
             {/* Efeitos de fundo Premium */}
             {config.bgDecoration}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:0.4rem_0.4rem] opacity-[0.05] pointer-events-none" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none" />
             
             <div className="z-10 relative flex flex-col items-center mt-auto mb-auto">
               <div className="mb-6 drop-shadow-2xl">
@@ -316,7 +316,7 @@ export default function ListingDetailPage() {
                 <button 
                   onClick={handleBuy} 
                   disabled={buying}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm uppercase tracking-wider py-4 rounded-xl transition-[transform,shadow] hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(147,51,234,0.2)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm uppercase tracking-wider py-4 rounded-xl transition-[transform,shadow] hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(147,51,234,0.2)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   {buying ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -369,11 +369,11 @@ export default function ListingDetailPage() {
                 <Link
                   key={item.id}
                   href={`/worldo/cosmetics/marketplace/${item.id}`}
-                  className={`group relative flex flex-col items-center justify-between p-3 sm:p-4 h-[240px] sm:h-[260px] rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-2 hover:scale-[1.02] ${itemConfig.cardClass}`}
+                  className={`group relative flex flex-col items-center justify-between p-3 sm:p-4 h-60 sm:h-65 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-2 hover:scale-[1.02] ${itemConfig.cardClass}`}
                 >
                   {/* Efeitos de fundo */}
                   {itemConfig.bgDecoration}
-                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:0.4rem_0.4rem] opacity-[0.05] pointer-events-none" />
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none" />
 
                   {/* Header: Preço e Estoque */}
                   <div className="w-full flex justify-between items-start z-20 mb-2 gap-2">

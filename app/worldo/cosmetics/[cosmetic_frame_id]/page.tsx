@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ClientImage } from '@/components/ClientImage' 
-import { Star, ShoppingBag, Users, Calendar, TrendingUp, ArrowLeft, Sparkles, Coins, User, MessageCircle } from 'lucide-react'
+import { Star, ShoppingBag, Users, Coins, User } from 'lucide-react'
 
 interface FrameData {
   id: string
@@ -224,7 +224,7 @@ export default function CosmeticDetailPage() {
 
           {/* Preço e compra */}
           {cheapest && (
-            <div className="p-6 bg-gradient-to-r from-purple-900/20 to-indigo-900/20 rounded-2xl border border-purple-500/30">
+            <div className="p-6 bg-linear-to-r from-purple-900/20 to-indigo-900/20 rounded-2xl border border-purple-500/30">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm text-gray-400">Melhor oferta</p>

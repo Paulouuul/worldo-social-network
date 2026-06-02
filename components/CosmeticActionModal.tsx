@@ -255,11 +255,11 @@ export function CosmeticActionModal({ item, mode, onClose, onSuccess, avatarUrl 
             <form onSubmit={handleSell} className="space-y-4 animate-in slide-in-from-right-4 duration-200">
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><Box className="w-3 h-3" /> Qtd. a Listar</label>
+                  <label className="block text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 items-center gap-1.5"><Box className="w-3 h-3" /> Qtd. a Listar</label>
                   <input type="number" min="1" max={item.count} value={quantity} onChange={(e) => setQuantity(Math.min(parseInt(e.target.value) || 1, item.count))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold" disabled={submitting} required />
                 </div>
                 <div>
-                  <label className="block text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><Coins className="w-3 h-3 text-amber-500" /> Preço Un. (🪙)</label>
+                  <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><Coins className="w-3 h-3 text-amber-500" /> Preço Un. (🪙)</label>
                   <input type="number" min="1" value={price} onChange={(e) => setPrice(Math.max(0, parseInt(e.target.value) || 0))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-amber-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold" disabled={submitting} required />
                 </div>
               </div>
@@ -268,7 +268,7 @@ export function CosmeticActionModal({ item, mode, onClose, onSuccess, avatarUrl 
                 <span className="font-black text-purple-400 text-sm flex items-center gap-1.5"><Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {new Intl.NumberFormat('pt-BR').format(quantity * price)}</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
-                <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <button type="submit" disabled={submitting} className="flex-1 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Store className="w-4 h-4" /> Anunciar no Mercado</>}
                 </button>
                 <button type="button" onClick={onClose} disabled={submitting} className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
@@ -282,7 +282,7 @@ export function CosmeticActionModal({ item, mode, onClose, onSuccess, avatarUrl 
           {currentMode === 'edit' && (
             <form onSubmit={handleUpdatePrice} className="space-y-4 animate-in slide-in-from-left-4 duration-200">
               <div>
-                <label className="block text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><Coins className="w-3 h-3 text-amber-500" /> Novo Preço Unitário</label>
+                <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><Coins className="w-3 h-3 text-amber-500" /> Novo Preço Unitário</label>
                 <input type="number" min="1" value={price} onChange={(e) => setPrice(Math.max(1, parseInt(e.target.value) || 1))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold" disabled={submitting} required />
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
@@ -300,7 +300,7 @@ export function CosmeticActionModal({ item, mode, onClose, onSuccess, avatarUrl 
           {currentMode === 'remove' && (
             <form onSubmit={handleRemoveItems} className="space-y-4 animate-in slide-in-from-right-4 duration-200">
               <div>
-                <label className="block text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><Box className="w-3 h-3" /> Qtd. a Retirar para o Cofre</label>
+                <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><Box className="w-3 h-3" /> Qtd. a Retirar para o Cofre</label>
                 <input type="number" min="1" max={item.count} value={quantity} onChange={(e) => setQuantity(Math.min(parseInt(e.target.value) || 1, item.count))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold" disabled={submitting} required />
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">

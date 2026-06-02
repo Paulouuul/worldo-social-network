@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, redirect } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { ClientImage } from '@/components/ClientImage' 
@@ -40,7 +40,7 @@ const baseCosts: Record<string, number> = {
 // Componente de Loading isolado
 function LoadingSpinner() {
   return (
-    <div className="flex items-center justify-center min-h-[400px]">
+    <div className="flex items-center justify-center min-h-100">
       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
       <span className="ml-3 text-purple-300 font-medium">Carregando portal...</span>
     </div>
@@ -48,139 +48,6 @@ function LoadingSpinner() {
 }
 
 // Componente de Preview isolado
-function PreviewCarousel({ 
-  hasFramePreview, 
-  hasThumbPreview, 
-  imagePreview, 
-  thumbnailPreview, 
-  avatarUrl, 
-  currentStyle 
-}: {
-  hasFramePreview: boolean
-  hasThumbPreview: boolean
-  imagePreview: string
-  thumbnailPreview: string
-  avatarUrl: string
-  currentStyle: typeof rarityStyles.COMUM
-}) {
-  const [carouselIndex, setCarouselIndex] = useState(0)
-  const totalSlides = (hasFramePreview ? 1 : 0) + (hasThumbPreview ? 1 : 0)
-
-  const toggleSlide = useCallback((e: React.MouseEvent) => {
-    e.preventDefault() // Previne comportamento padrão
-    setCarouselIndex(prev => (prev === 0 ? 1 : 0))
-  }, [])
-
-  // Previne double click nos botões de navegação
-  const handleSlideButton = useCallback((index: number) => (e: React.MouseEvent) => {
-    e.preventDefault()
-    setCarouselIndex(index)
-  }, [])
-
-  return (
-    <div className="relative group">
-      <div className={`bg-slate-950/90 rounded-2xl border ${currentStyle.border} overflow-hidden shadow-2xl relative min-h-[380px] flex items-center justify-center transition-all duration-500`}>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:1rem_1rem] opacity-30" />
-        
-        <div className={`transition-all duration-300 absolute inset-0 flex flex-col items-center justify-center p-6 h-full ${carouselIndex === 0 && hasFramePreview ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0 pointer-events-none'}`}>
-          {hasFramePreview && (
-            <div className="flex flex-col items-center justify-center h-full w-full">
-              <div className="relative w-48 h-48 flex items-center justify-center">
-                <div className="absolute w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-4 ring-purple-500/20 z-0">
-                  <ClientImage 
-                    src={avatarUrl} 
-                    alt="Seu avatar" 
-                    fill
-                    sizes="128px"
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-                <div className={`absolute w-48 h-48 z-10 ${currentStyle.glow} transition-all duration-500`}>
-                  <ClientImage 
-                    src={imagePreview} 
-                    alt="Moldura Cosmética" 
-                    fill
-                    sizes="192px"
-                    unoptimized
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-              </div>
-              <div className={`mt-8 bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.border} shadow-sm backdrop-blur-md`}>
-                <p className={`text-xs font-semibold tracking-wider ${currentStyle.text} uppercase`}>Ajuste no Avatar</p>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        <div className={`transition-all duration-300 absolute inset-0 flex flex-col items-center justify-center p-6 h-full ${carouselIndex === 1 || (!hasFramePreview && hasThumbPreview) ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0 pointer-events-none'}`}>
-          {hasThumbPreview && (
-            <div className="flex flex-col items-center justify-center h-full w-full">
-              <div className="relative w-44 h-44 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 ring-4 ring-indigo-500/10">
-                <ClientImage 
-                  src={thumbnailPreview} 
-                  alt="Miniatura Comercial" 
-                  fill
-                  sizes="176px"
-                  unoptimized
-                  className="object-cover"
-                  priority
-                />
-              </div>
-              <div className="mt-8 bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20 shadow-sm backdrop-blur-md">
-                <p className="text-xs font-semibold tracking-wider text-indigo-300 uppercase">Card de Vitrine</p>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {totalSlides > 1 && (
-          <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none z-20">
-            <button 
-              type="button" 
-              onClick={toggleSlide}
-              onDoubleClick={(e) => e.preventDefault()} 
-              className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 pointer-events-auto backdrop-blur-sm transition-all active:scale-95 select-none"
-              aria-label="Slide anterior"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button 
-              type="button" 
-              onClick={toggleSlide}
-              onDoubleClick={(e) => e.preventDefault()} 
-              className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 pointer-events-auto backdrop-blur-sm transition-all active:scale-95 select-none"
-              aria-label="Próximo slide"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {totalSlides > 1 && (
-        <div className="flex justify-center gap-1.5 mt-4">
-          <button 
-            type="button"
-            onClick={handleSlideButton(0)}
-            onDoubleClick={(e) => e.preventDefault()}
-            className={`h-1.5 rounded-full transition-all duration-300 ${carouselIndex === 0 ? 'w-6 bg-purple-500' : 'w-2 bg-slate-800'} select-none`}
-            aria-label="Slide 1"
-          />
-          <button 
-            type="button"
-            onClick={handleSlideButton(1)}
-            onDoubleClick={(e) => e.preventDefault()}
-            className={`h-1.5 rounded-full transition-all duration-300 ${carouselIndex === 1 ? 'w-6 bg-purple-500' : 'w-2 bg-slate-800'} select-none`}
-            aria-label="Slide 2"
-          />
-        </div>
-      )}
-    </div>
-  )
-}
 
 export default function CreateCosmeticPage() {
   const { data: session, status } = useSession()
@@ -226,8 +93,6 @@ export default function CreateCosmeticPage() {
     return Math.floor(baseCost * multiplier)
   }, [formData.rarity, currentPackage])
 
-  const hasFramePreview = showFramePreview && !!imagePreview
-  const hasThumbPreview = !!thumbnailPreview
 
   // Efeito para desabilitar double click globalmente
   useEffect(() => {
@@ -386,23 +251,22 @@ export default function CreateCosmeticPage() {
     e.preventDefault()
     setFormData(prev => ({ ...prev, stock: value }))
   }, [])
-  
-  if (status === 'loading') {
-  return <LoadingSpinner />
+
+  if (status === 'unauthenticated') {
+     redirect('/login')
   }
 
-  if (status !== 'authenticated') {
-    router.push('/login')
-    return null
+  if (status === 'loading') {
+    return <LoadingSpinner />
   }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 select-none">
       <div className={`bg-slate-900/60 backdrop-blur-xl rounded-2xl overflow-hidden border ${currentStyle.border} shadow-2xl transition-all duration-500`}>
         
-        <div className={`relative h-36 bg-gradient-to-r ${currentStyle.gradientHeader} flex flex-col items-center justify-center border-b ${currentStyle.border} px-4 text-center transition-all duration-500`}>
-          <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${currentStyle.bgAlpha} opacity-60 transition-all duration-500`} />
-          <h1 className={`text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${currentStyle.gradientText} flex items-center gap-2 z-10 tracking-wide transition-all duration-500`}>
+        <div className={`relative h-36 bg-linear-to-r ${currentStyle.gradientHeader} flex flex-col items-center justify-center border-b ${currentStyle.border} px-4 text-center transition-all duration-500`}>
+          <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] ${currentStyle.bgAlpha} opacity-60 transition-all duration-500`} />
+          <h1 className={`text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} flex items-center gap-2 z-10 tracking-wide transition-all duration-500`}>
             <Sparkles className={`w-6 h-6 ${currentStyle.text} animate-pulse`} />
             FORJAR NOVA MOLDURA
           </h1>
@@ -478,7 +342,7 @@ export default function CreateCosmeticPage() {
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                     <Package className={`w-4 h-4 ${currentStyle.text}`} /> Lote de Upload
                   </label>
-                  <div className="bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 text-sm flex items-center h-[46px]">
+                  <div className="bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 text-sm flex items-center h-11.5">
                     {currentPackage?.units || 'Selecione um pacote abaixo'}
                   </div>
                 </div>
@@ -497,7 +361,7 @@ export default function CreateCosmeticPage() {
                         type="button"
                         onClick={handleStockPackageClick(pkg.value)}
                         onDoubleClick={(e) => e.preventDefault()}
-                        className={`relative text-left p-4 rounded-xl border transition-all duration-200 bg-gradient-to-br hover:border-purple-500/50 select-none ${
+                        className={`relative text-left p-4 rounded-xl border transition-all duration-200 bg-linear-to-br hover:border-purple-500/50 select-none ${
                           isSelected 
                             ? `${pkg.color} ring-1 ring-purple-500/30 shadow-lg border-transparent` 
                             : 'from-slate-950/40 to-slate-900/40 border-slate-800 text-slate-400'
@@ -540,7 +404,7 @@ export default function CreateCosmeticPage() {
                   />
                   <label
                     htmlFor="image-upload"
-                    className={`flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:${currentStyle.border} rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-[90px] select-none`}
+                    className={`flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:${currentStyle.border} rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-22.5 select-none`}
                   >
                     <UploadCloud className="w-5 h-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                     <span>{imageFile ? 'Alterar Ativo Principal' : 'Carregar Moldura Transparente'}</span>
@@ -564,7 +428,7 @@ export default function CreateCosmeticPage() {
                   />
                   <label
                     htmlFor="thumbnail-upload"
-                    className={`flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:${currentStyle.border} rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-[90px] select-none`}
+                    className={`flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:${currentStyle.border} rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-22.5 select-none`}
                   >
                     <UploadCloud className="w-5 h-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                     <span>{thumbnailFile ? 'Alterar Miniatura' : 'Carregar Card de Vitrine'}</span>
@@ -586,7 +450,7 @@ export default function CreateCosmeticPage() {
                 </div>
                 <div className="border-t border-slate-800/80 my-2 pt-2 flex justify-between items-center">
                   <span className={`text-sm font-semibold ${currentStyle.text} transition-colors duration-500`}>Custo de Emissão do Contrato</span>
-                  <span className={`text-xl font-black text-transparent bg-clip-text bg-gradient-to-r ${currentStyle.gradientText} transition-all duration-500`}>
+                  <span className={`text-xl font-black text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} transition-all duration-500`}>
                     {creationCost} moedas
                   </span>
                 </div>
@@ -608,7 +472,7 @@ export default function CreateCosmeticPage() {
       <div className="flex-1 bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
         
         {/* Componente Principal */}
-        <div className="relative min-h-[160px] flex items-center justify-center">
+        <div className="relative min-h-40 flex items-center justify-center">
           <AvatarWithFrame
             avatarUrl={avatarUrl && avatarUrl !== "None" ? avatarUrl : null} 
             name={session?.user?.name}
@@ -635,7 +499,7 @@ export default function CreateCosmeticPage() {
           {/* Container da Miniatura */}
           <div className="relative group">
             {/* Efeito de brilho de fundo na miniatura (hover) */}
-            <div className={`absolute -inset-1 rounded-xl bg-gradient-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}></div>
+            <div className={`absolute -inset-1 rounded-xl bg-linear-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}></div>
             
             <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
               <ClientImage
@@ -659,11 +523,11 @@ export default function CreateCosmeticPage() {
     </div>
   ) : (
     // ESTADO VAZIO (Mantido e ajustado para o design novo)
-    <div className="bg-slate-950/60 rounded-xl p-16 border border-slate-900 flex flex-col items-center justify-center min-h-[360px]">
+    <div className="bg-slate-950/60 rounded-xl p-16 border border-slate-900 flex flex-col items-center justify-center min-h-90">
       <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800 text-slate-600 mb-6 shadow-inner">
         <ImageIcon className="w-10 h-10" />
       </div>
-      <p className="text-slate-500 text-sm max-w-[240px] leading-relaxed">
+      <p className="text-slate-500 text-sm max-w-60 leading-relaxed">
         Selecione uma imagem para visualizar como o cosmético ficará no perfil e nas listas do sistema.
       </p>
     </div>
@@ -677,7 +541,7 @@ export default function CreateCosmeticPage() {
                   type="submit" 
                   disabled={loading}
                   onDoubleClick={(e) => e.preventDefault()}
-                  className={`bg-gradient-to-r ${currentStyle.buttonSubmit} text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-1 text-center tracking-wide select-none`}
+                  className={`bg-linear-to-r ${currentStyle.buttonSubmit} text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-1 text-center tracking-wide select-none`}
                 >
                   {loading ? 'FORJANDO ATIVO...' : 'CONFIRMAR CRIAÇÃO'}
                 </button>

@@ -83,7 +83,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl relative">
         
         {/* Imagem de Capa (Cover Image) */}
-        <div className="relative h-52 md:h-64 w-full bg-gradient-to-r from-slate-950 via-purple-950/40 to-slate-950 border-b border-slate-800/50 overflow-hidden">
+        <div className="relative h-52 md:h-64 w-full bg-linear-to-r from-slate-950 via-purple-950/40 to-slate-950 border-b border-slate-800/50 overflow-hidden">
           {user.coverImage ? (
             <ClientImage
               src={user.coverImage}
@@ -95,7 +95,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           ) : (
             <div className="w-full h-full flex items-center justify-center relative">
               {/* Efeito de partículas cósmicas discretas na capa padrão */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950"></div>
               <div className="relative z-10 flex flex-col items-center gap-2 opacity-30">
                 <ImageIcon className="w-8 h-8 text-purple-400" />
                 <p className="text-xs font-medium tracking-widest uppercase">Espaço da Capa</p>
@@ -152,7 +152,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 {isOwnProfile && (
                   <div className="flex items-center gap-2 bg-purple-500/5 border border-purple-500/10 rounded-lg px-2.5 py-0.5 text-xs text-purple-400">
                     <Mail className="w-3.5 h-3.5 shrink-0" />
-                    <span className="max-w-[180px] truncate">{user.email}</span>
+                    <span className="max-w-45 truncate">{user.email}</span>
                     <span className="text-[9px] font-bold uppercase tracking-widest bg-purple-500/10 border border-purple-500/20 px-1 rounded">Privado</span>
                   </div>
                 )}
@@ -161,21 +161,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             
             {/* Cards de Métricas e Estatísticas */}
             <div className="flex flex-wrap gap-4">
-              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-[110px] flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
+              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-27.5 flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
                 <span className="block font-black text-2xl text-purple-400 tracking-tight">{user.followersCount}</span>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
                   <Users className="w-3 h-3" /> Seguidores
                 </span>
               </div>
               
-              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-[110px] flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
+              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-27.5 flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
                 <span className="block font-black text-2xl text-purple-400 tracking-tight">{user.followingCount}</span>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
                   <UserCheck className="w-3 h-3" /> Seguindo
                 </span>
               </div>
               
-              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-[110px] flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
+              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-5 py-3 text-center min-w-27.5 flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
                 <span className="block font-black text-2xl text-slate-500 tracking-tight">0</span>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
                   <Sparkles className="w-3 h-3" /> Cosméticos
@@ -204,7 +204,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               {user.website && (
                 <div className="flex items-center gap-2 bg-slate-950/30 border border-slate-800/40 px-3 py-1.5 rounded-lg">
                   <LinkIcon className="w-3.5 h-3.5 text-blue-400" />
-                  <a href={validWebsite} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 hover:underline truncate max-w-[200px]">
+                  <a href={validWebsite} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 hover:underline truncate max-w-50">
                     {user.website.replace(/^https?:\/\//, '')}
                   </a>
                 </div>

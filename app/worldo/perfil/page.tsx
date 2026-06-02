@@ -5,8 +5,7 @@ export default async function PerfilRedirectPage() {
   const session = await auth()
   
   if (!session?.user) {
-    return null;
-    redirect('/teste')
+    redirect('/login')
   }
   <div className="text-center py-12">Redirecionando para seu perfil...</div>
 

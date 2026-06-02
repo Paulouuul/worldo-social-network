@@ -95,14 +95,14 @@ export const getRarityDesigns = (variant: RarityLayoutVariant): Record<string, R
       imgBorder: 'border-amber-400/70 shadow-[0_0_15px_rgba(245,158,11,0.25)]',
       textClass: 'text-amber-400 font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
       badge: (
-        <span className={`${positionBase} ${textLendario} bg-gradient-to-r from-amber-600 to-yellow-500 text-slate-950 font-black rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-300/60`}>
+        <span className={`${positionBase} ${textLendario} bg-linear-to-r from-amber-600 to-yellow-500 text-slate-950 font-black rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-300/60`}>
           <Sparkles className={`${iconLg} animate-spin`} style={{ animationDuration: '4s' }} /> Lendário
         </span>
       ),
       bgDecoration: (
         <>
           <div className={`absolute -inset-10 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08)_0%,transparent_60%)] animate-pulse${pointerEvents}`} />
-          <div className={`absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent${pointerEvents}`} />
+          <div className={`absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-amber-400/60 to-transparent${pointerEvents}`} />
         </>
       )
     },

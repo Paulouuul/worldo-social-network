@@ -4,10 +4,11 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { ClientImage } from '@/components/ClientImage'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { getRarityDesigns } from '@/constants/cosmeticRarity'
 import { CosmeticActionModal } from '@/components/CosmeticActionModal'
 import { 
-  Package, Search, Plus, X, Loader2, Info, Store, Box
+  Package, Search, Plus, X, Loader2, Store, Box
 } from 'lucide-react'
 
 interface GroupedItem {
@@ -55,6 +56,10 @@ export default function MyCosmeticsPage() {
   const [modalMode, setModalMode] = useState<ModalMode>(null)
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
+
+  if (status === 'unauthenticated') {
+    redirect('/login')
+  }
 
   const fetchStats = useCallback(async () => {
     try {
@@ -181,7 +186,7 @@ export default function MyCosmeticsPage() {
     <div className="max-w-7xl mx-auto px-4 py-6 sm:py-12 relative min-h-screen">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 pb-6 border-b border-slate-800/60">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 tracking-wide flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-linear-to-r from-white via-slate-200 to-slate-400 tracking-wide flex items-center gap-3">
             <Package className="w-7 h-7 sm:w-8 sm:h-8 text-purple-500 shrink-0" /> MEUS COSMÉTICOS
           </h1>
           <p className="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium">Gerencie seu inventário e comercialize suas molduras</p>
@@ -271,7 +276,7 @@ export default function MyCosmeticsPage() {
         </button>
       </div>
 
-      <div className="relative min-h-[400px]">
+      <div className="relative min-h-100">
         {loading && items.length === 0 && (
           <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
             {[...Array(12)].map((_, i) => (
@@ -316,7 +321,7 @@ export default function MyCosmeticsPage() {
                     {item.isListed && (<div className="absolute top-2 left-2 z-20"><span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase"><Store className="w-2.5 h-2.5 hidden sm:block" /> Venda</span></div>)}
                     <div className="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 font-black text-[10px] px-2 py-0.5 rounded-md shadow-md z-20">x{item.count}</div>
                     {config.bgDecoration}
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:0.4rem_0.4rem] opacity-[0.03]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.03]" />
                     <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 mb-3 ${config.imgBorder}`}><ClientImage src={item.frame.thumbnailUrl} alt={item.frame.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="(max-width: 640px) 64px, 80px" unoptimized /></div>
                     {config.badge}
                     <span className={`text-[10px] sm:text-[11px] text-center z-10 px-0.5 mt-auto w-full truncate mb-1 ${config.textClass}`}>{item.frame.name}</span>

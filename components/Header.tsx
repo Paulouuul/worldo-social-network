@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { ClientImage } from '@/components/ClientImage' 
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 
 import { LogoutButton } from '@/components/LogoutButton'
 import { CoinBalance } from '@/components/CoinBalance'
@@ -16,8 +15,6 @@ import {
   Compass, 
   Menu, 
   X, 
-  LogIn, 
-  UserPlus,
   Store,
   Package,
   Sparkles,
@@ -31,7 +28,6 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCosmeticsOpen, setIsCosmeticsOpen] = useState(false)
   const cosmeticsRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
 
   // Detectar scroll para mudar o estilo do header
   useEffect(() => {
@@ -82,7 +78,7 @@ export default function Header() {
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="stars opacity-40"></div>
           <div className="stars-small opacity-60"></div>
-          <div className="nebula-glow absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[150px] bg-purple-500/10 blur-[100px] rounded-full"></div>
+          <div className="nebula-glow absolute -top-20 left-1/2 -translate-x-1/2 w-150 h-37.5 bg-purple-500/10 blur-[100px] rounded-full"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -90,7 +86,7 @@ export default function Header() {
             
             {/* Logo principal com Ícone Android Squircle */}
             <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0 select-none">
-              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-[1px] shadow-[0_0_15px_rgba(147,51,234,0.3)] group-hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300 transform group-hover:scale-[1.02]">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-linear-to-tr from-blue-600 via-indigo-600 to-purple-600 p-px shadow-[0_0_15px_rgba(147,51,234,0.3)] group-hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300 transform group-hover:scale-[1.02]">
                 <div className="w-full h-full bg-slate-950 rounded-[11px] overflow-hidden flex items-center justify-center">
                   <ClientImage 
                     src="/worldo_icon.png" 
@@ -114,7 +110,7 @@ export default function Header() {
                 className="px-3 xl:px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
               >
                 <span>Início</span>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
               </Link>
               
               {isLoggedIn && (
@@ -124,14 +120,14 @@ export default function Header() {
                     className="px-3 xl:px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
                   >
                     <span>Perfil</span>
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
                   </Link>
                   <Link 
                     href="/worldo/explore" 
                     className="px-3 xl:px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
                   >
                     <span>Explorar</span>
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
                   </Link>
 
                   {/* Dropdown de Cosméticos */}
@@ -147,7 +143,7 @@ export default function Header() {
                     >
                       <span>Cosméticos</span>
                       <ChevronDown className={`w-3 h-3 opacity-50 transition-transform duration-300 ${isCosmeticsOpen ? 'rotate-180' : ''}`} />
-                      <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 rounded-full ${isCosmeticsOpen ? 'w-8/12' : 'w-0'}`}></span>
+                      <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-300 rounded-full ${isCosmeticsOpen ? 'w-8/12' : 'w-0'}`}></span>
                     </button>
                     
                     {/* Menu Flutuante */}
@@ -188,7 +184,7 @@ export default function Header() {
                 <CoinBalance/>
                 
                 {/* Cartão de Usuário Glassmorphic */}
-                <div className="flex items-center gap-2 xl:gap-3 galaxy-user-card bg-white/5 border border-white/10 px-2 py-1.5 xl:px-3 rounded-xl backdrop-blur-sm shadow-inner max-w-[200px] xl:max-w-[250px]">
+                <div className="flex items-center gap-2 xl:gap-3 galaxy-user-card bg-white/5 border border-white/10 px-2 py-1.5 xl:px-3 rounded-xl backdrop-blur-sm shadow-inner max-w-50 xl:max-w-62.5">
                   <div className="shrink-0">
                     <AvatarWithFrame 
                       avatarUrl={session.user?.avatar}
@@ -229,7 +225,7 @@ export default function Header() {
 
       {/* Mobile Menu Lateral Drawer */}
       <div 
-        className={`fixed top-0 right-0 h-full w-[80vw] max-w-[300px] bg-slate-900 border-l border-white/5 shadow-2xl z-50 transition-transform duration-500 ease-out lg:hidden flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-[80vw] max-w-75 bg-slate-900 border-l border-white/5 shadow-2xl z-50 transition-transform duration-500 ease-out lg:hidden flex flex-col ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -239,7 +235,7 @@ export default function Header() {
           
           {/* Logo no topo do Menu Mobile */}
           <div className="px-5 sm:px-6 pb-4 flex items-center gap-3 border-b border-white/5 shrink-0">
-            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-tr from-blue-600 to-purple-600 p-[1px]">
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-linear-to-tr from-blue-600 to-purple-600 p-px">
               <div className="w-full h-full bg-slate-950 rounded-[7px] overflow-hidden flex items-center justify-center">
                 <ClientImage 
                   src="/worldo_icon.png" 
@@ -286,7 +282,7 @@ export default function Header() {
           )}
 
           {/* Links de Navegação Mobile */}
-          <nav className="flex-grow px-3 pt-2 space-y-1">
+          <nav className="grow px-3 pt-2 space-y-1">
             <Link 
               href="/" 
               onClick={handleLinkClick}

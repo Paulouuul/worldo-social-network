@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { useCoinStore } from '@/stores/coinStore'
+import { redirect } from 'next/navigation'
+
 import { 
   Coins, 
   ShieldCheck, 
@@ -32,8 +33,7 @@ interface CoinPackage {
 }
 
 export default function CoinsPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { status } = useSession()
   
   const [packages, setPackages] = useState<CoinPackage[]>([])
   const { balance, fetchBalance } = useCoinStore()
@@ -135,7 +135,7 @@ export default function CoinsPage() {
   }
 
   if (status === 'unauthenticated'){
-    router.push('/login')
+   redirect('/login')
   }
 
   return (
@@ -155,7 +155,7 @@ export default function CoinsPage() {
               <span>LOJA OFICIAL DE ATIVOS</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-linear-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
               Adquira suas Moedas
             </h1>
             
@@ -166,7 +166,7 @@ export default function CoinsPage() {
             {/* Widget de Saldo Atual */}
             <div className="pt-4 inline-block">
               <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-1.5 backdrop-blur-md shadow-inner">
-                <div className="flex items-center gap-4 px-6 py-3 bg-gradient-to-r from-blue-950/30 to-purple-950/30 rounded-xl">
+                <div className="flex items-center gap-4 px-6 py-3 bg-linear-to-r from-blue-950/30 to-purple-950/30 rounded-xl">
                   <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20">
                     <Coins className="w-6 h-6 text-amber-400 animate-pulse" />
                   </div>
@@ -196,20 +196,20 @@ export default function CoinsPage() {
               {/* Badges Flutuantes */}
               {pkg.popular && (
                 <div className="absolute -top-3.5 right-6 z-20">
-                  <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase shadow-lg flex items-center gap-1">
+                  <span className="bg-linear-to-r from-amber-500 to-orange-500 text-slate-950 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase shadow-lg flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5 fill-slate-950" /> MAIS POPULAR
                   </span>
                 </div>
               )}
               {pkg.bestValue && !pkg.popular && (
                 <div className="absolute -top-3.5 left-6 z-20">
-                  <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase shadow-lg flex items-center gap-1">
+                  <span className="bg-linear-to-r from-emerald-500 to-teal-500 text-slate-950 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase shadow-lg flex items-center gap-1">
                     <TrendingUp className="w-3.5 h-3.5" /> MELHOR CUSTO
                   </span>
                 </div>
               )}
 
-              <div className="p-8 flex flex-col flex-grow items-center text-center space-y-6">
+              <div className="p-8 flex flex-col grow items-center text-center space-y-6">
                 {/* Ícone com Efeito Radial de Fundo */}
                 <div className="relative p-4 rounded-full bg-slate-950/50 border border-slate-800/50 group-hover:scale-110 transition-transform duration-300">
                   <div className="absolute inset-0 bg-slate-400/5 blur-xl rounded-full"></div>
@@ -255,7 +255,7 @@ export default function CoinsPage() {
                   disabled={buyingId !== null}
                   className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide transition-all duration-200 mt-auto flex items-center justify-center gap-2 ${
                     pkg.popular
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 shadow-lg shadow-orange-500/10 active:scale-[0.98]'
+                      ? 'bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 shadow-lg shadow-orange-500/10 active:scale-[0.98]'
                       : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700/50 active:scale-[0.98]'
                   } disabled:opacity-50 disabled:pointer-events-none`}
                 >
@@ -364,7 +364,7 @@ export default function CoinsPage() {
                 </button>
                 <button
                   onClick={confirmPurchase}
-                  className="w-full sm:order-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/10 transition-colors"
+                  className="w-full sm:order-2 bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/10 transition-colors"
                 >
                   Ir para o Pagamento
                 </button>
