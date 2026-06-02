@@ -13,8 +13,6 @@ import {
   Package, 
   UploadCloud, 
   Check, 
-  ChevronLeft, 
-  ChevronRight, 
   Coins, 
   X, 
   Image as ImageIcon 
@@ -72,8 +70,8 @@ export default function CreateCosmeticPage() {
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
 
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
-  const [showFramePreview, setShowFramePreview] = useState(false)
-  const [showThumbnail, setShowThumbnail] = useState(false);
+  const [, setShowFramePreview] = useState(false)
+  const [] = useState(false);
 
 
   // Memoized values

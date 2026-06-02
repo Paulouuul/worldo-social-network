@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams, useRouter, redirect } from 'next/navigation'
+import { useRouter, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react'
