@@ -33,7 +33,6 @@ export async function GET(
         id: true,
         name: true,
         username: true,
-        image: true,
         bio: true,
         avatar: true,
         coverImage: true,

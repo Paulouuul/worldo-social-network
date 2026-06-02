@@ -48,7 +48,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       name: true,
       username: true,
       email: true,
-      image: true,
       bio: true,
       avatar: true,
       coverImage: true,
