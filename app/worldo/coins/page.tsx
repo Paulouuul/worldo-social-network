@@ -218,7 +218,6 @@ export default function CoinsPage() {
                 
                 <div className="space-y-1">
                   <h2 className="text-xl font-bold text-white tracking-tight">{pkg.name}</h2>
-                  <p className="text-xs text-slate-500 font-medium">Código do Pacote: #{pkg.id.substring(0, 5)}</p>
                 </div>
                 
                 {/* Display de Moedas */}
