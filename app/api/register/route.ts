@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
 
     try {
       await resend.emails.send({
-        from: 'onboarding@resend.dev', // Lembre-se de alterar para seu domínio em produção
+        from: 'onboarding@resend.dev',
         to: email.toLowerCase(),
         subject: 'Verifique seu email - Marketplace Social',
         html: `
