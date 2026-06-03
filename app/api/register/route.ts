@@ -5,6 +5,7 @@ import { Resend } from 'resend'
 import crypto from 'crypto'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+const resend_email = new Resend(process.env.RESEND_EMAIL)
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     try {
       await resend.emails.send({
-        from: 'onboarding@resend.dev',
+        from: `${resend_email}`,
         to: email.toLowerCase(),
         subject: 'Verifique seu email - Marketplace Social',
         html: `
