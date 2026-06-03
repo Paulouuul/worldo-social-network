@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Criar sessão de checkout no Stripe
     const stripeSession = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'], // Você pode adicionar 'pix' aqui futuramente se sua conta Stripe for BR
+      payment_method_types: ['card'],
       customer_email: session.user.email, // Pré-preenche o e-mail no formulário do Stripe
       line_items: [
         {
@@ -61,12 +61,11 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/worldo/coins/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/worldo/coins/success`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/worldo/coins/cancel`,
       metadata: {
         userId: session.user.id,
         packageId: packageId,
-        // CRÍTICO: Stripe exige que todos os valores de metadata sejam estritamente STRINGS
         coins: String(totalCoins), 
       },
     })

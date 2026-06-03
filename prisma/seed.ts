@@ -35,6 +35,8 @@ async function main() {
     { name: "500 Moedas", coins: 500, priceReal: 20.00, bonusCoins: 50, sortOrder: 2 },
     { name: "1000 Moedas", coins: 1000, priceReal: 35.00, bonusCoins: 150, sortOrder: 3 },
     { name: "5000 Moedas", coins: 5000, priceReal: 150.00, bonusCoins: 1000, sortOrder: 4 },
+    { name: "10000 Moedas", coins: 10000, priceReal: 250.00, bonusCoins: 2000, sortOrder: 5 },
+    { name: "25000 Moedas", coins: 25000, priceReal: 600.00, bonusCoins: 6000, sortOrder: 6 },
   ]
 
   for (const pkg of coinPackages) {
