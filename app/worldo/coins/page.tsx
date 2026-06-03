@@ -17,9 +17,9 @@ import {
   TrendingUp,
   Package,
   Gem,
-  Crown,
+  Rocket,
   Star,
-  Rocket
+  Crown
 } from 'lucide-react'
 
 interface CoinPackage {
@@ -48,16 +48,30 @@ export default function CoinsPage() {
     if (status === 'authenticated' && !hasFetched.current) {
       hasFetched.current = true
 
-      // Busca os pacotes disponíveis
       fetch('/api/coins/packages')
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data)) {
-            const enhancedPackages = data.map((pkg: CoinPackage, index: number) => ({
+          if (Array.isArray(data) && data.length > 0) {
+            const packagesWithValue = data.map((pkg: CoinPackage) => {
+              const totalCoins = pkg.coins + pkg.bonusCoins
+              const valueForMoney = totalCoins / pkg.priceReal
+              return { ...pkg, valueForMoney }
+            })
+            
+            // Encontra o melhor custo-benefício
+            const sortedByValue = [...packagesWithValue].sort((a, b) => b.valueForMoney - a.valueForMoney)
+            const bestValueIds = sortedByValue.slice(0, 2).map(p => p.id) // top 2
+            
+            // Define o mais popular como o segundo mais barato
+            const sortedByPrice = [...packagesWithValue].sort((a, b) => a.priceReal - b.priceReal)
+            const popularPackage = sortedByPrice[1]
+            
+            const enhancedPackages = data.map((pkg: CoinPackage) => ({
               ...pkg,
-              popular: index === 1,
-              bestValue: pkg.bonusCoins > 100 || pkg.coins >= 500
+              popular: pkg.id === popularPackage?.id,
+              bestValue:  bestValueIds.includes(pkg.id) && pkg.id !== popularPackage?.id
             }))
+            
             setPackages(enhancedPackages)
           }
         })
@@ -115,11 +129,11 @@ export default function CoinsPage() {
     const icons = [
       <Coins className="w-12 h-12 text-amber-400" />,
       <Zap className="w-12 h-12 text-blue-400" />,
+      <Star className="w-12 h-12 text-red-300" />,
       <Gem className="w-12 h-12 text-purple-400" />,
-      <Crown className="w-12 h-12 text-yellow-400" />,
-      <Star className="w-12 h-12 text-rose-400" />,
-      <Rocket className="w-12 h-12 text-emerald-400" />
-    ]
+      <Crown className="w-12 h-12 text-yellow-500" />,  
+      <Rocket className="w-12 h-12 text-cyan-300" />, 
+      ]
     return icons[index % icons.length]
   }
 
@@ -306,9 +320,9 @@ export default function CoinsPage() {
               <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20 text-purple-400">
                 <CreditCard className="w-6 h-6" />
               </div>
-              <h4 className="text-white font-bold text-base tracking-tight">Múltiplos Métodos</h4>
+              <h4 className="text-white font-bold text-base tracking-tight">Pagamento com Débito e Débito</h4>
               <p className="text-slate-400 text-xs leading-relaxed max-w-xs">
-                Pague com flexibilidade utilizando Pix para envio imediato, Cartões de Crédito ou Boleto bancário.
+                Pagamento rápido e seguro com cartões das principais bandeiras.
               </p>
             </div>
           </div>
