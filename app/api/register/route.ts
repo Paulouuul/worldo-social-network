@@ -5,7 +5,7 @@ import { Resend } from 'resend'
 import crypto from 'crypto'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const resend_email = new Resend(process.env.RESEND_EMAIL)
+const resend_email = process.env.RESEND_EMAIL
 
 export async function POST(request: NextRequest) {
   try {
