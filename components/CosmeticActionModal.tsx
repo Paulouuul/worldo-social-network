@@ -170,7 +170,7 @@ export function CosmeticActionModal({ item, mode, onClose, onSuccess, avatarUrl 
   // ==========================================
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className={`bg-slate-900 border ${rarityConfig.imgBorder} rounded-2xl max-w-md w-full shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]`}>
+      <div className={`bg-slate-900 border ${rarityConfig.borderClass} rounded-2xl max-w-md w-full shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]`}>
         
         {/* HEADER */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800/60 flex items-center justify-between bg-slate-950/40 shrink-0">

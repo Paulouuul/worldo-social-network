@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { ClientImage } from '@/components/ClientImage' 
 import { AvatarWithFrame } from '@/components/AvatarWithFrame'
-import { rarityStyles } from '@/constants/cosmeticRarity';
+import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { 
   Sparkles, 
   FileText, 
@@ -18,24 +18,13 @@ import {
   Image as ImageIcon 
 } from 'lucide-react'
 
-
-// Constantes fora do componente
-const stockPackages = [
-  { value: 10, label: 'Pacote Básico', units: '10 unidades', multiplier: 1, color: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/40 text-emerald-300' },
-  { value: 50, label: 'Pacote Comercial', units: '50 unidades', multiplier: 1.5, color: 'from-blue-500/20 to-cyan-500/20 border-blue-500/40 text-blue-300' },
-  { value: 100, label: 'Pacote Empresarial', units: '100 unidades', multiplier: 2, color: 'from-purple-500/20 to-pink-500/20 border-purple-500/40 text-purple-300' },
-  { value: 500, label: 'Pacote Máster', units: '500 unidades', multiplier: 5, color: 'from-amber-500/20 to-orange-500/20 border-amber-500/40 text-amber-300' },
-]
-
-const baseCosts: Record<string, number> = {
+const BASE_COSTS: Record<string, number> = {
   COMUM: 50,
   RARO: 200,
   EPICO: 500,
   LENDARIO: 1000,
 }
 
-
-// Componente de Loading isolado
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center min-h-100">
@@ -45,8 +34,6 @@ function LoadingSpinner() {
   )
 }
 
-// Componente de Preview isolado
-
 export default function CreateCosmeticPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -54,12 +41,16 @@ export default function CreateCosmeticPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     rarity: 'COMUM',
     stock: 10,
   })
+
+  const [packages, setPackages] = useState<any[]>([])
+  const [selectedPackageId, setSelectedPackageId] = useState<string>('')
   
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState('')
@@ -70,39 +61,54 @@ export default function CreateCosmeticPage() {
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
 
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
-  const [, setShowFramePreview] = useState(false)
-  const [] = useState(false);
 
-
-  // Memoized values
+  const rarityDesigns = getRarityDesigns('static');
+  
   const currentStyle = useMemo(() => 
-    rarityStyles[formData.rarity] || rarityStyles.COMUM, 
-    [formData.rarity]
+    rarityDesigns[formData.rarity] || rarityDesigns.COMUM, 
+    [formData.rarity, rarityDesigns]
   )
 
-  const currentPackage = useMemo(() => 
-    stockPackages.find(pkg => pkg.value === formData.stock),
-    [formData.stock]
-  )
+  useEffect(() => {
+    if (!formData.rarity) return
+    
+    fetch(`/api/cosmetics/creation_packages?rarity=${formData.rarity}`)
+      .then(res => res.json())
+      .then(data => {
+        setPackages(data)
+        if (data.length > 0) {
+          setSelectedPackageId(data[0].id)
+          setFormData(prev => ({ ...prev, stock: data[0].quantity }))
+        } else {
+          setSelectedPackageId('')
+        }
+      })
+      .catch(err => console.error('Erro ao buscar pacotes:', err))
+  }, [formData.rarity])
+
+  const currentPackage = useMemo(() => {
+    return packages.find(pkg => pkg.id === selectedPackageId) || null
+  }, [packages, selectedPackageId])
 
   const creationCost = useMemo(() => {
-    const baseCost = baseCosts[formData.rarity] || 50
-    const multiplier = currentPackage?.multiplier || 1
-    return Math.floor(baseCost * multiplier)
-  }, [formData.rarity, currentPackage])
+    return currentPackage?.totalCost || 0
+  }, [currentPackage])
 
+  const activePackageColor = useMemo(() => {
+    const colors: Record<string, string> = {
+      COMUM: 'from-emerald-950/40 to-slate-900/40 border-emerald-500/50 text-emerald-200',
+      RARO: 'from-blue-950/40 to-slate-900/40 border-blue-500/50 text-blue-200',
+      EPICO: 'from-purple-950/40 to-slate-900/40 border-purple-500/50 text-purple-200',
+      LENDARIO: 'from-amber-950/40 to-slate-900/40 border-amber-500/50 text-amber-200',
+    }
+    return colors[formData.rarity] || 'from-purple-950/40 to-slate-900/40 border-purple-500/50'
+  }, [formData.rarity])
 
-  // Efeito para desabilitar double click globalmente
   useEffect(() => {
     const handleDoubleClick = (e: MouseEvent) => {
-      // Previne double click em toda a página
       e.preventDefault()
     }
-
-    // Adiciona o listener para double click
     document.addEventListener('dblclick', handleDoubleClick)
-
-    // Também desabilita seleção de texto para evitar seleção acidental em double click
     document.body.style.userSelect = 'none'
     document.body.style.webkitUserSelect = 'none'
 
@@ -113,7 +119,6 @@ export default function CreateCosmeticPage() {
     }
   }, [])
 
-  // Efeito para buscar avatar - otimizado com cleanup
   useEffect(() => {
     if (!session?.user) return
 
@@ -137,7 +142,6 @@ export default function CreateCosmeticPage() {
     return () => controller.abort()
   }, [session])
 
-  // Limpeza de URLs
   useEffect(() => {
     return () => {
       if (imagePreview) URL.revokeObjectURL(imagePreview)
@@ -145,7 +149,6 @@ export default function CreateCosmeticPage() {
     }
   }, [imagePreview, thumbnailPreview])
 
-  // Handlers otimizados com useCallback
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -172,7 +175,6 @@ export default function CreateCosmeticPage() {
 
     setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
-    setShowFramePreview(true)
     setError('')
   }, [])
 
@@ -187,8 +189,8 @@ export default function CreateCosmeticPage() {
       return
     }
 
-    const maxSize = 2 * 1024 * 1024  // 2MB
-    const gifLimit = 1 * 1024 * 1024 // 1MB para GIFs
+    const maxSize = 2 * 1024 * 1024
+    const gifLimit = 1 * 1024 * 1024
     
     if (file.type === 'image/gif' && file.size > gifLimit) {
       setError(`GIF muito grande para miniatura. Máximo: 1MB`)
@@ -205,10 +207,23 @@ export default function CreateCosmeticPage() {
     setError('')
   }, [])
 
+  // Nova Handler para remover a miniatura sem recarregar ou estragar o formulário
+  const handleRemoveThumbnail = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation() // Impede que o clique dispare o label abrindo o seletor de arquivos de novo
+    
+    if (thumbnailPreview) {
+      URL.revokeObjectURL(thumbnailPreview)
+    }
+    setThumbnailFile(null)
+    setThumbnailPreview('')
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = '' // Reseta o input nativo do HTML
+    }
+  }, [thumbnailPreview])
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Previne double submit
     if (loading) return
     
     setLoading(true)
@@ -222,11 +237,16 @@ export default function CreateCosmeticPage() {
       return
     }
 
+    if (!selectedPackageId) {
+      setError('Selecione um pacote de distribuição válido.')
+      setLoading(false)
+      return
+    }
+
     const submitData = new FormData()
     submitData.append('name', formData.name)
     submitData.append('description', formData.description)
-    submitData.append('rarity', formData.rarity)
-    submitData.append('stock', formData.stock.toString())
+    submitData.append('packageId', selectedPackageId)
     submitData.append('image', imageFile)
     
     if (thumbnailFile) {
@@ -244,28 +264,25 @@ export default function CreateCosmeticPage() {
       if (!res.ok) {
         setError(data.error || 'Erro ao criar moldura')
         window.scrollTo({ top: 0, behavior: 'smooth' })
-        setLoading(false) // Só reabilita o botão em caso de erro
+        setLoading(false)
       } else {
         setSuccess(data.message || 'Moldura criada com sucesso!')
-        // Redireciona imediatamente sem reabilitar o botão
         router.push('/worldo/cosmetics/inventory')
-        // Não chamamos setLoading(false) aqui - o botão continua desabilitado
       }
     } catch {
       setError('Erro ao conectar com o servidor')
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      setLoading(false) // Só reabilita o botão em caso de erro
+      setLoading(false)
     }
-  }, [imageFile, thumbnailFile, formData, router, loading])
+  }, [imageFile, thumbnailFile, formData, selectedPackageId, router, loading])
 
-  // Handler para pacotes com prevenção de double click
-  const handleStockPackageClick = useCallback((value: number) => (e: React.MouseEvent) => {
-    e.preventDefault()
-    setFormData(prev => ({ ...prev, stock: value }))
+  const handlePackageSelect = useCallback((id: string, quantity: number) => () => {
+    setSelectedPackageId(id)
+    setFormData(prev => ({ ...prev, stock: quantity }))
   }, [])
 
   if (status === 'unauthenticated') {
-     redirect('/login')
+    redirect('/login')
   }
 
   if (status === 'loading') {
@@ -274,12 +291,12 @@ export default function CreateCosmeticPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 select-none">
-      <div className={`bg-slate-900/60 backdrop-blur-xl rounded-2xl overflow-hidden border ${currentStyle.border} shadow-2xl transition-all duration-500`}>
+      <div className={`bg-slate-900/60 backdrop-blur-xl rounded-2xl overflow-hidden border ${currentStyle.borderClass} shadow-2xl transition-all duration-500`}>
         
-        <div className={`relative h-36 bg-linear-to-r ${currentStyle.gradientHeader} flex flex-col items-center justify-center border-b ${currentStyle.border} px-4 text-center transition-all duration-500`}>
+        <div className={`relative h-36 bg-linear-to-r ${currentStyle.gradientHeader} flex flex-col items-center justify-center border-b ${currentStyle.borderClass} px-4 text-center transition-all duration-500`}>
           <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] ${currentStyle.bgAlpha} opacity-60 transition-all duration-500`} />
           <h1 className={`text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} flex items-center gap-2 z-10 tracking-wide transition-all duration-500`}>
-            <Sparkles className={`w-6 h-6 ${currentStyle.text} animate-pulse`} />
+            <Sparkles className={`w-6 h-6 ${currentStyle.textClass} animate-pulse`} />
             FORJAR NOVA MOLDURA
           </h1>
           <p className="text-slate-400 text-sm mt-2 z-10 max-w-md">
@@ -302,13 +319,13 @@ export default function CreateCosmeticPage() {
             </div>
           )}
 
-          <div className="flex flex-col space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <form onSubmit={handleSubmit} className="space-y-6 w-full">
+            <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-7">
               
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                  <FileText className={`w-4 h-4 ${currentStyle.text}`} /> Nome da Moldura
+                  <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Nome da Moldura
                 </label>
                 <input
                   type="text"
@@ -322,7 +339,7 @@ export default function CreateCosmeticPage() {
 
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                  <FileText className={`w-4 h-4 ${currentStyle.text}`} /> Descrição do Artefato
+                  <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Descrição do Artefato
                 </label>
                 <textarea
                   value={formData.description}
@@ -336,7 +353,7 @@ export default function CreateCosmeticPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <Layers className={`w-4 h-4 ${currentStyle.text}`} /> Nível de Raridade
+                    <Layers className={`w-4 h-4 ${currentStyle.textClass}`} /> Nível de Raridade
                   </label>
                   <select
                     value={formData.rarity}
@@ -352,39 +369,38 @@ export default function CreateCosmeticPage() {
 
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <Package className={`w-4 h-4 ${currentStyle.text}`} /> Lote de Upload
+                    <Package className={`w-4 h-4 ${currentStyle.textClass}`} /> Lote de Upload
                   </label>
                   <div className="bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 text-sm flex items-center h-11.5">
-                    {currentPackage?.units || 'Selecione um pacote abaixo'}
+                    {currentPackage ? `${currentPackage.quantity} Unidades` : 'Selecione um pacote'}
                   </div>
                 </div>
               </div>
 
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-3 font-semibold text-sm tracking-wide uppercase">
-                  <Package className={`w-4 h-4 ${currentStyle.text}`} /> Seleção do Pacote de Distribuição
+                  <Package className={`w-4 h-4 ${currentStyle.textClass}`} /> Seleção do Pacote de Distribuição
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {stockPackages.map((pkg) => {
-                    const isSelected = formData.stock === pkg.value
+                  {packages.map((pkg) => {
+                    const isSelected = selectedPackageId === pkg.id
                     return (
                       <button
-                        key={pkg.value}
+                        key={pkg.id}
                         type="button"
-                        onClick={handleStockPackageClick(pkg.value)}
-                        onDoubleClick={(e) => e.preventDefault()}
+                        onClick={handlePackageSelect(pkg.id, pkg.quantity)}
                         className={`relative text-left p-4 rounded-xl border transition-all duration-200 bg-linear-to-br hover:border-purple-500/50 select-none ${
                           isSelected 
-                            ? `${pkg.color} ring-1 ring-purple-500/30 shadow-lg border-transparent` 
+                            ? `${activePackageColor} ring-1 ring-purple-500/30 shadow-lg border-transparent` 
                             : 'from-slate-950/40 to-slate-900/40 border-slate-800 text-slate-400'
                         }`}
                       >
                         <div className="flex justify-between items-start">
                           <div>
                             <div className={`font-bold text-sm tracking-wide ${isSelected ? 'text-white' : 'text-slate-200'}`}>
-                              {pkg.label}
+                              {pkg.name}
                             </div>
-                            <div className="text-xs mt-0.5 opacity-80">{pkg.units}</div>
+                            <div className="text-xs mt-0.5 opacity-80">{pkg.quantity} Unidades</div>
                             <div className="text-[11px] mt-2 opacity-60 italic">
                               Multiplicador de Custo: {pkg.multiplier}x
                             </div>
@@ -398,13 +414,18 @@ export default function CreateCosmeticPage() {
                       </button>
                     )
                   })}
+                  {packages.length === 0 && (
+                    <p className="text-slate-500 text-xs col-span-2 italic">Nenhum pacote disponível para esta raridade.</p>
+                  )}
                 </div>
               </div>
 
+              {/* Uploads de Arquivos Dinâmicos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Upload 1: Moldura Principal */}
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <ImageIcon className={`w-4 h-4 ${currentStyle.text}`} /> Camada da Moldura (PNG)
+                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Camada da Moldura
                   </label>
                   <input
                     ref={imageInputRef}
@@ -416,19 +437,20 @@ export default function CreateCosmeticPage() {
                   />
                   <label
                     htmlFor="image-upload"
-                    className={`flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:${currentStyle.border} rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-22.5 select-none`}
+                    className={`flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:${currentStyle.borderClass} rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-22.5 select-none`}
                   >
                     <UploadCloud className="w-5 h-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                    <span>{imageFile ? 'Alterar Ativo Principal' : 'Carregar Moldura Transparente'}</span>
+                    <span>{imageFile ? 'Alterar Ativo Principal' : 'Carregar Moldura'}</span>
                   </label>
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                    Recomendado PNG transparente. A arte pode extrapolar as dimensões do avatar circular.
+                    Recomendado PNG transparente. A arte pode extrapolar as dimensões do avatar.
                   </p>
                 </div>
 
+                {/* Upload 2: Miniatura Condicional */}
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <ImageIcon className={`w-4 h-4 ${currentStyle.text}`} /> Miniatura Comercial (Opcional)
+                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Miniatura (Opcional)
                   </label>
                   <input
                     ref={thumbnailInputRef}
@@ -437,135 +459,151 @@ export default function CreateCosmeticPage() {
                     onChange={handleThumbnailChange}
                     className="hidden"
                     id="thumbnail-upload"
+                    disabled={!imageFile} // Desabilita nativamente o input caso não tenha moldura
                   />
-                  <label
-                    htmlFor="thumbnail-upload"
-                    className={`flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 hover:${currentStyle.border} rounded-xl p-4 bg-slate-950/40 text-slate-300 text-sm font-medium transition-all cursor-pointer text-center group min-h-22.5 select-none`}
-                  >
-                    <UploadCloud className="w-5 h-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                    <span>{thumbnailFile ? 'Alterar Miniatura' : 'Carregar Card de Vitrine'}</span>
-                  </label>
+                  
+                  <div className="relative">
+                    <label
+                      htmlFor={imageFile ? "thumbnail-upload" : undefined} // Só vincula o clique ao input se a moldura existir
+                      className={`flex flex-col items-center justify-center gap-2 border border-dashed rounded-xl p-4 bg-slate-950/40 text-sm font-medium transition-all text-center group min-h-22.5 select-none ${
+                        imageFile 
+                          ? `border-slate-800 hover:${currentStyle.borderClass} text-slate-300 cursor-pointer` 
+                          : 'border-slate-900/20 text-slate-600 cursor-not-allowed opacity-40 select-none'
+                      }`}
+                    >
+                      <UploadCloud className={`w-5 h-5 transition-colors ${imageFile ? 'text-slate-500 group-hover:text-purple-400' : 'text-slate-700'}`} />
+                      <span>
+                        {!imageFile 
+                          ? 'Aguardando Moldura...' 
+                          : thumbnailFile 
+                            ? 'Alterar Miniatura' 
+                            : 'Carregar Miniatura'
+                        }
+                      </span>
+                    </label>
+
+                    {/* Botão Flutuante de Remoção de Miniatura */}
+                    {thumbnailFile && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveThumbnail}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500/10 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg border border-red-500/20 transition-all z-20"
+                        title="Remover Miniatura"
+                      >
+                        <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      </button>
+                    )}
+                  </div>
+
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                    Imagem quadrada utilizada para exibição em feeds compactos e listagens da loja.
+                    {!imageFile 
+                      ? '⚠️ Faça o upload da moldura principal para liberar esta opção.' 
+                      : 'Imagem utilizada para exibição em feeds, inventário e listagens da loja.'
+                    }
                   </p>
                 </div>
               </div>
 
-              <div className={`bg-slate-950/60 rounded-xl p-5 border ${currentStyle.border} space-y-3 transition-all duration-500`}>
+              <div className={`bg-slate-950/60 rounded-xl p-5 border ${currentStyle.borderClass} space-y-3 transition-all duration-500`}>
                 <div className="flex justify-between items-center text-sm text-slate-400">
                   <span className="flex items-center gap-1.5"><Coins className="w-4 h-4 text-slate-500" /> Custo Base ({formData.rarity})</span>
-                  <span className="font-semibold text-slate-200">{baseCosts[formData.rarity] || 50} moedas</span>
+                  <span className="font-semibold text-slate-200">{BASE_COSTS[formData.rarity] || 50} moedas</span>
                 </div>
                 <div className="flex justify-between items-center text-sm text-slate-400">
                   <span className="flex items-center gap-1.5"><Package className="w-4 h-4 text-slate-500" /> Multiplicador do Lote</span>
-                  <span className="font-semibold text-slate-200">{currentPackage?.multiplier}x ({currentPackage?.units})</span>
+                  <span className="font-semibold text-slate-200">
+                    {currentPackage ? `${currentPackage.multiplier}x (${currentPackage.name})` : '1x'}
+                  </span>
                 </div>
                 <div className="border-t border-slate-800/80 my-2 pt-2 flex justify-between items-center">
-                  <span className={`text-sm font-semibold ${currentStyle.text} transition-colors duration-500`}>Custo de Emissão do Contrato</span>
+                  <span className={`text-sm font-semibold ${currentStyle.textClass} transition-colors duration-500`}>Custo de Emissão do Contrato</span>
                   <span className={`text-xl font-black text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} transition-all duration-500`}>
                     {creationCost} moedas
                   </span>
                 </div>
               </div>
 
-                          <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-4">
- <div className={`bg-slate-950/40 rounded-2xl p-8 border ${currentStyle.border} text-center transition-all duration-500`}>
-  
-  {/* Header Centralizado */}
-  <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-10 flex items-center justify-center gap-2">
-    <Sparkles className={`w-4 h-4 ${currentStyle.text}`} /> 
-    Galeria de Visualização
-  </h3>
-  
-  {imagePreview ? (
-    <div className="flex flex-col md:flex-row items-stretch justify-center gap-6">
-      
-      {/* PAINEL 1: Moldura de Perfil (O principal) */}
-      <div className="flex-1 bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
-        
-        {/* Componente Principal */}
-        <div className="relative min-h-40 flex items-center justify-center">
-          <AvatarWithFrame
-            avatarUrl={avatarUrl && avatarUrl !== "None" ? avatarUrl : null} 
-            name={session?.user?.name}
-            frameUrl={imagePreview}
-            rarity={formData.rarity}
-            size="md" // Aumentei um pouco o tamanho para destacar
-            glowClass={currentStyle.glow}
-            priority
-          />
-        </div>
-
-        {/* Etiqueta de Identificação */}
-        <div className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.border} shadow-sm backdrop-blur-md`}>
-          <p className={`text-xs font-semibold tracking-wider ${currentStyle.text} uppercase`}>
-            Visualização no Perfil
-          </p>
-        </div>
-      </div>
-
-      {/* PAINEL 2: Miniatura (Aparece se existir thumbnailPreview) */}
-      {thumbnailPreview && (
-        <div className="flex-1 bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
-          
-          {/* Container da Miniatura */}
-          <div className="relative group">
-            {/* Efeito de brilho de fundo na miniatura (hover) */}
-            <div className={`absolute -inset-1 rounded-xl bg-linear-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}></div>
-            
-            <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
-              <ClientImage
-                src={thumbnailPreview}
-                alt="Miniatura"
-                fill
-                className="object-cover"
-              />
-            </div>
-          </div>
-
-          {/* Etiqueta de Identificação */}
-          <div className={`bg-slate-800/40 px-4 py-1.5 rounded-full border border-slate-800 shadow-sm backdrop-blur-md`}>
-            <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-              Formato Lista / Grid
-            </p>
-          </div>
-        </div>
-      )}
-
-    </div>
-  ) : (
-    // ESTADO VAZIO (Mantido e ajustado para o design novo)
-    <div className="bg-slate-950/60 rounded-xl p-16 border border-slate-900 flex flex-col items-center justify-center min-h-90">
-      <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800 text-slate-600 mb-6 shadow-inner">
-        <ImageIcon className="w-10 h-10" />
-      </div>
-      <p className="text-slate-500 text-sm max-w-60 leading-relaxed">
-        Selecione uma imagem para visualizar como o cosmético ficará no perfil e nas listas do sistema.
-      </p>
-    </div>
-  )}
-</div>
-</div>
-
-                           
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button 
                   type="submit" 
                   disabled={loading}
-                  onDoubleClick={(e) => e.preventDefault()}
                   className={`bg-linear-to-r ${currentStyle.buttonSubmit} text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-1 text-center tracking-wide select-none`}
                 >
                   {loading ? 'FORJANDO ATIVO...' : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link 
                   href="/worldo/cosmetics/marketplace"
-                  onDoubleClick={(e) => e.preventDefault()}
                   className="bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:flex-1 text-center select-none"
                 >
                   <X className="w-4 h-4" /> CANCELAR
                 </Link>
               </div>
             </form>
+
+            <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-4">
+              <div className={`bg-slate-950/40 rounded-2xl p-8 border ${currentStyle.borderClass} text-center transition-all duration-500`}>
+                
+                <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-10 flex items-center justify-center gap-2">
+                  <Sparkles className={`w-4 h-4 ${currentStyle.textClass}`} /> 
+                  Galeria de Visualização
+                </h3>
+                
+                {imagePreview ? (
+                  <div className="flex flex-col gap-6">
+                    
+                    <div className="bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
+                      <div className="relative min-h-40 flex items-center justify-center">
+                        <AvatarWithFrame
+                          avatarUrl={avatarUrl && avatarUrl !== "None" ? avatarUrl : null} 
+                          name={session?.user?.name}
+                          frameUrl={imagePreview}
+                          rarity={formData.rarity}
+                          size="md" 
+                          priority
+                        />
+                      </div>
+                      <div className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.borderClass} shadow-sm backdrop-blur-md`}>
+                        <p className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}>
+                          Visualização de Moldura
+                        </p>
+                      </div>
+                    </div>
+
+                    {thumbnailPreview && (
+                      <div className="bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
+                        <div className="relative group mx-auto">
+                          <div className={`absolute -inset-1 rounded-xl bg-linear-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}></div>
+                          <div className={`relative w-32 h-32 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 ${currentStyle.borderClass}`}>
+                            <ClientImage
+                              src={thumbnailPreview}
+                              alt="Miniatura"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                        <div className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.borderClass} shadow-sm backdrop-blur-md`}>
+                          <p className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}>
+                            Visualização de Miniatura
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                ) : (
+                  <div className="bg-slate-950/60 rounded-xl p-16 border border-slate-900 flex flex-col items-center justify-center min-h-90">
+                    <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center border border-slate-800 text-slate-600 mb-6 shadow-inner">
+                      <ImageIcon className="w-10 h-10" />
+                    </div>
+                    <p className="text-slate-500 text-sm max-w-60 leading-relaxed mx-auto">
+                      Selecione uma imagem para visualizar como o cosmético ficará no perfil e nas listas do sistema.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

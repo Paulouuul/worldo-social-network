@@ -36,23 +36,20 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const name = formData.get('name') as string
     const description = (formData.get('description') as string) || null
-    const rarity = formData.get('rarity') as string
-    const stockStr = formData.get('stock') as string
-    const stock = parseInt(stockStr)
+    const packageId = formData.get('packageId') as string
+
     const imageFile = formData.get('image') as File | null
     const thumbnailFile = formData.get('thumbnail') as File | null
 
     console.log('[4] Dados recebidos:', {
       name,
-      rarity,
-      stock,
       hasImage: !!imageFile,
       imageSize: imageFile?.size,
       hasThumbnail: !!thumbnailFile,
     })
 
     // 1. Validação Rápida (Fail Fast)
-    if (!name || !rarity || isNaN(stock) || stock <= 0) {
+    if (!name || !packageId) {
       return NextResponse.json({ error: 'Campos obrigatórios inválidos ou faltando' }, { status: 400 })
     }
 
@@ -105,23 +102,23 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Verificar custo e moedas ANTES do upload do arquivo
-    console.log('[7] Buscando custo de criação para raridade:', rarity)
-    const creationCost = await prisma.cosmetic_creation_cost.findUnique({
-      where: { rarity }
+    console.log('[7] Buscando pacote:', packageId)
+
+    const selectedPackage = await prisma.cosmetic_creation_package.findUnique({
+      where: { id: packageId }
     })
 
-    if (!creationCost) {
-      return NextResponse.json({ error: 'Raridade inválida' }, { status: 400 })
+    if (!selectedPackage) {
+      return NextResponse.json({ error: 'Pacote inválido' }, { status: 400 })
     }
-
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       select: { coins: true }
     })
 
-    if ((user?.coins || 0) < creationCost.costCoins) {
+    if ((user?.coins || 0) < selectedPackage.totalCost) {
       return NextResponse.json({ 
-        error: `Moedas insuficientes. Você precisa de ${creationCost.costCoins} moedas.` 
+        error: `Moedas insuficientes. Você precisa de ${selectedPackage.totalCost} moedas.` 
       }, { status: 400 })
     }
 
@@ -175,7 +172,7 @@ export async function POST(request: NextRequest) {
 
       const updatedUser = await tx.users.update({
         where: { id: session.user.id },
-        data: { coins: { decrement: creationCost.costCoins } }
+        data: { coins: { decrement: selectedPackage.totalCost } }
       })
 
 
@@ -190,15 +187,15 @@ export async function POST(request: NextRequest) {
           description: description || '',
           imageUrl: uploadedImageUrl!,
           thumbnailUrl: uploadedThumbnailUrl || uploadedImageUrl!,
-          rarity,
-          stock,
+          rarity: selectedPackage.rarity,
+          stock: selectedPackage.quantity,
           createdBy: session.user.id,
         }
       })
 
 
 
-      const userFrameItems = Array.from({ length: stock }).map(() => ({
+     const userFrameItems = Array.from({ length: selectedPackage.quantity }).map(() => ({
         frameId: frame.id,
         ownerId: session.user.id,
       }))
@@ -212,10 +209,10 @@ export async function POST(request: NextRequest) {
       await tx.coin_transaction.create({
         data: {
           userId: session.user.id,
-          amount: -creationCost.costCoins,
+          amount: -selectedPackage.totalCost,
           balance: updatedUser.coins,
           type: 'spend',
-          description: `Criação de moldura: ${name} (${rarity})`,
+          description: `Criação de moldura: ${name} (${selectedPackage.rarity}) - Pacote ${selectedPackage.name}`,
         }
       })
 
@@ -226,7 +223,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       frame: result, 
-      message: `Moldura criada! ${stock} unidade(s) adicionadas ao seu inventário.`
+      message: `Moldura criada! ${selectedPackage.quantity} unidade(s) do pacote ${selectedPackage.name} adicionadas ao seu inventário.`
     }, { status: 201 })
 
   } catch (error: any) {

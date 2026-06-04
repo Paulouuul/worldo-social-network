@@ -386,7 +386,7 @@ export default function ListingDetailPage() {
                   </div>
 
                   {/* Imagem */}
-                  <div className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-110 shadow-xl ${itemConfig.imgBorder}`}>
+                  <div className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-110 shadow-xl ${itemConfig.borderClass}`}>
                     <ClientImage
                       src={item.frame.thumbnailUrl || item.frame.imageUrl}
                       alt={item.frame.name}

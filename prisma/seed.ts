@@ -28,7 +28,7 @@ async function main() {
   console.log('Starting seed...')
 
   // ============================================
-  // 1. PACOTES DE MOEDAS
+  // 1. PACOTES DE MOEDAS (COMPRA COM DINHEIRO REAL)
   // ============================================
   const coinPackages = [
     { name: "100 Moedas", coins: 100, priceReal: 5.00, bonusCoins: 0, sortOrder: 1 },
@@ -52,11 +52,11 @@ async function main() {
     } else {
       await prisma.coin_package.create({ data: pkg })
     }
-    console.log(`Pacote: ${pkg.name} - ${pkg.coins} moedas por R$${pkg.priceReal}`)
+    console.log(`Pacote de moedas: ${pkg.name} - ${pkg.coins} moedas por R$${pkg.priceReal}`)
   }
 
   // ============================================
-  // 2. CUSTOS PARA CRIAR MOLDURAS
+  // 2. CUSTOS BASE PARA CRIAR MOLDURAS
   // ============================================
   const creationCosts = [
     { rarity: "COMUM", costCoins: 50, timeMinutes: 5 },
@@ -78,11 +78,59 @@ async function main() {
     } else {
       await prisma.cosmetic_creation_cost.create({ data: cost })
     }
-    console.log(`Custo de criação: ${cost.rarity} - ${cost.costCoins} moedas`)
+    console.log(`Custo base: ${cost.rarity} - ${cost.costCoins} moedas`)
   }
 
   // ============================================
-  // 3. MOLDURAS DE EXEMPLO (Cosméticos)
+  // 3. PACOTES DE CRIAÇÃO (COM MULTIPLICADOR)
+  // ============================================
+  const creationPackages = [
+    // PACOTES PARA COMUM (base: 50)
+    { name: 'Pacote Básico', rarity: 'COMUM', quantity: 10, multiplier: 1, totalCost: 50, sortOrder: 1 },
+    { name: 'Pacote Comercial', rarity: 'COMUM', quantity: 50, multiplier: 1.5, totalCost: 75, sortOrder: 2 },
+    { name: 'Pacote Empresarial', rarity: 'COMUM', quantity: 100, multiplier: 2, totalCost: 100, sortOrder: 3 },
+    { name: 'Pacote Máster', rarity: 'COMUM', quantity: 500, multiplier: 5, totalCost: 250, sortOrder: 4 },
+    
+    // PACOTES PARA RARO (base: 200)
+    { name: 'Pacote Básico', rarity: 'RARO', quantity: 10, multiplier: 1, totalCost: 200, sortOrder: 1 },
+    { name: 'Pacote Comercial', rarity: 'RARO', quantity: 50, multiplier: 1.5, totalCost: 300, sortOrder: 2 },
+    { name: 'Pacote Empresarial', rarity: 'RARO', quantity: 100, multiplier: 2, totalCost: 400, sortOrder: 3 },
+    { name: 'Pacote Máster', rarity: 'RARO', quantity: 500, multiplier: 5, totalCost: 1000, sortOrder: 4 },
+    
+    // PACOTES PARA EPICO (base: 500)
+    { name: 'Pacote Básico', rarity: 'EPICO', quantity: 10, multiplier: 1, totalCost: 500, sortOrder: 1 },
+    { name: 'Pacote Comercial', rarity: 'EPICO', quantity: 50, multiplier: 1.5, totalCost: 750, sortOrder: 2 },
+    { name: 'Pacote Empresarial', rarity: 'EPICO', quantity: 100, multiplier: 2, totalCost: 1000, sortOrder: 3 },
+    { name: 'Pacote Máster', rarity: 'EPICO', quantity: 500, multiplier: 5, totalCost: 2500, sortOrder: 4 },
+    
+    // PACOTES PARA LENDARIO (base: 1000)
+    { name: 'Pacote Básico', rarity: 'LENDARIO', quantity: 10, multiplier: 1, totalCost: 1000, sortOrder: 1 },
+    { name: 'Pacote Comercial', rarity: 'LENDARIO', quantity: 50, multiplier: 1.5, totalCost: 1500, sortOrder: 2 },
+    { name: 'Pacote Empresarial', rarity: 'LENDARIO', quantity: 100, multiplier: 2, totalCost: 2000, sortOrder: 3 },
+    { name: 'Pacote Máster', rarity: 'LENDARIO', quantity: 500, multiplier: 5, totalCost: 5000, sortOrder: 4 },
+  ]
+
+  for (const pkg of creationPackages) {
+    const existing = await prisma.cosmetic_creation_package.findFirst({
+      where: { 
+        rarity: pkg.rarity,
+        quantity: pkg.quantity 
+      }
+    })
+    
+    if (existing) {
+      await prisma.cosmetic_creation_package.update({
+        where: { id: existing.id },
+        data: pkg,
+      })
+    } else {
+      await prisma.cosmetic_creation_package.create({ data: pkg })
+    }
+    console.log(`Pacote de criação: ${pkg.rarity} - ${pkg.name} (${pkg.quantity} unidades por ${pkg.totalCost} moedas)`)
+  }
+
+  // ============================================
+  // 4. MOLDURAS DE EXEMPLO (Cosméticos)
   // ============================================
   
   // Primeiro, crie um usuário admin/vendedor padrão se não existir
@@ -98,6 +146,7 @@ async function main() {
         username: "admin",
         publicId: "admin-public-id",
         password: "$2a$10$...", // hash de "senha123" (opcional)
+        coins: 10000, // Dar moedas para o admin poder criar
       }
     })
     console.log("Usuário admin criado")
@@ -149,12 +198,12 @@ async function main() {
     console.log(`Moldura: ${frame.name} (${frame.rarity})`)
   }
 
-  console.log('Seed completed!')
+  console.log('✅ Seed completed!')
 }
 
 main()
   .catch((e) => {
-    console.error('Seed failed:', e)
+    console.error('❌ Seed failed:', e)
     process.exit(1)
   })
   .finally(async () => {

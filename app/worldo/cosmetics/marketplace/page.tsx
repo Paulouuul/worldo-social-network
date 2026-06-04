@@ -204,7 +204,7 @@ export default function MarketplacePage() {
                 </div>
 
                 {/* Imagem da Moldura */}
-                <div className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-110 shadow-xl ${config.imgBorder}`}>
+                <div className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-110 shadow-xl ${config.borderClass}`}>
                   <ClientImage
                     src={listing.frame.thumbnailUrl || listing.frame.imageUrl}
                     alt={listing.frame.name}

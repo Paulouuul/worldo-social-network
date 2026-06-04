@@ -88,6 +88,22 @@ model cosmetic_creation_cost {
   timeMinutes  Int
 }
 
+model cosmetic_creation_package {
+  id         String   @id @default(cuid())
+  name       String
+  rarity     String
+  quantity   Int
+  multiplier Float
+  totalCost  Int
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([rarity, quantity])
+  @@index([rarity, isActive])
+}
+
 
 enum PaymentStatus {
   PENDING
