@@ -1,11 +1,15 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { uploadPublic, deleteFile } from '@/lib/r2-upload'
+import { convertToWebP } from '@/lib/image-converter'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function PUT(request: NextRequest) {
   const MAX_AVATAR_SIZE = 5 * 1024 * 1024
-  const MAX_COVER_SIZE = 10 * 1024 * 1024
+  const MAX_COVER_SIZE = 8 * 1024 * 1024
+
+  const MAX_AVATAR_GIF = 3 * 1024 * 1024    
+  const MAX_COVER_GIF = 5 * 1024 * 1024
   const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
   const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
@@ -100,15 +104,41 @@ export async function PUT(request: NextRequest) {
       if (!ALLOWED_MIME_TYPES.includes(avatarToUpload.type) || !extension || !ALLOWED_EXTENSIONS.includes(extension)) {
         return NextResponse.json({ error: 'Formato do avatar não suportado. Use JPG, PNG, GIF ou WEBP' }, { status: 400 })
       }
+
+
+      if (avatarToUpload.type === 'image/gif' && avatarToUpload.size > MAX_AVATAR_GIF) {
+        return NextResponse.json({ 
+          error: `GIF para avatar deve ter no máximo ${MAX_AVATAR_GIF / 1024 / 1024}MB.` 
+        }, { status: 400 })
+      }
+      
+      // Validação de tamanho normal
       if (avatarToUpload.size > MAX_AVATAR_SIZE) {
         return NextResponse.json({ 
           error: `Avatar deve ter no máximo ${MAX_AVATAR_SIZE / 1024 / 1024}MB.` 
         }, { status: 400 })
       }
+
+      const buffer = Buffer.from(await avatarToUpload.arrayBuffer())
+      const isGif = avatarToUpload.type === 'image/gif'
+
+      const converted = await convertToWebP(buffer, avatarToUpload.type, {
+        format: isGif ? 'webp-animated' : 'webp',
+        quality: isGif ? 75 : 80,
+        width: 512,
+        height: 512,
+        fit: 'cover',
+      })
+
+      // Criar novo arquivo otimizado
+      const optimizedFile = new File([new Uint8Array(converted.buffer)], `avatar-${Date.now()}.webp`, { 
+        type: 'image/webp' 
+      })
+
       
       // Define o caminho e faz o upload
-      uploadedAvatarPath = `avatars/${session.user.id}/avatar-${Date.now()}.${extension}`
-      newAvatarUrl = await uploadPublic(avatarToUpload, uploadedAvatarPath)
+      uploadedAvatarPath = `avatars/${session.user.id}/avatar-${Date.now()}.webp`
+      newAvatarUrl = await uploadPublic(optimizedFile, uploadedAvatarPath)
     } else if (shouldRemoveAvatar) {
       newAvatarUrl = null
     }
@@ -120,14 +150,39 @@ export async function PUT(request: NextRequest) {
       if (!ALLOWED_MIME_TYPES.includes(coverToUpload.type) || !extension || !ALLOWED_EXTENSIONS.includes(extension)) {
         return NextResponse.json({ error: 'Formato do cover não suportado. Use JPG, PNG, GIF ou WEBP' }, { status: 400 })
       }
+
+
+      // Validação específica para GIF
+      if (coverToUpload.type === 'image/gif' && coverToUpload.size > MAX_COVER_GIF) {
+        return NextResponse.json({ 
+          error: `GIF para banner deve ter no máximo ${MAX_COVER_GIF / 1024 / 1024}MB.` 
+        }, { status: 400 })
+      }
+      
+      // Validação de tamanho normal
       if (coverToUpload.size > MAX_COVER_SIZE) {
         return NextResponse.json({ 
           error: `Cover deve ter no máximo ${MAX_COVER_SIZE / 1024 / 1024}MB.` 
         }, { status: 400 })
       }
 
-      uploadedCoverPath = `cover_image/${session.user.id}/cover_image-${Date.now()}.${extension}`
-      newCoverImageUrl = await uploadPublic(coverToUpload, uploadedCoverPath)
+      const buffer = Buffer.from(await coverToUpload.arrayBuffer())
+      const isGif = coverToUpload.type === 'image/gif'
+
+      const converted = await convertToWebP(buffer, coverToUpload.type, {
+        format: isGif ? 'webp-animated' : 'webp',
+        quality: isGif ? 75 : 80,
+        width: 1920,
+        height: 400,
+      })
+
+      // Criar novo arquivo otimizado
+      const optimizedFile = new File([new Uint8Array(converted.buffer)], `cover-${Date.now()}.webp`, { 
+        type: 'image/webp' 
+      })
+
+      uploadedCoverPath = `cover_image/${session.user.id}/cover_image-${Date.now()}.webp`
+      newCoverImageUrl = await uploadPublic(optimizedFile, uploadedCoverPath)
     } else if (shouldRemoveCover) {
       newCoverImageUrl = null
     }
@@ -146,8 +201,7 @@ export async function PUT(request: NextRequest) {
       }
     })
 
-    // 5. Limpeza pós-sucesso (Arquivos Antigos)
-    // Como o banco foi atualizado com sucesso, os arquivos antigos AGORA podem ser apagados com segurança.
+    // Limpeza pós-sucesso (Arquivos Antigos)
     if (currentUser.avatar && (uploadedAvatarPath || shouldRemoveAvatar)) {
       const oldPath = currentUser.avatar.replace(`${process.env.R2_PUBLIC_URL}/`, '')
       await deleteFile(oldPath).catch((err) => 
@@ -181,7 +235,6 @@ export async function PUT(request: NextRequest) {
     console.error('Erro crítico na atualização do perfil, iniciando rollback:', error)
     
     // ROLLBACK RESILIENTE: Se o Cloudflare aceitou os novos arquivos, mas a transação do banco falhou
-    // Nós deletamos imediatamente os recém-criados para evitar os arquivos órfãos.
     const rollbackPromises: Promise<void>[] = []
 
     if (uploadedAvatarPath) {

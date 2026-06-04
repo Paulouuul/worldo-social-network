@@ -157,9 +157,16 @@ export default function CreateCosmeticPage() {
       return
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo 10MB.')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    const maxSize = 5 * 1024 * 1024
+    const gifLimit = 3 * 1024 * 1024
+
+    if (file.type === 'image/gif' && file.size > gifLimit) {
+      setError('GIF muito grande para moldura. Máximo: 3MB')
+      return
+    }
+
+    if (file.size > maxSize) {
+      setError(`Arquivo muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
       return
     }
 
@@ -180,9 +187,16 @@ export default function CreateCosmeticPage() {
       return
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo 10MB.')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    const maxSize = 2 * 1024 * 1024  // 2MB
+    const gifLimit = 1 * 1024 * 1024 // 1MB para GIFs
+    
+    if (file.type === 'image/gif' && file.size > gifLimit) {
+      setError(`GIF muito grande para miniatura. Máximo: 1MB`)
+      return
+    }
+    
+    if (file.size > maxSize) {
+      setError(`Miniatura muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
       return
     }
 

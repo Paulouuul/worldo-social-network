@@ -80,10 +80,18 @@ export default function EditProfilePage() {
       return
     }
 
-    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 10 * 1024 * 1024
+    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 8 * 1024 * 1024
     if (file.size > maxSize) {
       setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
       return
+    }
+
+    if (file.type === 'image/gif') {
+      const gifLimit = type === 'avatar' ? 3 : 5 // 3MB avatar, 5MB banner
+      if (file.size > gifLimit * 1024 * 1024) {
+        setError(`GIF muito grande para ${type}. Máximo: ${gifLimit}MB`)
+        return
+      }
     }
 
     if (type === 'avatar') {
@@ -311,7 +319,7 @@ export default function EditProfilePage() {
                     </button>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-500">Máximo: 10MB</p>
+                <p className="text-[10px] text-slate-500">Máximo: 8MB (GIFs: 5MB)</p>
               </div>
             </div>
           </div>
@@ -368,7 +376,7 @@ export default function EditProfilePage() {
                   )}
                 </div>
                 <p className="text-[11px] text-slate-500 leading-normal">
-                  Máximo permitido: 5MB.
+                  Máximo: 5MB (GIFs: 3MB).
                 </p>
               </div>
             </div>

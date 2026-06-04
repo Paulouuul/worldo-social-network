@@ -1,5 +1,6 @@
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { convertToWebP } from '@/lib/image-converter'
 import { uploadPublic, deleteFile } from '@/lib/r2-upload'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -8,22 +9,27 @@ export async function POST(request: NextRequest) {
   let uploadedImageUrl: string | null = null
   let uploadedThumbnailUrl: string | null = null
 
+  const MAX_FRAME_SIZE = 5 * 1024 * 1024      // 5MB
+  const MAX_FRAME_GIF = 3 * 1024 * 1024       // 3MB
+  const MAX_THUMB_SIZE = 2 * 1024 * 1024      // 2MB
+  const MAX_THUMB_GIF = 1 * 1024 * 1024       // 1MB
+  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
   try {
-    console.log('[1] Iniciando criação de moldura...')
+
     
     const session = await auth()
-    console.log('[2] Session user ID:', session?.user?.id)
     
     if (!session?.user?.id) {
-      console.log('[2.1] Usuário não autorizado')
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const contentType = request.headers.get('content-type') || ''
-    console.log('[3] Content-Type:', contentType)
+
     
     if (!contentType.includes('multipart/form-data')) {
-      console.log('[3.1] Content-Type inválido')
+
       return NextResponse.json({ error: 'Body da requisição inválido' }, { status: 400 })
     }
 
@@ -47,13 +53,55 @@ export async function POST(request: NextRequest) {
 
     // 1. Validação Rápida (Fail Fast)
     if (!name || !rarity || isNaN(stock) || stock <= 0) {
-      console.log('[5] Campos obrigatórios inválidos:', { name, rarity, stock })
       return NextResponse.json({ error: 'Campos obrigatórios inválidos ou faltando' }, { status: 400 })
     }
 
     if (!imageFile || imageFile.size === 0) {
-      console.log('[6] Imagem ausente')
       return NextResponse.json({ error: 'Imagem é obrigatória' }, { status: 400 })
+    }
+
+    // 2. VALIDAÇÃO DA IMAGEM PRINCIPAL (MOLDURA)
+    const imgExtension = imageFile.name.split('.').pop()?.toLowerCase()
+    
+    if (!ALLOWED_MIME_TYPES.includes(imageFile.type) || !imgExtension || !ALLOWED_EXTENSIONS.includes(imgExtension)) {
+      return NextResponse.json({ error: 'Formato não suportado. Use JPG, PNG, GIF ou WEBP' }, { status: 400 })
+    }
+
+    // Validação específica para GIF
+    if (imageFile.type === 'image/gif' && imageFile.size > MAX_FRAME_GIF) {
+      return NextResponse.json({ 
+        error: `GIF para moldura deve ter no máximo ${MAX_FRAME_GIF / 1024 / 1024}MB.` 
+      }, { status: 400 })
+    }
+
+    // Validação de tamanho normal
+    if (imageFile.size > MAX_FRAME_SIZE) {
+      return NextResponse.json({ 
+        error: `Moldura deve ter no máximo ${MAX_FRAME_SIZE / 1024 / 1024}MB.` 
+      }, { status: 400 })
+    }
+
+    // 3. VALIDAÇÃO DA THUMBNAIL (se existir)
+    if (thumbnailFile && thumbnailFile.size > 0) {
+      const thumbExtension = thumbnailFile.name.split('.').pop()?.toLowerCase()
+      
+      if (!ALLOWED_MIME_TYPES.includes(thumbnailFile.type) || !thumbExtension || !ALLOWED_EXTENSIONS.includes(thumbExtension)) {
+        return NextResponse.json({ error: 'Formato da miniatura não suportado. Use JPG, PNG, GIF ou WEBP' }, { status: 400 })
+      }
+
+      // Validação específica para GIF na thumbnail
+      if (thumbnailFile.type === 'image/gif' && thumbnailFile.size > MAX_THUMB_GIF) {
+        return NextResponse.json({ 
+          error: `GIF para miniatura deve ter no máximo ${MAX_THUMB_GIF / 1024 / 1024}MB.` 
+        }, { status: 400 })
+      }
+
+      // Validação de tamanho normal da thumbnail
+      if (thumbnailFile.size > MAX_THUMB_SIZE) {
+        return NextResponse.json({ 
+          error: `Miniatura deve ter no máximo ${MAX_THUMB_SIZE / 1024 / 1024}MB.` 
+        }, { status: 400 })
+      }
     }
 
     // 2. Verificar custo e moedas ANTES do upload do arquivo
@@ -63,19 +111,15 @@ export async function POST(request: NextRequest) {
     })
 
     if (!creationCost) {
-      console.log('[7.1] Raridade inválida:', rarity)
       return NextResponse.json({ error: 'Raridade inválida' }, { status: 400 })
     }
-    console.log('[7.2] Custo de criação:', creationCost.costCoins)
 
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       select: { coins: true }
     })
-    console.log('[8] Moedas do usuário:', user?.coins)
 
     if ((user?.coins || 0) < creationCost.costCoins) {
-      console.log('[8.1] Moedas insuficientes')
       return NextResponse.json({ 
         error: `Moedas insuficientes. Você precisa de ${creationCost.costCoins} moedas.` 
       }, { status: 400 })
@@ -83,41 +127,63 @@ export async function POST(request: NextRequest) {
 
     // 3. Processar uploads após validação de regras de negócio
     const timestamp = Date.now()
-    console.log('[9] Iniciando upload da imagem...')
     
-    const imgExtension = imageFile.name.split('.').pop()
-    const imgPath = `frames/${timestamp}-${session.user.id}/image.${imgExtension}`
-    uploadedImageUrl = await uploadPublic(imageFile, imgPath)
-    console.log('[10] Upload da imagem concluído:', uploadedImageUrl)
+    const buffer = Buffer.from(await imageFile.arrayBuffer())
+    const isGif = imageFile.type === 'image/gif'
+    
+    const converted = await convertToWebP(buffer, imageFile.type, {
+      format: isGif ? 'webp-animated' : 'webp',
+      quality: isGif ? 70 : 75,
+      width: 512,
+      height: 512,
+      fit: 'inside',
+    })
+    
+    const optimizedImage = new File([new Uint8Array(converted.buffer)], `image-${timestamp}.webp`, { 
+      type: 'image/webp' 
+    })
+    
+    const imgPath = `frames/${timestamp}-${session.user.id}/image.webp`
+    uploadedImageUrl = await uploadPublic(optimizedImage, imgPath)
 
     if (thumbnailFile && thumbnailFile.size > 0) {
-      console.log('[11] Iniciando upload da thumbnail...')
-      const thumbExtension = thumbnailFile.name.split('.').pop()
-      const thumbPath = `frames/${timestamp}-${session.user.id}/thumbnail.${thumbExtension}`
-      uploadedThumbnailUrl = await uploadPublic(thumbnailFile, thumbPath)
-      console.log('[12] Upload da thumbnail concluído:', uploadedThumbnailUrl)
+      console.log('[12] Convertendo e fazendo upload da thumbnail...')
+      const thumbBuffer = Buffer.from(await thumbnailFile.arrayBuffer())
+      const isThumbGif = thumbnailFile.type === 'image/gif'
+      
+      const thumbConverted = await convertToWebP(thumbBuffer, thumbnailFile.type, {
+        format: isThumbGif ? 'webp-animated' : 'webp',
+        quality: isThumbGif ? 70 : 75,
+        width: 512,
+        height: 512,
+        fit: 'cover',
+      })
+      
+      const optimizedThumb = new File([new Uint8Array(thumbConverted.buffer)], `thumbnail-${timestamp}.webp`, { 
+        type: 'image/webp' 
+      })
+
+      const thumbPath = `frames/${timestamp}-${session.user.id}/thumbnail.webp`
+      uploadedThumbnailUrl = await uploadPublic(optimizedThumb, thumbPath)
+      
     } else {
       uploadedThumbnailUrl = uploadedImageUrl
-      console.log('[11] Sem thumbnail, usando imagem principal')
     }
 
-    // 4. Transação Única e Atômica no Banco de Dados
-    console.log('[13] Iniciando transação no banco de dados...')
     
     const result = await prisma.$transaction(async (tx) => {
-      console.log('[13.1] Deduzindo moedas...')
+
       const updatedUser = await tx.users.update({
         where: { id: session.user.id },
         data: { coins: { decrement: creationCost.costCoins } }
       })
-      console.log('[13.2] Novo saldo:', updatedUser.coins)
+
 
       if (updatedUser.coins < 0) {
-        console.log('[13.3] Saldo negativo detectado!')
-        throw new Error('INSUFFICIENT_FUNDS')
+          throw new Error('INSUFFICIENT_FUNDS')
       }
 
-      console.log('[13.4] Criando registro da moldura...')
+
       const frame = await tx.cosmetic_frame.create({
         data: {
           name,
@@ -129,9 +195,9 @@ export async function POST(request: NextRequest) {
           createdBy: session.user.id,
         }
       })
-      console.log('[13.5] Moldura criada com ID:', frame.id)
 
-      console.log('[13.6] Criando itens de inventário...')
+
+
       const userFrameItems = Array.from({ length: stock }).map(() => ({
         frameId: frame.id,
         ownerId: session.user.id,
@@ -140,9 +206,9 @@ export async function POST(request: NextRequest) {
       await tx.user_frame_item.createMany({
         data: userFrameItems
       })
-      console.log('[13.7] Itens de inventário criados:', stock)
 
-      console.log('[13.8] Registrando transação financeira...')
+
+
       await tx.coin_transaction.create({
         data: {
           userId: session.user.id,
@@ -152,12 +218,11 @@ export async function POST(request: NextRequest) {
           description: `Criação de moldura: ${name} (${rarity})`,
         }
       })
-      console.log('[13.9] Transação financeira registrada')
+
 
       return frame
     })
 
-    console.log('[14] Sucesso! Moldura criada com sucesso!')
     return NextResponse.json({ 
       success: true, 
       frame: result, 
@@ -165,15 +230,12 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error: any) {
-    console.error('[ERRO] Detalhes completos:', error)
 
     // Se o banco falhou após o upload, limpa os arquivos do R2
     if (uploadedImageUrl) {
-      console.log('Limpando arquivo do R2:', uploadedImageUrl)
       await deleteFile(uploadedImageUrl).catch(console.error)
     }
     if (uploadedThumbnailUrl && uploadedThumbnailUrl !== uploadedImageUrl) {
-      console.log('Limpando thumbnail do R2:', uploadedThumbnailUrl)
       await deleteFile(uploadedThumbnailUrl).catch(console.error)
     }
 
