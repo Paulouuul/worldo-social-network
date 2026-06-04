@@ -24,6 +24,14 @@ export interface ConvertResult {
   };
 }
 
+function normalizeMimeType(mimeType: string): string {
+  // JFIF é essencialmente JPEG
+  if (mimeType === 'image/jfif') {
+    return 'image/jpeg';
+  }
+  return mimeType;
+}
+
 /**
  * Converte imagem para WebP (estático ou animado)
  * @param inputBuffer - Buffer da imagem original
@@ -36,7 +44,8 @@ export async function convertToWebP(
   options: ConvertOptions
 ): Promise<ConvertResult> {
   
-  const isGif = originalType === 'image/gif';
+  const normalizedType = normalizeMimeType(originalType);
+  const isGif = normalizedType === 'image/gif';
   const isAnimated = options.format === 'webp-animated' || isGif;
   const quality = Math.min(100, Math.max(1, options.quality));
   
@@ -91,7 +100,7 @@ export async function convertToWebP(
   const originalSize = inputBuffer.length;
   const optimizedSize = optimizedBuffer.length;
   const reductionPercent = ((originalSize - optimizedSize) / originalSize * 100).toFixed(1);
-    
+
   return {
     buffer: optimizedBuffer,
     format: 'webp',

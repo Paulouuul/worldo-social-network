@@ -23,7 +23,7 @@ const getInitialBgColor = (rarity?: string) => {
 // Efeito de brilho por raridade (se não tiver glowClass customizada)
 const getDefaultGlowClass = (rarity?: string) => {
   switch (rarity) {
-    case 'LENDARIO': return 'drop-shadow-[0_0_10px_rgba(245,158,11,0.6)] animate-pulse'
+    case 'LENDARIO': return 'drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]'
     case 'EPICO': return 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]'
     case 'RARO': return 'drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]'
     default: return ''

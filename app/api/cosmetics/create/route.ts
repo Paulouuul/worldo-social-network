@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
   const MAX_FRAME_GIF = 3 * 1024 * 1024       // 3MB
   const MAX_THUMB_SIZE = 2 * 1024 * 1024      // 2MB
   const MAX_THUMB_GIF = 1 * 1024 * 1024       // 1MB
-  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
-  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif']
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif']
 
   try {
 

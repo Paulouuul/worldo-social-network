@@ -10,8 +10,8 @@ export async function PUT(request: NextRequest) {
 
   const MAX_AVATAR_GIF = 3 * 1024 * 1024    
   const MAX_COVER_GIF = 5 * 1024 * 1024
-  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
-  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp','jfif']
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp','image/jfif']
 
   // Rastreamento estrito para reversão (Rollback) em caso de falha no banco
   let uploadedAvatarPath: string | null = null
