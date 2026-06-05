@@ -41,7 +41,7 @@ function normalizeMimeType(mimeType: string): string {
 export async function convertToWebP(
   inputBuffer: Buffer,
   originalType: string,
-  options: ConvertOptions
+  options: ConvertOptions,
 ): Promise<ConvertResult> {
   const normalizedType = normalizeMimeType(originalType);
   const isGif = normalizedType === 'image/gif';

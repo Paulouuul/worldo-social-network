@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { cosmetic_frame_id: string } }
+  { params }: { params: { cosmetic_frame_id: string } },
 ) {
   try {
     const session = await auth();
@@ -69,7 +69,7 @@ export async function GET(
       frame.listings.length > 0
         ? frame.listings.reduce(
             (min, listing) => (listing.priceCoins < min.priceCoins ? listing : min),
-            frame.listings[0]
+            frame.listings[0],
           )
         : null;
 

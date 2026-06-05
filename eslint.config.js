@@ -1,12 +1,11 @@
 ﻿import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import eslintPluginPrettier from 'eslint-plugin-prettier';
 import nextPlugin from '@next/eslint-plugin-next';
 import typescriptParser from '@typescript-eslint/parser';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
+import globals from 'globals';
 
 export default [
-  // PRIMEIRO: Configuração de ignores (deve vir antes)
   {
     ignores: [
       '**/.next/**',
@@ -16,11 +15,12 @@ export default [
       'coverage/**',
       'next-env.d.ts',
       '**/*.config.js',
+      'prisma/migrations/**',
+      '.env',
+      '.env*',
     ],
   },
-  // SEGUNDO: Configurações recomendadas
   js.configs.recommended,
-  // TERCEIRO: Configuração principal
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     languageOptions: {
@@ -33,76 +33,21 @@ export default [
         },
       },
       globals: {
+        ...globals.browser,
+        ...globals.node,
         React: 'readonly',
-        fetch: 'readonly',
-        document: 'readonly',
-        window: 'readonly',
-        console: 'readonly',
-        setTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearTimeout: 'readonly',
-        clearInterval: 'readonly',
-        alert: 'readonly',
-        process: 'readonly',
-        Buffer: 'readonly',
-        Request: 'readonly',
-        Response: 'readonly',
-        URL: 'readonly',
-        File: 'readonly',
-        FormData: 'readonly',
-        AbortController: 'readonly',
-        IntersectionObserver: 'readonly',
-        MutationObserver: 'readonly',
-        HTMLInputElement: 'readonly',
-        HTMLDivElement: 'readonly',
-        HTMLElement: 'readonly',
-        MouseEvent: 'readonly',
-        DragEvent: 'readonly',
-        Node: 'readonly',
-        TextEncoder: 'readonly',
-        crypto: 'readonly',
-        TextDecoder: 'readonly',
-        Blob: 'readonly',
-        FileReader: 'readonly',
-        URLSearchParams: 'readonly',
-        Headers: 'readonly',
-        ReadableStream: 'readonly',
-        navigator: 'readonly',
-        location: 'readonly',
-        performance: 'readonly',
-        atob: 'readonly',
-        btoa: 'readonly',
-        Element: 'readonly',
-        Node: 'readonly',
-        HTMLElement: 'readonly',
-        getComputedStyle: 'readonly',
-        MutationObserver: 'readonly',
-        IntersectionObserver: 'readonly',
-        ResizeObserver: 'readonly',
-        AbortController: 'readonly',
-        AbortSignal: 'readonly',
-        Event: 'readonly',
-        MessageChannel: 'readonly',
-        MessagePort: 'readonly',
-        queueMicrotask: 'readonly',
-        reportError: 'readonly',
-        structuredClone: 'readonly',
-        BroadcastChannel: 'readonly',
-        CSS: 'readonly',
-        DOMRect: 'readonly',
-        HTMLScriptElement: 'readonly',
-        WebAssembly: 'readonly',
-        importScripts: 'readonly',
-        self: 'readonly',
       },
     },
     plugins: {
       '@typescript-eslint': typescriptPlugin,
-      prettier: eslintPluginPrettier,
-      '@next/next': nextPlugin,
+      '@next/next': {
+        rules: nextPlugin.rules,
+      },
     },
     rules: {
-      'prettier/prettier': 'error',
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -114,7 +59,7 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
-      'no-undef': 'off',
+      'no-undef': 'error',
       'no-unused-expressions': 'off',
       'no-fallthrough': 'off',
       'no-cond-assign': 'off',

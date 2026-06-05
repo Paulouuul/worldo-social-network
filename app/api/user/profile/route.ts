@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
         {
           error: 'Username deve ter 3-30 caracteres e conter apenas letras, números e underscore',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest) {
       ) {
         return NextResponse.json(
           { error: 'Formato do avatar não suportado. Use JPG, PNG, GIF ou WEBP' },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -122,7 +122,7 @@ export async function PUT(request: NextRequest) {
           {
             error: `GIF para avatar deve ter no máximo ${MAX_AVATAR_GIF / 1024 / 1024}MB.`,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -132,7 +132,7 @@ export async function PUT(request: NextRequest) {
           {
             error: `Avatar deve ter no máximo ${MAX_AVATAR_SIZE / 1024 / 1024}MB.`,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -153,7 +153,7 @@ export async function PUT(request: NextRequest) {
         `avatar-${Date.now()}.webp`,
         {
           type: 'image/webp',
-        }
+        },
       );
 
       // Define o caminho e faz o upload
@@ -174,7 +174,7 @@ export async function PUT(request: NextRequest) {
       ) {
         return NextResponse.json(
           { error: 'Formato do cover não suportado. Use JPG, PNG, GIF ou WEBP' },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -184,7 +184,7 @@ export async function PUT(request: NextRequest) {
           {
             error: `GIF para banner deve ter no máximo ${MAX_COVER_GIF / 1024 / 1024}MB.`,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -194,7 +194,7 @@ export async function PUT(request: NextRequest) {
           {
             error: `Cover deve ter no máximo ${MAX_COVER_SIZE / 1024 / 1024}MB.`,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -214,7 +214,7 @@ export async function PUT(request: NextRequest) {
         `cover-${Date.now()}.webp`,
         {
           type: 'image/webp',
-        }
+        },
       );
 
       uploadedCoverPath = `cover_image/${session.user.id}/cover_image-${Date.now()}.webp`;
@@ -241,14 +241,14 @@ export async function PUT(request: NextRequest) {
     if (currentUser.avatar && (uploadedAvatarPath || shouldRemoveAvatar)) {
       const oldPath = currentUser.avatar.replace(`${process.env.R2_PUBLIC_URL}/`, '');
       await deleteFile(oldPath).catch((err) =>
-        console.error('Aviso de Orfão: Falha ao deletar avatar antigo do R2:', err)
+        console.error('Aviso de Orfão: Falha ao deletar avatar antigo do R2:', err),
       );
     }
 
     if (currentUser.coverImage && (uploadedCoverPath || shouldRemoveCover)) {
       const oldPath = currentUser.coverImage.replace(`${process.env.R2_PUBLIC_URL}/`, '');
       await deleteFile(oldPath).catch((err) =>
-        console.error('Aviso de Orfão: Falha ao deletar cover antigo do R2:', err)
+        console.error('Aviso de Orfão: Falha ao deletar cover antigo do R2:', err),
       );
     }
 
@@ -275,16 +275,16 @@ export async function PUT(request: NextRequest) {
     if (uploadedAvatarPath) {
       rollbackPromises.push(
         deleteFile(uploadedAvatarPath).catch((err) =>
-          console.error(`Falha crítica no Rollback do Avatar (${uploadedAvatarPath}):`, err)
-        )
+          console.error(`Falha crítica no Rollback do Avatar (${uploadedAvatarPath}):`, err),
+        ),
       );
     }
 
     if (uploadedCoverPath) {
       rollbackPromises.push(
         deleteFile(uploadedCoverPath).catch((err) =>
-          console.error(`Falha crítica no Rollback do Cover (${uploadedCoverPath}):`, err)
-        )
+          console.error(`Falha crítica no Rollback do Cover (${uploadedCoverPath}):`, err),
+        ),
       );
     }
 

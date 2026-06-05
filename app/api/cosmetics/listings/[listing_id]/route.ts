@@ -56,7 +56,7 @@ export async function GET(request: Request, { params }: { params: { listing_id: 
     if (!listing) {
       return NextResponse.json(
         { error: 'Anúncio não encontrado ou indisponível' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 

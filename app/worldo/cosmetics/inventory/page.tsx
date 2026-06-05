@@ -79,7 +79,7 @@ export default function MyCosmeticsPage() {
         }
 
         const res = await fetch(
-          `/api/cosmetics/inventory/grouped?page=${page}&limit=50&filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}&rarity=${rarityFilter}&sort=${sort}`
+          `/api/cosmetics/inventory/grouped?page=${page}&limit=50&filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}&rarity=${rarityFilter}&sort=${sort}`,
         );
         if (!res.ok) throw new Error('Falha ao sincronizar inventário');
 
@@ -100,7 +100,7 @@ export default function MyCosmeticsPage() {
         setLoadingMore(false);
       }
     },
-    [activeFilter, searchTerm, rarityFilter, sort]
+    [activeFilter, searchTerm, rarityFilter, sort],
   );
 
   // Carrega avatar apenas uma vez quando houver a sessão do usuário
@@ -153,7 +153,7 @@ export default function MyCosmeticsPage() {
           fetchInventory(currentPage + 1, true);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (loadMoreRef.current) {

@@ -319,7 +319,7 @@ export default function ListingDetailPage() {
                     value={buyQuantity}
                     onChange={(e) =>
                       setBuyQuantity(
-                        Math.min(listing.quantity, Math.max(1, parseInt(e.target.value) || 1))
+                        Math.min(listing.quantity, Math.max(1, parseInt(e.target.value) || 1)),
                       )
                     }
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 text-center font-bold focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"

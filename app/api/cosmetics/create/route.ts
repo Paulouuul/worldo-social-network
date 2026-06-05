@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     if (!name || !packageId) {
       return NextResponse.json(
         { error: 'Campos obrigatórios inválidos ou faltando' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: 'Formato não suportado. Use JPG, PNG, GIF ou WEBP' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         {
           error: `GIF para moldura deve ter no máximo ${MAX_FRAME_GIF / 1024 / 1024}MB.`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         {
           error: `Moldura deve ter no máximo ${MAX_FRAME_SIZE / 1024 / 1024}MB.`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       ) {
         return NextResponse.json(
           { error: 'Formato da miniatura não suportado. Use JPG, PNG, GIF ou WEBP' },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
           {
             error: `GIF para miniatura deve ter no máximo ${MAX_THUMB_GIF / 1024 / 1024}MB.`,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
           {
             error: `Miniatura deve ter no máximo ${MAX_THUMB_SIZE / 1024 / 1024}MB.`,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
         {
           error: `Moedas insuficientes. Você precisa de ${selectedPackage.totalCost} moedas.`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
         `thumbnail-${timestamp}.webp`,
         {
           type: 'image/webp',
-        }
+        },
       );
 
       const thumbPath = `frames/${timestamp}-${session.user.id}/thumbnail.webp`;
@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
         frame: result,
         message: `Moldura criada! ${selectedPackage.quantity} unidade(s) do pacote ${selectedPackage.name} adicionadas ao seu inventário.`,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
     // Se o banco falhou após o upload, limpa os arquivos do R2
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
         error: 'Erro interno ao criar moldura',
         details: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

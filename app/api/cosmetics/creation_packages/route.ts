@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           acc[pkg.rarity].push(pkg);
           return acc;
         },
-        {} as Record<string, typeof packages>
+        {} as Record<string, typeof packages>,
       );
 
       return NextResponse.json(grouped);

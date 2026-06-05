@@ -3,4 +3,6 @@
 out
 dist
 coverage
-.env
+prisma/migrations
+doc_images
+.env*

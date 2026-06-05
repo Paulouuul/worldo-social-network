@@ -239,7 +239,7 @@ async function main() {
       await prisma.cosmetic_creation_package.create({ data: pkg });
     }
     console.log(
-      `Pacote de criação: ${pkg.rarity} - ${pkg.name} (${pkg.quantity} unidades por ${pkg.totalCost} moedas)`
+      `Pacote de criação: ${pkg.rarity} - ${pkg.name} (${pkg.quantity} unidades por ${pkg.totalCost} moedas)`,
     );
   }
 

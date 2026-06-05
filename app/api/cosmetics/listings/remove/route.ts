@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
             quantity: quantity || 'ausente',
           },
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         {
           error: `Você só tem ${listing.quantity} unidades neste anúncio`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
         error: 'Erro ao remover do mercado',
         details: error instanceof Error ? error.message : 'Erro desconhecido',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

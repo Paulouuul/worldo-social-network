@@ -29,7 +29,7 @@ function LoginContent() {
       setError('Email ou senha inválidos');
     } else if (errorParam === 'OAuthAccountNotLinked') {
       setError(
-        'Este e-mail já está cadastrado usando outro método (Google, GitHub ou E-mail/Senha). Por segurança, conecte-se utilizando a mesma forma com que você criou a sua conta.'
+        'Este e-mail já está cadastrado usando outro método (Google, GitHub ou E-mail/Senha). Por segurança, conecte-se utilizando a mesma forma com que você criou a sua conta.',
       );
     }
   }, [searchParams]);

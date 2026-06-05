@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         {
           error: `Você tem apenas ${userItems.length} unidades disponíveis para venda`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         // 🔥 ATUALIZAR ANÚNCIO EXISTENTE
         console.log('[LISTING] Anúncio existente encontrado:', existingListing.id);
         console.log(
-          `[LISTING] Quantidade atual: ${existingListing.quantity}, Adicionando: ${quantity}`
+          `[LISTING] Quantidade atual: ${existingListing.quantity}, Adicionando: ${quantity}`,
         );
 
         // Atualizar a quantidade do anúncio existente
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         isNewListing: result.isNew,
         message: mensagem,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
     console.error('[LISTING] Erro detalhado:', error);
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         error: 'Erro ao criar anúncio',
         details: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

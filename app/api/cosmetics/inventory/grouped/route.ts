@@ -86,13 +86,13 @@ export async function GET(request: NextRequest) {
     if (search) {
       const searchLower = search.toLowerCase();
       allGroupedItems = allGroupedItems.filter((item) =>
-        item.frame.name.toLowerCase().includes(searchLower)
+        item.frame.name.toLowerCase().includes(searchLower),
       );
     }
 
     if (rarity && rarity !== 'all') {
       allGroupedItems = allGroupedItems.filter(
-        (item) => item.frame.rarity.toUpperCase() === rarity.toUpperCase()
+        (item) => item.frame.rarity.toUpperCase() === rarity.toUpperCase(),
       );
     }
 

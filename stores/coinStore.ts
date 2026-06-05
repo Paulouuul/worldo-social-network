@@ -50,6 +50,6 @@ export const useCoinStore = create<CoinStore>()(
     {
       name: 'coin-storage', // chave no localStorage
       partialize: (state) => ({ balance: state.balance }),
-    }
-  )
+    },
+  ),
 );

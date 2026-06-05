@@ -60,7 +60,7 @@ export default function CoinsPage() {
 
             // Encontra o melhor custo-benefício
             const sortedByValue = [...packagesWithValue].sort(
-              (a, b) => b.valueForMoney - a.valueForMoney
+              (a, b) => b.valueForMoney - a.valueForMoney,
             );
             const bestValueIds = sortedByValue.slice(0, 2).map((p) => p.id); // top 2
 

@@ -112,7 +112,7 @@ export async function generatePythonTokenFromSession(session: Session): Promise<
  * @returns Token JWT assinado
  */
 export async function generatePythonToken(
-  sessionOrUser: Session | PythonTokenPayload
+  sessionOrUser: Session | PythonTokenPayload,
 ): Promise<string> {
   let userData: PythonTokenPayload;
 
@@ -156,7 +156,7 @@ export async function generatePythonToken(
 export async function verifyPythonToken(token: string): Promise<PythonTokenPayload | null> {
   try {
     const { payload } = await import('jose').then((jose) =>
-      jose.jwtVerify(token, new TextEncoder().encode(JWT_SECRET))
+      jose.jwtVerify(token, new TextEncoder().encode(JWT_SECRET)),
     );
     return payload as unknown as PythonTokenPayload;
   } catch (error) {

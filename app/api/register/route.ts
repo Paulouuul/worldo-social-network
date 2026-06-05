@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     if (!email || !password || !username || !name) {
       return NextResponse.json(
         { success: false, error: 'Email, senha, nome e nome de usuário são obrigatórios' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Username deve ter 3-30 caracteres e conter apenas letras, números e underline',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (name.length < 2 || name.length > 100) {
       return NextResponse.json(
         { success: false, error: 'Nome deve ter entre 2 e 100 caracteres' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     if (passwordErrors.length > 0) {
       return NextResponse.json(
         { success: false, error: `Senha fraca: ${passwordErrors.join(', ')}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       const field = existingUser.email === email.toLowerCase() ? 'Email' : 'Este username';
       return NextResponse.json(
         { success: false, error: `${field} já está em uso.` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error(
         'Falha ao enviar e-mail de registro, efetuando rollback dos dados:',
-        emailError
+        emailError,
       );
 
       // Se o e-mail falhou, deletamos o usuário criado para que ele possa tentar novamente de imediato
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Não foi possível enviar o e-mail de ativação. Tente novamente mais tarde.',
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -163,13 +163,13 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Usuário criado! Verifique seu email para fazer login.',
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error('Erro no registro:', error);
     return NextResponse.json(
       { success: false, error: 'Erro interno ao criar usuário' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

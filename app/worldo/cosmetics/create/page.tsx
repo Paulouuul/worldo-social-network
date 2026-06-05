@@ -66,7 +66,7 @@ export default function CreateCosmeticPage() {
 
   const currentStyle = useMemo(
     () => rarityDesigns[formData.rarity] || rarityDesigns.COMUM,
-    [formData.rarity, rarityDesigns]
+    [formData.rarity, rarityDesigns],
   );
 
   useEffect(() => {
@@ -222,7 +222,7 @@ export default function CreateCosmeticPage() {
         thumbnailInputRef.current.value = ''; // Reseta o input nativo do HTML
       }
     },
-    [thumbnailPreview]
+    [thumbnailPreview],
   );
 
   const handleSubmit = useCallback(
@@ -279,7 +279,7 @@ export default function CreateCosmeticPage() {
         setLoading(false);
       }
     },
-    [imageFile, thumbnailFile, formData, selectedPackageId, router, loading]
+    [imageFile, thumbnailFile, formData, selectedPackageId, router, loading],
   );
 
   const handlePackageSelect = useCallback(
@@ -287,7 +287,7 @@ export default function CreateCosmeticPage() {
       setSelectedPackageId(id);
       setFormData((prev) => ({ ...prev, stock: quantity }));
     },
-    []
+    [],
   );
 
   if (status === 'unauthenticated') {
