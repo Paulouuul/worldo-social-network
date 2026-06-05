@@ -152,7 +152,7 @@ const customAdapter = {
       return await prisma.verification_tokens.delete({
         where: { identifier_token: { identifier, token } },
       });
-    } catch (error) {
+    } catch (_err) {
       return null;
     }
   },

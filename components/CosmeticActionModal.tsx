@@ -115,7 +115,7 @@ export function CosmeticActionModal({
       } else {
         setErrorMessage(data.error || 'Erro na validação do anúncio.');
       }
-    } catch (err) {
+    } catch (_err) {
       setErrorMessage('Erro de comunicação com o servidor.');
     } finally {
       setSubmitting(false);
@@ -142,7 +142,7 @@ export function CosmeticActionModal({
       } else {
         setErrorMessage(data.error || 'Erro ao atualizar preço');
       }
-    } catch (err) {
+    } catch (_err) {
       setErrorMessage('Erro de comunicação com o servidor');
     } finally {
       setSubmitting(false);
@@ -173,7 +173,7 @@ export function CosmeticActionModal({
       } else {
         setErrorMessage(data.error || 'Erro ao remover do mercado');
       }
-    } catch (err) {
+    } catch (_err) {
       setErrorMessage('Erro de comunicação com o servidor');
     } finally {
       setSubmitting(false);

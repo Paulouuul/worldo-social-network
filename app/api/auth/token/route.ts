@@ -1,9 +1,9 @@
 // worldo-social-network/app/api/auth/token/route.ts
 import { auth } from '@/auth';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { generatePythonToken } from '@/lib/realtime-python-token-generator';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 

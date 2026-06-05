@@ -106,7 +106,7 @@ export default function RegisterPage() {
         setSuccess(data.message || 'Conta criada com sucesso!');
         setTimeout(() => router.push('/login'), 3000);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao conectar com o servidor');
     } finally {
       setLoading(false);

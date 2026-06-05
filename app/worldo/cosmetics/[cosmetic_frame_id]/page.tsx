@@ -97,7 +97,7 @@ export default function CosmeticDetailPage() {
       } else {
         alert(data.error || 'Erro na compra');
       }
-    } catch (err) {
+    } catch (_err) {
       alert('Erro ao processar compra');
     }
   };

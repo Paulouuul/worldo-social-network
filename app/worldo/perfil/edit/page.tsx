@@ -214,7 +214,7 @@ export default function EditProfilePage() {
           setSuccess('');
         }, 1500);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao conectar com o servidor');
       // Em caso de queda total de rede, também resetamos para o estado estável anterior
       if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
