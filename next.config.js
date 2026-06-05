@@ -67,13 +67,6 @@ const nextConfig = {
       },
     ];
   },
-
-  eslint: {
-    // Diretórios para verificar
-    dirs: ['app', 'components', 'lib', 'hooks', 'stores', 'types', 'constants'],
-    // Não ignorar erros durante build (opcional)
-    ignoreDuringBuilds: false,
-  },
 };
 
 export default nextConfig;
