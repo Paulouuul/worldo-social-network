@@ -7,7 +7,6 @@ import GoogleProvider from 'next-auth/providers/google';
 import GitHubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-// import { SignJWT, jwtVerify } from 'jose'
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -222,28 +221,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 7 * 24 * 60 * 60,
     updateAge: 24 * 60 * 60,
   },
-  // jwt: {
-  //   async encode({ secret, token }) {
-  //     const secretBuffer = new TextEncoder().encode(secret as string)
-  //     return await new SignJWT(token as any)
-  //       .setProtectedHeader({ alg: 'HS256' })
-  //       .setIssuedAt()
-  //       .setExpirationTime('7d')
-  //       .sign(secretBuffer)
-  //   },
-  //   async decode({ secret, token }) {
-  //     if (!token) return null
-  //     try {
-  //       const secretBuffer = new TextEncoder().encode(secret as string)
-  //       const { payload } = await jwtVerify(token, secretBuffer, {
-  //         algorithms: [String(process.env.JWT_ALGORITHM || 'HS256')],
-  //       })
-  //       return payload as any
-  //     } catch (error) {
-  //       return null
-  //     }
-  //   },
-  // },
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
       // 1. Executado apenas no momento do Login Inicial
