@@ -1,22 +1,18 @@
-import { prisma } from '@/lib/prisma'
-import { auth } from '@/auth'
-import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { cosmetic_frame_id: string } }
 ) {
   try {
-
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
-          return NextResponse.json(
-            { error: 'Não autorizado' },
-            { status: 401 }
-          )
-        }
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
 
-    const { cosmetic_frame_id } = await params
+    const { cosmetic_frame_id } = await params;
 
     const frame = await prisma.cosmetic_frame.findUnique({
       where: { id: cosmetic_frame_id },
@@ -26,8 +22,8 @@ export async function GET(
             id: true,
             name: true,
             username: true,
-            avatar: true
-          }
+            avatar: true,
+          },
         },
         listings: {
           where: { isActive: true, quantity: { gt: 0 } },
@@ -40,10 +36,10 @@ export async function GET(
                 id: true,
                 name: true,
                 username: true,
-                avatar: true
-              }
-            }
-          }
+                avatar: true,
+              },
+            },
+          },
         },
         reviews: {
           take: 10,
@@ -54,28 +50,28 @@ export async function GET(
                 id: true,
                 name: true,
                 username: true,
-                avatar: true
-              }
+                avatar: true,
+              },
             },
-            likes: true
-          }
-        }
-      }
-    })
+            likes: true,
+          },
+        },
+      },
+    });
 
     if (!frame) {
-      return NextResponse.json(
-        { error: 'Moldura não encontrada' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Moldura não encontrada' }, { status: 404 });
     }
 
     // Calcular estatísticas
-    const totalListings = frame.listings.length
-    const cheapestListing = frame.listings.length > 0
-      ? frame.listings.reduce((min, listing) =>
-          listing.priceCoins < min.priceCoins ? listing : min, frame.listings[0])
-      : null
+    const totalListings = frame.listings.length;
+    const cheapestListing =
+      frame.listings.length > 0
+        ? frame.listings.reduce(
+            (min, listing) => (listing.priceCoins < min.priceCoins ? listing : min),
+            frame.listings[0]
+          )
+        : null;
 
     // Distribuição de avaliações
     const ratingDistribution = {
@@ -83,8 +79,8 @@ export async function GET(
       2: frame.total2Stars,
       3: frame.total3Stars,
       4: frame.total4Stars,
-      5: frame.total5Stars
-    }
+      5: frame.total5Stars,
+    };
 
     return NextResponse.json({
       id: frame.id,
@@ -104,13 +100,10 @@ export async function GET(
       listings: frame.listings,
       totalListings,
       cheapestListing,
-      hasActiveListing: totalListings > 0
-    })
+      hasActiveListing: totalListings > 0,
+    });
   } catch (error) {
-    console.error('Erro ao buscar moldura:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar moldura' },
-      { status: 500 }
-    )
+    console.error('Erro ao buscar moldura:', error);
+    return NextResponse.json({ error: 'Erro ao buscar moldura' }, { status: 500 });
   }
 }

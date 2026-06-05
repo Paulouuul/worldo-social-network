@@ -1,30 +1,23 @@
 // app/api/cosmetics/listings/[listing_id]/route.ts
-import { prisma } from '@/lib/prisma'
-import { auth } from '@/auth'
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
 
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { listing_id: string } }
-) {
+export async function GET(request: Request, { params }: { params: { listing_id: string } }) {
   try {
-
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
-          return NextResponse.json(
-            { error: 'Não autorizado' },
-            { status: 401 }
-          )
-        }
-    const { listing_id } = await params
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+    const { listing_id } = await params;
 
     // 1. Buscar o anúncio específico
     const listing = await prisma.cosmetic_listing.findUnique({
-      where: { 
-        id: listing_id, 
+      where: {
+        id: listing_id,
         isActive: true,
-        quantity: { gt: 0 }
+        quantity: { gt: 0 },
       },
       include: {
         frame: {
@@ -38,11 +31,11 @@ export async function GET(
                 bio: true,
                 createdAt: true,
                 equippedFrame: {
-                  select: { imageUrl: true, rarity: true }
-                }
-              }
-            }
-          }
+                  select: { imageUrl: true, rarity: true },
+                },
+              },
+            },
+          },
         },
         seller: {
           select: {
@@ -53,18 +46,18 @@ export async function GET(
             bio: true,
             createdAt: true,
             equippedFrame: {
-              select: { imageUrl: true, rarity: true }
-            }
-          }
-        }
-      }
-    })
+              select: { imageUrl: true, rarity: true },
+            },
+          },
+        },
+      },
+    });
 
     if (!listing) {
       return NextResponse.json(
         { error: 'Anúncio não encontrado ou indisponível' },
         { status: 404 }
-      )
+      );
     }
 
     // 2. Buscar outros anúncios do mesmo vendedor
@@ -73,7 +66,7 @@ export async function GET(
         sellerId: listing.sellerId,
         id: { not: listing.id },
         isActive: true,
-        quantity: { gt: 0 }
+        quantity: { gt: 0 },
       },
       include: {
         frame: {
@@ -82,12 +75,12 @@ export async function GET(
             name: true,
             thumbnailUrl: true,
             rarity: true,
-          }
-        }
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
-      take: 12
-    })
+      take: 12,
+    });
 
     return NextResponse.json({
       id: listing.id,
@@ -108,8 +101,8 @@ export async function GET(
           avatar: listing.frame.creator.avatar,
           bio: listing.frame.creator.bio,
           memberSince: listing.frame.creator.createdAt,
-          equippedFrame: listing.frame.creator.equippedFrame
-        }
+          equippedFrame: listing.frame.creator.equippedFrame,
+        },
       },
       seller: {
         id: listing.seller.publicId,
@@ -118,9 +111,9 @@ export async function GET(
         avatar: listing.seller.avatar,
         bio: listing.seller.bio,
         memberSince: listing.seller.createdAt,
-        equippedFrame: listing.seller.equippedFrame
+        equippedFrame: listing.seller.equippedFrame,
       },
-      sellerOtherListings: sellerOtherListings.map(item => ({
+      sellerOtherListings: sellerOtherListings.map((item) => ({
         id: item.id,
         priceCoins: item.priceCoins,
         quantity: item.quantity,
@@ -129,15 +122,11 @@ export async function GET(
           name: item.frame.name,
           thumbnailUrl: item.frame.thumbnailUrl,
           rarity: item.frame.rarity,
-        }
-      }))
-    })
-
+        },
+      })),
+    });
   } catch (error) {
-    console.error('Erro ao buscar anúncio:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar anúncio' },
-      { status: 500 }
-    )
+    console.error('Erro ao buscar anúncio:', error);
+    return NextResponse.json({ error: 'Erro ao buscar anúncio' }, { status: 500 });
   }
 }

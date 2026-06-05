@@ -1,19 +1,31 @@
-'use client'
+'use client';
 
-import { useRef, useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { ClientImage } from '@/components/ClientImage'
-import { redirect } from 'next/navigation'
-import { Sparkles, User, AtSign, FileText, MapPin, Link2, Upload, Trash2, Save, X, Image as ImageIcon } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { ClientImage } from '@/components/ClientImage';
+import { redirect } from 'next/navigation';
+import {
+  Sparkles,
+  User,
+  AtSign,
+  FileText,
+  MapPin,
+  Link2,
+  Upload,
+  Trash2,
+  Save,
+  X,
+  Image as ImageIcon,
+} from 'lucide-react';
 
 export default function EditProfilePage() {
-  const { data: session, status, update } = useSession()
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -22,165 +34,161 @@ export default function EditProfilePage() {
     website: '',
     avatar: '',
     coverImage: '',
-  })
-  
+  });
+
   // Estados para o Avatar
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
-  const [avatarPreview, setAvatarPreview] = useState<string>('')
-  const [removeAvatar, setRemoveAvatar] = useState(false)
-  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const [removeAvatar, setRemoveAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Estados para o Cover
-  const [coverFile, setCoverFile] = useState<File | null>(null)
-  const [coverPreview, setCoverPreview] = useState<string>('')
-  const [removeCover, setRemoveCover] = useState(false)
-  const coverInputRef = useRef<HTMLInputElement>(null)
-  const hasLoaded = useRef(false)
-  
-  useEffect(() => {
-  if (session?.user && !hasLoaded.current) {
-    hasLoaded.current = true
-    setFormData({
-      name: session.user.name || '',
-      username: session.user.username || '',
-      bio: session.user.bio || '',
-      location: session.user.location || '',
-      website: session.user.website || '',
-      avatar: session.user.avatar || '',
-      coverImage: session.user.coverImage || '',
-    })
-    setAvatarPreview(session.user.avatar || '')
-    setCoverPreview(session.user.coverImage || '')
-  }
-}, [session])
-  if (status === 'unauthenticated') {
-    redirect('/login')
-  }
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string>('');
+  const [removeCover, setRemoveCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const hasLoaded = useRef(false);
 
+  useEffect(() => {
+    if (session?.user && !hasLoaded.current) {
+      hasLoaded.current = true;
+      setFormData({
+        name: session.user.name || '',
+        username: session.user.username || '',
+        bio: session.user.bio || '',
+        location: session.user.location || '',
+        website: session.user.website || '',
+        avatar: session.user.avatar || '',
+        coverImage: session.user.coverImage || '',
+      });
+      setAvatarPreview(session.user.avatar || '');
+      setCoverPreview(session.user.coverImage || '');
+    }
+  }, [session]);
+  if (status === 'unauthenticated') {
+    redirect('/login');
+  }
 
   if (status === 'loading' || !session?.user) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
-        <span className="ml-3 mt-4 text-purple-300 font-medium text-sm">Sincronizando terminal...</span>
+        <span className="ml-3 mt-4 text-purple-300 font-medium text-sm">
+          Sincronizando terminal...
+        </span>
       </div>
-    )
+    );
   }
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: 'avatar' | 'cover'
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/jfif', 'image/png', 'image/gif', 'image/webp']
+    const allowedTypes = ['image/jpeg', 'image/jfif', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      setError(`Formato de ${type} não suportado.`)
-      return
+      setError(`Formato de ${type} não suportado.`);
+      return;
     }
 
-    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 8 * 1024 * 1024
+    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 8 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
-      return
+      setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`);
+      return;
     }
 
     if (file.type === 'image/gif') {
-      const gifLimit = type === 'avatar' ? 3 : 5 // 3MB avatar, 5MB banner
+      const gifLimit = type === 'avatar' ? 3 : 5; // 3MB avatar, 5MB banner
       if (file.size > gifLimit * 1024 * 1024) {
-        setError(`GIF muito grande para ${type}. Máximo: ${gifLimit}MB`)
-        return
+        setError(`GIF muito grande para ${type}. Máximo: ${gifLimit}MB`);
+        return;
       }
     }
 
     if (type === 'avatar') {
-      if (avatarPreview && avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
-      setAvatarFile(file)
-      setRemoveAvatar(false)
-      setAvatarPreview(URL.createObjectURL(file))
+      if (avatarPreview && avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
+      setAvatarFile(file);
+      setRemoveAvatar(false);
+      setAvatarPreview(URL.createObjectURL(file));
     } else {
-      if (coverPreview && coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
-      setCoverFile(file)
-      setRemoveCover(false)
-      setCoverPreview(URL.createObjectURL(file))
+      if (coverPreview && coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
+      setCoverFile(file);
+      setRemoveCover(false);
+      setCoverPreview(URL.createObjectURL(file));
     }
-    setError('')
-  }
+    setError('');
+  };
 
   const handleRemoveAvatar = () => {
-    if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
-    setAvatarFile(null)
-    setRemoveAvatar(true)
-    setAvatarPreview('')
-    if (avatarInputRef.current) avatarInputRef.current.value = ''
-  }
+    if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(null);
+    setRemoveAvatar(true);
+    setAvatarPreview('');
+    if (avatarInputRef.current) avatarInputRef.current.value = '';
+  };
 
   const handleRemoveCover = () => {
-    if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
-    setCoverFile(null)
-    setRemoveCover(true)
-    setCoverPreview('')
-    if (coverInputRef.current) coverInputRef.current.value = ''
-  }
+    if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
+    setCoverFile(null);
+    setRemoveCover(true);
+    setCoverPreview('');
+    if (coverInputRef.current) coverInputRef.current.value = '';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-
-    if(!session?.user.publicId){
-      router.push('login')
+    if (!session?.user.publicId) {
+      router.push('login');
     }
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    setSuccess('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
-      const submitData = new FormData()
-      submitData.append('name', formData.name)
-      submitData.append('username', formData.username.trim())
-      submitData.append('bio', formData.bio)
-      submitData.append('location', formData.location)
-      submitData.append('website', formData.website)
-      
-      if (avatarFile) submitData.append('avatar', avatarFile)
-      if (removeAvatar) submitData.append('removeAvatar', 'true')
-      
-      if (coverFile) submitData.append('cover', coverFile)
-      if (removeCover) submitData.append('removeCover', 'true')
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('username', formData.username.trim());
+      submitData.append('bio', formData.bio);
+      submitData.append('location', formData.location);
+      submitData.append('website', formData.website);
+
+      if (avatarFile) submitData.append('avatar', avatarFile);
+      if (removeAvatar) submitData.append('removeAvatar', 'true');
+
+      if (coverFile) submitData.append('cover', coverFile);
+      if (removeCover) submitData.append('removeCover', 'true');
 
       const res = await fetch('/api/user/profile', {
         method: 'PUT',
-        body: submitData, 
-      })
+        body: submitData,
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Erro ao atualizar perfil')
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        setError(data.error || 'Erro ao atualizar perfil');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // REVERSÃO NA UI: Como a API deu erro e descartou o upload (ou não removeu), 
+        // REVERSÃO NA UI: Como a API deu erro e descartou o upload (ou não removeu),
         // voltamos os previews para o que está salvo atualmente no formData original estável.
         if (avatarFile || removeAvatar) {
-          if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
-          setAvatarFile(null)
-          setRemoveAvatar(false)
-          setAvatarPreview(formData.avatar || '')
-          if (avatarInputRef.current) avatarInputRef.current.value = ''
+          if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
+          setAvatarFile(null);
+          setRemoveAvatar(false);
+          setAvatarPreview(formData.avatar || '');
+          if (avatarInputRef.current) avatarInputRef.current.value = '';
         }
 
         if (coverFile || removeCover) {
-          if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
-          setCoverFile(null)
-          setRemoveCover(false)
-          setCoverPreview(formData.coverImage || '')
-          if (coverInputRef.current) coverInputRef.current.value = ''
+          if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
+          setCoverFile(null);
+          setRemoveCover(false);
+          setCoverPreview(formData.coverImage || '');
+          if (coverInputRef.current) coverInputRef.current.value = '';
         }
-
       } else {
-        setSuccess('Perfil atualizado com sucesso!')
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-        
+        setSuccess('Perfil atualizado com sucesso!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
         const updatedUser = {
           name: data.user?.name ?? formData.name,
           username: data.user?.username ?? formData.username,
@@ -189,54 +197,53 @@ export default function EditProfilePage() {
           website: data.user?.website ?? '',
           avatar: data.user?.avatar ?? formData.avatar,
           coverImage: data.user?.coverImage ?? formData.coverImage,
-        }
+        };
         // Atualiza a colagem estável do formData local com os novos dados validados vindos da API
-        setFormData(updatedUser)
+        setFormData(updatedUser);
 
         await update({
-          user: updatedUser
-        })
-        
-        setAvatarFile(null)
-        setRemoveAvatar(false)
-        setCoverFile(null)
-        setRemoveCover(false)
+          user: updatedUser,
+        });
+
+        setAvatarFile(null);
+        setRemoveAvatar(false);
+        setCoverFile(null);
+        setRemoveCover(false);
 
         setTimeout(() => {
-          setSuccess('')
-        }, 1500)
+          setSuccess('');
+        }, 1500);
       }
     } catch (err) {
-      setError('Erro ao conectar com o servidor')
+      setError('Erro ao conectar com o servidor');
       // Em caso de queda total de rede, também resetamos para o estado estável anterior
-      if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview)
-      if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview)
-      setAvatarFile(null)
-      setCoverFile(null)
-      setRemoveAvatar(false)
-      setRemoveCover(false)
-      setAvatarPreview(formData.avatar || '')
-      setCoverPreview(formData.coverImage || '')
+      if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
+      if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
+      setAvatarFile(null);
+      setCoverFile(null);
+      setRemoveAvatar(false);
+      setRemoveCover(false);
+      setAvatarPreview(formData.avatar || '');
+      setCoverPreview(formData.coverImage || '');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCancel = () => {
     if (session?.user?.publicId) {
-    router.push(`/worldo/perfil/${session.user?.publicId}`)
-    }else{
-      router.push('/login')
+      router.push(`/worldo/perfil/${session.user?.publicId}`);
+    } else {
+      router.push('/login');
     }
-  }
-  
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 py-12 px-4 relative overflow-hidden flex items-center justify-center">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
 
       <div className="max-w-2xl w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
-        
         {/* Header */}
         <div className="flex items-center gap-3 mb-8 border-b border-slate-800/60 pb-5">
           <div className="bg-purple-500/10 p-2.5 rounded-xl border border-purple-500/20">
@@ -246,7 +253,9 @@ export default function EditProfilePage() {
             <h1 className="text-xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-purple-400 via-pink-400 to-indigo-400 tracking-wide uppercase">
               Modificar Perfil
             </h1>
-            <p className="text-slate-400 text-xs mt-0.5">Ajuste suas informações públicas e credenciais de exibição</p>
+            <p className="text-slate-400 text-xs mt-0.5">
+              Ajuste suas informações públicas e credenciais de exibição
+            </p>
           </div>
         </div>
 
@@ -266,16 +275,15 @@ export default function EditProfilePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          
           {/* SEÇÃO: Imagem de Capa (Cover) */}
           <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
             <label className="flex items-center gap-1.5 text-slate-300 mb-3 font-semibold text-xs tracking-wide uppercase">
               <ImageIcon className="w-3.5 h-3.5 text-purple-400" /> Capa do Perfil / Banner
             </label>
-            
+
             <div className="space-y-4">
               <div className="relative w-full h-36 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center group shadow-inner">
-                {coverPreview && coverPreview !== "None" ? (
+                {coverPreview && coverPreview !== 'None' ? (
                   <ClientImage
                     src={coverPreview}
                     alt="Cover Preview"
@@ -285,7 +293,9 @@ export default function EditProfilePage() {
                 ) : (
                   <div className="text-slate-600 flex flex-col items-center gap-1">
                     <ImageIcon className="w-8 h-8 stroke-[1.5]" />
-                    <span className="text-[10px] uppercase tracking-wider font-medium">Sem imagem de capa</span>
+                    <span className="text-[10px] uppercase tracking-wider font-medium">
+                      Sem imagem de capa
+                    </span>
                   </div>
                 )}
               </div>
@@ -308,7 +318,7 @@ export default function EditProfilePage() {
                     <Upload className="w-3.5 h-3.5 text-purple-400" /> Transmitir Capa
                   </label>
 
-                  {coverPreview && coverPreview !== "None" && !removeCover && (
+                  {coverPreview && coverPreview !== 'None' && !removeCover && (
                     <button
                       type="button"
                       onClick={handleRemoveCover}
@@ -331,7 +341,7 @@ export default function EditProfilePage() {
             </label>
             <div className="flex items-center gap-5">
               <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-purple-500/30 bg-slate-950 shrink-0 shadow-inner">
-                {avatarPreview && avatarPreview !== "None" ? (
+                {avatarPreview && avatarPreview !== 'None' ? (
                   <ClientImage
                     src={avatarPreview}
                     alt="Avatar Preview"
@@ -344,7 +354,7 @@ export default function EditProfilePage() {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex-1 space-y-2">
                 <input
                   ref={avatarInputRef}
@@ -355,7 +365,7 @@ export default function EditProfilePage() {
                   id="avatar-upload"
                   disabled={loading}
                 />
-                
+
                 <div className="flex flex-wrap items-center gap-2">
                   <label
                     htmlFor="avatar-upload"
@@ -363,8 +373,8 @@ export default function EditProfilePage() {
                   >
                     <Upload className="w-3.5 h-3.5 text-purple-400" /> Transmitir foto
                   </label>
-                  
-                  {avatarPreview && avatarPreview !== "None" && !removeAvatar && (
+
+                  {avatarPreview && avatarPreview !== 'None' && !removeAvatar && (
                     <button
                       type="button"
                       onClick={handleRemoveAvatar}
@@ -391,7 +401,12 @@ export default function EditProfilePage() {
               <input
                 type="text"
                 value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+                  })
+                }
                 className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
                 required
                 disabled={loading}
@@ -484,7 +499,7 @@ export default function EditProfilePage() {
                 </>
               )}
             </button>
-            
+
             <button
               type="button"
               onClick={handleCancel}
@@ -498,5 +513,5 @@ export default function EditProfilePage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

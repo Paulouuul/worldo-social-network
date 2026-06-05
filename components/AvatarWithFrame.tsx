@@ -1,4 +1,4 @@
-import { ClientImage } from '@/components/ClientImage' 
+import { ClientImage } from '@/components/ClientImage';
 interface AvatarWithFrameProps {
   avatarUrl?: string | null;
   name?: string;
@@ -13,62 +13,68 @@ interface AvatarWithFrameProps {
 // Cores de fundo por raridade
 const getInitialBgColor = (rarity?: string) => {
   switch (rarity) {
-    case 'LENDARIO': return 'bg-gradient-to-br from-amber-500 to-orange-600'
-    case 'EPICO': return 'bg-gradient-to-br from-purple-600 to-pink-600'
-    case 'RARO': return 'bg-gradient-to-br from-blue-600 to-cyan-600'
-    default: return 'bg-gradient-to-br from-purple-600 to-indigo-600'
+    case 'LENDARIO':
+      return 'bg-gradient-to-br from-amber-500 to-orange-600';
+    case 'EPICO':
+      return 'bg-gradient-to-br from-purple-600 to-pink-600';
+    case 'RARO':
+      return 'bg-gradient-to-br from-blue-600 to-cyan-600';
+    default:
+      return 'bg-gradient-to-br from-purple-600 to-indigo-600';
   }
-}
+};
 
 // Efeito de brilho por raridade (se não tiver glowClass customizada)
 const getDefaultGlowClass = (rarity?: string) => {
   switch (rarity) {
-    case 'LENDARIO': return 'drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]'
-    case 'EPICO': return 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]'
-    case 'RARO': return 'drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]'
-    default: return ''
+    case 'LENDARIO':
+      return 'drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]';
+    case 'EPICO':
+      return 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]';
+    case 'RARO':
+      return 'drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]';
+    default:
+      return '';
   }
-}
+};
 
-export const AvatarWithFrame = ({ 
-  avatarUrl, 
+export const AvatarWithFrame = ({
+  avatarUrl,
   name,
-  frameUrl, 
-  size = 'md',        
+  frameUrl,
+  size = 'md',
   rarity,
-  glowClass = '', 
-  className = "w-32 h-32",
-  priority = false 
+  glowClass = '',
+  className = 'w-32 h-32',
+  priority = false,
 }: AvatarWithFrameProps) => {
-  
   const sizeClasses = {
-    smsm:'w-12 h-12',
+    smsm: 'w-12 h-12',
     sm: 'w-16 h-16',
     md: 'w-32 h-32',
     lg: 'w-48 h-48',
-    full: 'w-full h-full'
+    full: 'w-full h-full',
   };
 
   const getInitial = () => {
-    if (!name) return '?'
-    return name.charAt(0).toUpperCase()
-  }
+    if (!name) return '?';
+    return name.charAt(0).toUpperCase();
+  };
 
-  const bgColorClass = getInitialBgColor(rarity)
-  const finalGlowClass = glowClass || getDefaultGlowClass(rarity)
+  const bgColorClass = getInitialBgColor(rarity);
+  const finalGlowClass = glowClass || getDefaultGlowClass(rarity);
 
   return (
     <div className={`relative ${size ? sizeClasses[size] : className}`}>
-      
       {/* 1. Avatar ou Inicial */}
       <div className="absolute inset-[15%] z-0">
-        {avatarUrl && avatarUrl !== "None" && avatarUrl.startsWith('http') ? (
+        {avatarUrl && avatarUrl !== 'None' && avatarUrl.startsWith('http') ? (
           <div className="relative w-full h-full rounded-full overflow-hidden">
             {/* Fundo de fallback para imagens PNG com transparência */}
             <div className={`absolute inset-0 ${bgColorClass} rounded-full`} />
-            <ClientImage 
-              src={avatarUrl} 
-              alt="Avatar do usuário" 
+            <ClientImage
+              src={avatarUrl}
+              alt="Avatar do usuário"
               fill
               sizes="(max-width: 768px) 100px, 128px"
               className="object-cover"
@@ -76,10 +82,10 @@ export const AvatarWithFrame = ({
             />
           </div>
         ) : (
-          <div className={`w-full h-full rounded-full ${bgColorClass} flex items-center justify-center`}>
-            <span className="text-3xl font-bold text-white drop-shadow-md">
-              {getInitial()}
-            </span>
+          <div
+            className={`w-full h-full rounded-full ${bgColorClass} flex items-center justify-center`}
+          >
+            <span className="text-3xl font-bold text-white drop-shadow-md">{getInitial()}</span>
           </div>
         )}
       </div>
@@ -87,9 +93,9 @@ export const AvatarWithFrame = ({
       {/* 2. Moldura */}
       {frameUrl && (
         <div className={`absolute inset-0 z-10 ${finalGlowClass}`}>
-          <ClientImage 
-            src={frameUrl} 
-            alt="Moldura" 
+          <ClientImage
+            src={frameUrl}
+            alt="Moldura"
             fill
             sizes="(max-width: 768px) 120px, 160px"
             className="object-contain"

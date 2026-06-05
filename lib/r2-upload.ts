@@ -1,6 +1,11 @@
-import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand  } from '@aws-sdk/client-s3'
-import { getSignedUrl as getS3SignedUrl  } from '@aws-sdk/s3-request-presigner'
-import { r2Client, R2_PUBLIC_BUCKET, R2_PRIVATE_BUCKET, R2_PUBLIC_URL } from './r2'
+import {
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl as getS3SignedUrl } from '@aws-sdk/s3-request-presigner';
+import { r2Client, R2_PUBLIC_BUCKET, R2_PRIVATE_BUCKET, R2_PUBLIC_URL } from './r2';
 
 /**
  * Upload de arquivo para bucket público
@@ -9,18 +14,18 @@ import { r2Client, R2_PUBLIC_BUCKET, R2_PRIVATE_BUCKET, R2_PUBLIC_URL } from './
  * @returns URL pública do arquivo
  */
 export async function uploadPublic(file: File, path: string): Promise<string> {
-  const buffer = Buffer.from(await file.arrayBuffer())
-  
+  const buffer = Buffer.from(await file.arrayBuffer());
+
   const command = new PutObjectCommand({
     Bucket: R2_PUBLIC_BUCKET,
     Key: path,
     Body: buffer,
     ContentType: file.type,
-  })
+  });
 
-  await r2Client.send(command)
-  
-  return `${R2_PUBLIC_URL}/${path}`
+  await r2Client.send(command);
+
+  return `${R2_PUBLIC_URL}/${path}`;
 }
 
 /**
@@ -30,18 +35,18 @@ export async function uploadPublic(file: File, path: string): Promise<string> {
  * @returns Path do arquivo (para gerar URL assinada depois)
  */
 export async function uploadPrivate(file: File, path: string): Promise<string> {
-  const buffer = Buffer.from(await file.arrayBuffer())
-  
+  const buffer = Buffer.from(await file.arrayBuffer());
+
   const command = new PutObjectCommand({
     Bucket: R2_PRIVATE_BUCKET,
     Key: path,
     Body: buffer,
     ContentType: file.type,
-  })
+  });
 
-  await r2Client.send(command)
-  
-  return path
+  await r2Client.send(command);
+
+  return path;
 }
 
 /**
@@ -54,9 +59,9 @@ export async function getSignedUrl(path: string, expiresIn: number = 3600): Prom
   const command = new GetObjectCommand({
     Bucket: R2_PRIVATE_BUCKET,
     Key: path,
-  })
+  });
 
-  return await getS3SignedUrl(r2Client, command, { expiresIn })
+  return await getS3SignedUrl(r2Client, command, { expiresIn });
 }
 
 /**
@@ -68,9 +73,9 @@ export async function deleteFile(path: string, isPublic: boolean = true): Promis
   const command = new DeleteObjectCommand({
     Bucket: isPublic ? R2_PUBLIC_BUCKET : R2_PRIVATE_BUCKET,
     Key: path,
-  })
+  });
 
-  await r2Client.send(command)
+  await r2Client.send(command);
 }
 
 /**
@@ -84,10 +89,10 @@ export async function fileExists(path: string, isPublic: boolean = true): Promis
     const command = new HeadObjectCommand({
       Bucket: isPublic ? R2_PUBLIC_BUCKET : R2_PRIVATE_BUCKET,
       Key: path,
-    })
-    await r2Client.send(command)
-    return true
+    });
+    await r2Client.send(command);
+    return true;
   } catch {
-    return false
+    return false;
   }
 }

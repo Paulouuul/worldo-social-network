@@ -1,84 +1,84 @@
-import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
-import 'dotenv/config'
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+import 'dotenv/config';
 
-console.log('1. Iniciando configuração...')
+console.log('1. Iniciando configuração...');
 // Cria a pool de conexões com o banco de dados
-const DATABASE_URL = process.env.DATABASE_URL
+const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  throw new Error('DATABASE_URL não configurada no .env')
+  throw new Error('DATABASE_URL não configurada no .env');
 }
-console.log('2. DATABASE_URL OK:', DATABASE_URL)
+console.log('2. DATABASE_URL OK:', DATABASE_URL);
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
-})
-console.log('3. Pool criada')
+});
+console.log('3. Pool criada');
 
 // Cria o adaptador para o Prisma (PASSO CRUCIAL)
-const adapter = new PrismaPg(pool)
-console.log('4. Adapter criado')
+const adapter = new PrismaPg(pool);
+console.log('4. Adapter criado');
 
 // Instancia o PrismaClient passando o adaptador como parâmetro
-const prisma = new PrismaClient({ adapter })
-console.log('5. PrismaClient criado:', !!prisma)
+const prisma = new PrismaClient({ adapter });
+console.log('5. PrismaClient criado:', !!prisma);
 
 async function main() {
-  console.log('Starting seed...')
+  console.log('Starting seed...');
 
   // ============================================
   // 1. PACOTES DE MOEDAS (COMPRA COM DINHEIRO REAL)
   // ============================================
   const coinPackages = [
-    { name: "100 Moedas", coins: 100, priceReal: 5.00, bonusCoins: 0, sortOrder: 1 },
-    { name: "500 Moedas", coins: 500, priceReal: 20.00, bonusCoins: 50, sortOrder: 2 },
-    { name: "1000 Moedas", coins: 1000, priceReal: 35.00, bonusCoins: 150, sortOrder: 3 },
-    { name: "5000 Moedas", coins: 5000, priceReal: 150.00, bonusCoins: 1000, sortOrder: 4 },
-    { name: "10000 Moedas", coins: 10000, priceReal: 250.00, bonusCoins: 2000, sortOrder: 5 },
-    { name: "25000 Moedas", coins: 25000, priceReal: 600.00, bonusCoins: 6000, sortOrder: 6 },
-  ]
+    { name: '100 Moedas', coins: 100, priceReal: 5.0, bonusCoins: 0, sortOrder: 1 },
+    { name: '500 Moedas', coins: 500, priceReal: 20.0, bonusCoins: 50, sortOrder: 2 },
+    { name: '1000 Moedas', coins: 1000, priceReal: 35.0, bonusCoins: 150, sortOrder: 3 },
+    { name: '5000 Moedas', coins: 5000, priceReal: 150.0, bonusCoins: 1000, sortOrder: 4 },
+    { name: '10000 Moedas', coins: 10000, priceReal: 250.0, bonusCoins: 2000, sortOrder: 5 },
+    { name: '25000 Moedas', coins: 25000, priceReal: 600.0, bonusCoins: 6000, sortOrder: 6 },
+  ];
 
   for (const pkg of coinPackages) {
     const existing = await prisma.coin_package.findFirst({
-      where: { name: pkg.name }
-    })
-    
+      where: { name: pkg.name },
+    });
+
     if (existing) {
       await prisma.coin_package.update({
         where: { id: existing.id },
         data: pkg,
-      })
+      });
     } else {
-      await prisma.coin_package.create({ data: pkg })
+      await prisma.coin_package.create({ data: pkg });
     }
-    console.log(`Pacote de moedas: ${pkg.name} - ${pkg.coins} moedas por R$${pkg.priceReal}`)
+    console.log(`Pacote de moedas: ${pkg.name} - ${pkg.coins} moedas por R$${pkg.priceReal}`);
   }
 
   // ============================================
   // 2. CUSTOS BASE PARA CRIAR MOLDURAS
   // ============================================
   const creationCosts = [
-    { rarity: "COMUM", costCoins: 50, timeMinutes: 5 },
-    { rarity: "RARO", costCoins: 200, timeMinutes: 15 },
-    { rarity: "EPICO", costCoins: 500, timeMinutes: 30 },
-    { rarity: "LENDARIO", costCoins: 1000, timeMinutes: 60 },
-  ]
+    { rarity: 'COMUM', costCoins: 50, timeMinutes: 5 },
+    { rarity: 'RARO', costCoins: 200, timeMinutes: 15 },
+    { rarity: 'EPICO', costCoins: 500, timeMinutes: 30 },
+    { rarity: 'LENDARIO', costCoins: 1000, timeMinutes: 60 },
+  ];
 
   for (const cost of creationCosts) {
     const existing = await prisma.cosmetic_creation_cost.findFirst({
-      where: { rarity: cost.rarity }
-    })
-    
+      where: { rarity: cost.rarity },
+    });
+
     if (existing) {
       await prisma.cosmetic_creation_cost.update({
         where: { id: existing.id },
         data: cost,
-      })
+      });
     } else {
-      await prisma.cosmetic_creation_cost.create({ data: cost })
+      await prisma.cosmetic_creation_cost.create({ data: cost });
     }
-    console.log(`Custo base: ${cost.rarity} - ${cost.costCoins} moedas`)
+    console.log(`Custo base: ${cost.rarity} - ${cost.costCoins} moedas`);
   }
 
   // ============================================
@@ -86,126 +86,240 @@ async function main() {
   // ============================================
   const creationPackages = [
     // PACOTES PARA COMUM (base: 50)
-    { name: 'Pacote Básico', rarity: 'COMUM', quantity: 10, multiplier: 1, totalCost: 50, sortOrder: 1 },
-    { name: 'Pacote Comercial', rarity: 'COMUM', quantity: 50, multiplier: 1.5, totalCost: 75, sortOrder: 2 },
-    { name: 'Pacote Empresarial', rarity: 'COMUM', quantity: 100, multiplier: 2, totalCost: 100, sortOrder: 3 },
-    { name: 'Pacote Máster', rarity: 'COMUM', quantity: 500, multiplier: 5, totalCost: 250, sortOrder: 4 },
-    
+    {
+      name: 'Pacote Básico',
+      rarity: 'COMUM',
+      quantity: 10,
+      multiplier: 1,
+      totalCost: 50,
+      sortOrder: 1,
+    },
+    {
+      name: 'Pacote Comercial',
+      rarity: 'COMUM',
+      quantity: 50,
+      multiplier: 1.5,
+      totalCost: 75,
+      sortOrder: 2,
+    },
+    {
+      name: 'Pacote Empresarial',
+      rarity: 'COMUM',
+      quantity: 100,
+      multiplier: 2,
+      totalCost: 100,
+      sortOrder: 3,
+    },
+    {
+      name: 'Pacote Máster',
+      rarity: 'COMUM',
+      quantity: 500,
+      multiplier: 5,
+      totalCost: 250,
+      sortOrder: 4,
+    },
+
     // PACOTES PARA RARO (base: 200)
-    { name: 'Pacote Básico', rarity: 'RARO', quantity: 10, multiplier: 1, totalCost: 200, sortOrder: 1 },
-    { name: 'Pacote Comercial', rarity: 'RARO', quantity: 50, multiplier: 1.5, totalCost: 300, sortOrder: 2 },
-    { name: 'Pacote Empresarial', rarity: 'RARO', quantity: 100, multiplier: 2, totalCost: 400, sortOrder: 3 },
-    { name: 'Pacote Máster', rarity: 'RARO', quantity: 500, multiplier: 5, totalCost: 1000, sortOrder: 4 },
-    
+    {
+      name: 'Pacote Básico',
+      rarity: 'RARO',
+      quantity: 10,
+      multiplier: 1,
+      totalCost: 200,
+      sortOrder: 1,
+    },
+    {
+      name: 'Pacote Comercial',
+      rarity: 'RARO',
+      quantity: 50,
+      multiplier: 1.5,
+      totalCost: 300,
+      sortOrder: 2,
+    },
+    {
+      name: 'Pacote Empresarial',
+      rarity: 'RARO',
+      quantity: 100,
+      multiplier: 2,
+      totalCost: 400,
+      sortOrder: 3,
+    },
+    {
+      name: 'Pacote Máster',
+      rarity: 'RARO',
+      quantity: 500,
+      multiplier: 5,
+      totalCost: 1000,
+      sortOrder: 4,
+    },
+
     // PACOTES PARA EPICO (base: 500)
-    { name: 'Pacote Básico', rarity: 'EPICO', quantity: 10, multiplier: 1, totalCost: 500, sortOrder: 1 },
-    { name: 'Pacote Comercial', rarity: 'EPICO', quantity: 50, multiplier: 1.5, totalCost: 750, sortOrder: 2 },
-    { name: 'Pacote Empresarial', rarity: 'EPICO', quantity: 100, multiplier: 2, totalCost: 1000, sortOrder: 3 },
-    { name: 'Pacote Máster', rarity: 'EPICO', quantity: 500, multiplier: 5, totalCost: 2500, sortOrder: 4 },
-    
+    {
+      name: 'Pacote Básico',
+      rarity: 'EPICO',
+      quantity: 10,
+      multiplier: 1,
+      totalCost: 500,
+      sortOrder: 1,
+    },
+    {
+      name: 'Pacote Comercial',
+      rarity: 'EPICO',
+      quantity: 50,
+      multiplier: 1.5,
+      totalCost: 750,
+      sortOrder: 2,
+    },
+    {
+      name: 'Pacote Empresarial',
+      rarity: 'EPICO',
+      quantity: 100,
+      multiplier: 2,
+      totalCost: 1000,
+      sortOrder: 3,
+    },
+    {
+      name: 'Pacote Máster',
+      rarity: 'EPICO',
+      quantity: 500,
+      multiplier: 5,
+      totalCost: 2500,
+      sortOrder: 4,
+    },
+
     // PACOTES PARA LENDARIO (base: 1000)
-    { name: 'Pacote Básico', rarity: 'LENDARIO', quantity: 10, multiplier: 1, totalCost: 1000, sortOrder: 1 },
-    { name: 'Pacote Comercial', rarity: 'LENDARIO', quantity: 50, multiplier: 1.5, totalCost: 1500, sortOrder: 2 },
-    { name: 'Pacote Empresarial', rarity: 'LENDARIO', quantity: 100, multiplier: 2, totalCost: 2000, sortOrder: 3 },
-    { name: 'Pacote Máster', rarity: 'LENDARIO', quantity: 500, multiplier: 5, totalCost: 5000, sortOrder: 4 },
-  ]
+    {
+      name: 'Pacote Básico',
+      rarity: 'LENDARIO',
+      quantity: 10,
+      multiplier: 1,
+      totalCost: 1000,
+      sortOrder: 1,
+    },
+    {
+      name: 'Pacote Comercial',
+      rarity: 'LENDARIO',
+      quantity: 50,
+      multiplier: 1.5,
+      totalCost: 1500,
+      sortOrder: 2,
+    },
+    {
+      name: 'Pacote Empresarial',
+      rarity: 'LENDARIO',
+      quantity: 100,
+      multiplier: 2,
+      totalCost: 2000,
+      sortOrder: 3,
+    },
+    {
+      name: 'Pacote Máster',
+      rarity: 'LENDARIO',
+      quantity: 500,
+      multiplier: 5,
+      totalCost: 5000,
+      sortOrder: 4,
+    },
+  ];
 
   for (const pkg of creationPackages) {
     const existing = await prisma.cosmetic_creation_package.findFirst({
-      where: { 
+      where: {
         rarity: pkg.rarity,
-        quantity: pkg.quantity 
-      }
-    })
-    
+        quantity: pkg.quantity,
+      },
+    });
+
     if (existing) {
       await prisma.cosmetic_creation_package.update({
         where: { id: existing.id },
         data: pkg,
-      })
+      });
     } else {
-      await prisma.cosmetic_creation_package.create({ data: pkg })
+      await prisma.cosmetic_creation_package.create({ data: pkg });
     }
-    console.log(`Pacote de criação: ${pkg.rarity} - ${pkg.name} (${pkg.quantity} unidades por ${pkg.totalCost} moedas)`)
+    console.log(
+      `Pacote de criação: ${pkg.rarity} - ${pkg.name} (${pkg.quantity} unidades por ${pkg.totalCost} moedas)`
+    );
   }
 
   // ============================================
   // 4. MOLDURAS DE EXEMPLO (Cosméticos)
   // ============================================
-  
+
   // Primeiro, crie um usuário admin/vendedor padrão se não existir
   let adminUser = await prisma.users.findFirst({
-    where: { email: "admin@exemplo.com" }
-  })
+    where: { email: 'admin@exemplo.com' },
+  });
 
   if (!adminUser) {
     adminUser = await prisma.users.create({
       data: {
-        email: "admin@exemplo.com",
-        name: "Admin",
-        username: "admin",
-        publicId: "admin-public-id",
-        password: "$2a$10$...", // hash de "senha123" (opcional)
+        email: 'admin@exemplo.com',
+        name: 'Admin',
+        username: 'admin',
+        publicId: 'admin-public-id',
+        password: '$2a$10$...', // hash de "senha123" (opcional)
         coins: 10000, // Dar moedas para o admin poder criar
-      }
-    })
-    console.log("Usuário admin criado")
+      },
+    });
+    console.log('Usuário admin criado');
   }
 
   const exampleFrames = [
     {
-      name: "Moldura Dourada",
-      description: "Uma moldura elegante com detalhes dourados",
-      imageUrl: "/frames/dourada.png",
-      thumbnailUrl: "/frames/dourada-thumb.png",
-      rarity: "RARO",
+      name: 'Moldura Dourada',
+      description: 'Uma moldura elegante com detalhes dourados',
+      imageUrl: '/frames/dourada.png',
+      thumbnailUrl: '/frames/dourada-thumb.png',
+      rarity: 'RARO',
       stock: 10,
       createdBy: adminUser.id,
     },
     {
-      name: "Moldura Neon",
-      description: "Efeito neon futurista",
-      imageUrl: "/frames/neon.png",
-      thumbnailUrl: "/frames/neon-thumb.png",
-      rarity: "EPICO",
+      name: 'Moldura Neon',
+      description: 'Efeito neon futurista',
+      imageUrl: '/frames/neon.png',
+      thumbnailUrl: '/frames/neon-thumb.png',
+      rarity: 'EPICO',
       stock: 5,
       createdBy: adminUser.id,
     },
     {
-      name: "Moldura Mística",
-      description: "Brilho mágico e misterioso",
-      imageUrl: "/frames/mistica.png",
-      thumbnailUrl: "/frames/mistica-thumb.png",
-      rarity: "LENDARIO",
+      name: 'Moldura Mística',
+      description: 'Brilho mágico e misterioso',
+      imageUrl: '/frames/mistica.png',
+      thumbnailUrl: '/frames/mistica-thumb.png',
+      rarity: 'LENDARIO',
       stock: 2,
       createdBy: adminUser.id,
     },
-  ]
+  ];
 
   for (const frame of exampleFrames) {
     const existing = await prisma.cosmetic_frame.findFirst({
-      where: { name: frame.name }
-    })
-    
+      where: { name: frame.name },
+    });
+
     if (existing) {
       await prisma.cosmetic_frame.update({
         where: { id: existing.id },
         data: frame,
-      })
+      });
     } else {
-      await prisma.cosmetic_frame.create({ data: frame })
+      await prisma.cosmetic_frame.create({ data: frame });
     }
-    console.log(`Moldura: ${frame.name} (${frame.rarity})`)
+    console.log(`Moldura: ${frame.name} (${frame.rarity})`);
   }
 
-  console.log('✅ Seed completed!')
+  console.log('✅ Seed completed!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e)
-    process.exit(1)
+    console.error('❌ Seed failed:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

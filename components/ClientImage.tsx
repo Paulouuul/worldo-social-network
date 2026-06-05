@@ -1,25 +1,25 @@
 // components/ClientImage.tsx
-'use client'
+'use client';
 
-import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 interface ClientImageProps {
-  src: string
-  alt: string
-  fill?: boolean
-  width?: number
-  height?: number
-  className?: string
-  priority?: boolean
-  quality?: number
-  sizes?: string
-  [key: string]: any
+  src: string;
+  alt: string;
+  fill?: boolean;
+  width?: number;
+  height?: number;
+  className?: string;
+  priority?: boolean;
+  quality?: number;
+  sizes?: string;
+  [key: string]: any;
 }
 
-export function ClientImage({ 
-  src, 
-  alt, 
+export function ClientImage({
+  src,
+  alt,
   fill = false,
   width,
   height,
@@ -27,22 +27,22 @@ export function ClientImage({
   priority = false,
   quality,
   sizes,
-  ...props 
+  ...props
 }: ClientImageProps) {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     // NÃO passe as props para o div - use apenas className e style
     return (
-      <div 
-        className={className} 
+      <div
+        className={className}
         style={fill ? { position: 'relative', width: '100%', height: '100%' } : undefined}
       />
-    )
+    );
   }
 
   // Só depois da hidratação, renderiza o Image com todas as props
@@ -61,5 +61,5 @@ export function ClientImage({
       suppressHydrationWarning
       {...props}
     />
-  )
+  );
 }

@@ -17,7 +17,7 @@ export const useEquippedFrame = (frameId: string | null) => {
         const data = await res.json();
         setFrameData(data);
       } catch (err) {
-        console.error("Erro ao carregar moldura", err);
+        console.error('Erro ao carregar moldura', err);
       } finally {
         setLoading(false);
       }

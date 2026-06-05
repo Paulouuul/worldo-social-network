@@ -10,7 +10,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'via.placeholder.com',
       },
-       {
+      {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
       },
@@ -22,18 +22,17 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.googleusercontent.com',
       },
-       {
+      {
         protocol: 'https',
-        hostname: 'pub-*.r2.dev',  // ← ADICIONAR PARA R2
+        hostname: 'pub-*.r2.dev', // ← ADICIONAR PARA R2
       },
-
     ],
     minimumCacheTTL: 0,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-   async headers() {
+  async headers() {
     return [
       {
         source: '/:path*',
@@ -66,8 +65,15 @@ const nextConfig = {
           },
         ],
       },
-    ]
+    ];
   },
-}
 
-export default nextConfig
+  eslint: {
+    // Diretórios para verificar
+    dirs: ['app', 'components', 'lib', 'hooks', 'stores', 'types', 'constants'],
+    // Não ignorar erros durante build (opcional)
+    ignoreDuringBuilds: false,
+  },
+};
+
+export default nextConfig;

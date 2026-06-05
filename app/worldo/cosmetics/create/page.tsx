@@ -1,29 +1,29 @@
 'use client';
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { useRouter, redirect } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import Link from 'next/link'
-import { ClientImage } from '@/components/ClientImage' 
-import { AvatarWithFrame } from '@/components/AvatarWithFrame'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useRouter, redirect } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { ClientImage } from '@/components/ClientImage';
+import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
-import { 
-  Sparkles, 
-  FileText, 
-  Layers, 
-  Package, 
-  UploadCloud, 
-  Check, 
-  Coins, 
-  X, 
-  Image as ImageIcon 
-} from 'lucide-react'
+import {
+  Sparkles,
+  FileText,
+  Layers,
+  Package,
+  UploadCloud,
+  Check,
+  Coins,
+  X,
+  Image as ImageIcon,
+} from 'lucide-react';
 
 const BASE_COSTS: Record<string, number> = {
   COMUM: 50,
   RARO: 200,
   EPICO: 500,
   LENDARIO: 1000,
-}
+};
 
 function LoadingSpinner() {
   return (
@@ -31,68 +31,68 @@ function LoadingSpinner() {
       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
       <span className="ml-3 text-purple-300 font-medium">Carregando portal...</span>
     </div>
-  )
+  );
 }
 
 export default function CreateCosmeticPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     rarity: 'COMUM',
     stock: 10,
-  })
+  });
 
-  const [packages, setPackages] = useState<any[]>([])
-  const [selectedPackageId, setSelectedPackageId] = useState<string>('')
-  
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState('')
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState('')
-  
-  const imageInputRef = useRef<HTMLInputElement>(null)
-  const thumbnailInputRef = useRef<HTMLInputElement>(null)
+  const [packages, setPackages] = useState<any[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>('');
 
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState('');
+
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
+  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
 
   const rarityDesigns = getRarityDesigns('static');
-  
-  const currentStyle = useMemo(() => 
-    rarityDesigns[formData.rarity] || rarityDesigns.COMUM, 
+
+  const currentStyle = useMemo(
+    () => rarityDesigns[formData.rarity] || rarityDesigns.COMUM,
     [formData.rarity, rarityDesigns]
-  )
+  );
 
   useEffect(() => {
-    if (!formData.rarity) return
-    
+    if (!formData.rarity) return;
+
     fetch(`/api/cosmetics/creation_packages?rarity=${formData.rarity}`)
-      .then(res => res.json())
-      .then(data => {
-        setPackages(data)
+      .then((res) => res.json())
+      .then((data) => {
+        setPackages(data);
         if (data.length > 0) {
-          setSelectedPackageId(data[0].id)
-          setFormData(prev => ({ ...prev, stock: data[0].quantity }))
+          setSelectedPackageId(data[0].id);
+          setFormData((prev) => ({ ...prev, stock: data[0].quantity }));
         } else {
-          setSelectedPackageId('')
+          setSelectedPackageId('');
         }
       })
-      .catch(err => console.error('Erro ao buscar pacotes:', err))
-  }, [formData.rarity])
+      .catch((err) => console.error('Erro ao buscar pacotes:', err));
+  }, [formData.rarity]);
 
   const currentPackage = useMemo(() => {
-    return packages.find(pkg => pkg.id === selectedPackageId) || null
-  }, [packages, selectedPackageId])
+    return packages.find((pkg) => pkg.id === selectedPackageId) || null;
+  }, [packages, selectedPackageId]);
 
   const creationCost = useMemo(() => {
-    return currentPackage?.totalCost || 0
-  }, [currentPackage])
+    return currentPackage?.totalCost || 0;
+  }, [currentPackage]);
 
   const activePackageColor = useMemo(() => {
     const colors: Record<string, string> = {
@@ -100,202 +100,218 @@ export default function CreateCosmeticPage() {
       RARO: 'from-blue-950/40 to-slate-900/40 border-blue-500/50 text-blue-200',
       EPICO: 'from-purple-950/40 to-slate-900/40 border-purple-500/50 text-purple-200',
       LENDARIO: 'from-amber-950/40 to-slate-900/40 border-amber-500/50 text-amber-200',
-    }
-    return colors[formData.rarity] || 'from-purple-950/40 to-slate-900/40 border-purple-500/50'
-  }, [formData.rarity])
+    };
+    return colors[formData.rarity] || 'from-purple-950/40 to-slate-900/40 border-purple-500/50';
+  }, [formData.rarity]);
 
   useEffect(() => {
     const handleDoubleClick = (e: MouseEvent) => {
-      e.preventDefault()
-    }
-    document.addEventListener('dblclick', handleDoubleClick)
-    document.body.style.userSelect = 'none'
-    document.body.style.webkitUserSelect = 'none'
+      e.preventDefault();
+    };
+    document.addEventListener('dblclick', handleDoubleClick);
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
 
     return () => {
-      document.removeEventListener('dblclick', handleDoubleClick)
-      document.body.style.userSelect = ''
-      document.body.style.webkitUserSelect = ''
-    }
-  }, [])
+      document.removeEventListener('dblclick', handleDoubleClick);
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+    };
+  }, []);
 
   useEffect(() => {
-    if (!session?.user) return
+    if (!session?.user) return;
 
     if (session.user.avatar) {
-      setAvatarUrl(session.user.avatar)
+      setAvatarUrl(session.user.avatar);
     }
 
-    if (!session.user.publicId) return
+    if (!session.user.publicId) return;
 
-    const controller = new AbortController()
-    
+    const controller = new AbortController();
+
     fetch(`/api/user/${session.user.publicId}`, { signal: controller.signal })
-      .then(res => res.json())
-      .then(data => {
-        if (data?.avatar) setAvatarUrl(data.avatar)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.avatar) setAvatarUrl(data.avatar);
       })
-      .catch(err => {
-        if (err.name !== 'AbortError') console.error(err)
-      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') console.error(err);
+      });
 
-    return () => controller.abort()
-  }, [session])
+    return () => controller.abort();
+  }, [session]);
 
   useEffect(() => {
     return () => {
-      if (imagePreview) URL.revokeObjectURL(imagePreview)
-      if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview)
-    }
-  }, [imagePreview, thumbnailPreview])
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+    };
+  }, [imagePreview, thumbnailPreview]);
 
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif']
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Formato não suportado.')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+      setError('Formato não suportado.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
 
-    const maxSize = 5 * 1024 * 1024
-    const gifLimit = 3 * 1024 * 1024
+    const maxSize = 5 * 1024 * 1024;
+    const gifLimit = 3 * 1024 * 1024;
 
     if (file.type === 'image/gif' && file.size > gifLimit) {
-      setError('GIF muito grande para moldura. Máximo: 3MB')
-      return
+      setError('GIF muito grande para moldura. Máximo: 3MB');
+      return;
     }
 
     if (file.size > maxSize) {
-      setError(`Arquivo muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
-      return
+      setError(`Arquivo muito grande. Máximo ${maxSize / 1024 / 1024}MB.`);
+      return;
     }
 
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-    setError('')
-  }, [])
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setError('');
+  }, []);
 
   const handleThumbnailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif']
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Formato não suportado.')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+      setError('Formato não suportado.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
 
-    const maxSize = 2 * 1024 * 1024
-    const gifLimit = 1 * 1024 * 1024
-    
+    const maxSize = 2 * 1024 * 1024;
+    const gifLimit = 1 * 1024 * 1024;
+
     if (file.type === 'image/gif' && file.size > gifLimit) {
-      setError(`GIF muito grande para miniatura. Máximo: 1MB`)
-      return
-    }
-    
-    if (file.size > maxSize) {
-      setError(`Miniatura muito grande. Máximo ${maxSize / 1024 / 1024}MB.`)
-      return
+      setError(`GIF muito grande para miniatura. Máximo: 1MB`);
+      return;
     }
 
-    setThumbnailFile(file)
-    setThumbnailPreview(URL.createObjectURL(file))
-    setError('')
-  }, [])
+    if (file.size > maxSize) {
+      setError(`Miniatura muito grande. Máximo ${maxSize / 1024 / 1024}MB.`);
+      return;
+    }
+
+    setThumbnailFile(file);
+    setThumbnailPreview(URL.createObjectURL(file));
+    setError('');
+  }, []);
 
   // Nova Handler para remover a miniatura sem recarregar ou estragar o formulário
-  const handleRemoveThumbnail = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation() // Impede que o clique dispare o label abrindo o seletor de arquivos de novo
-    
-    if (thumbnailPreview) {
-      URL.revokeObjectURL(thumbnailPreview)
-    }
-    setThumbnailFile(null)
-    setThumbnailPreview('')
-    if (thumbnailInputRef.current) {
-      thumbnailInputRef.current.value = '' // Reseta o input nativo do HTML
-    }
-  }, [thumbnailPreview])
+  const handleRemoveThumbnail = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation(); // Impede que o clique dispare o label abrindo o seletor de arquivos de novo
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (loading) return
-    
-    setLoading(true)
-    setError('')
-    setSuccess('')
-
-    if (!imageFile) {
-      setError('Selecione uma imagem para a moldura')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      setLoading(false)
-      return
-    }
-
-    if (!selectedPackageId) {
-      setError('Selecione um pacote de distribuição válido.')
-      setLoading(false)
-      return
-    }
-
-    const submitData = new FormData()
-    submitData.append('name', formData.name)
-    submitData.append('description', formData.description)
-    submitData.append('packageId', selectedPackageId)
-    submitData.append('image', imageFile)
-    
-    if (thumbnailFile) {
-      submitData.append('thumbnail', thumbnailFile)
-    }
-
-    try {
-      const res = await fetch('/api/cosmetics/create', {
-        method: 'POST',
-        body: submitData,
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Erro ao criar moldura')
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-        setLoading(false)
-      } else {
-        setSuccess(data.message || 'Moldura criada com sucesso!')
-        router.push('/worldo/cosmetics/inventory')
+      if (thumbnailPreview) {
+        URL.revokeObjectURL(thumbnailPreview);
       }
-    } catch {
-      setError('Erro ao conectar com o servidor')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      setLoading(false)
-    }
-  }, [imageFile, thumbnailFile, formData, selectedPackageId, router, loading])
+      setThumbnailFile(null);
+      setThumbnailPreview('');
+      if (thumbnailInputRef.current) {
+        thumbnailInputRef.current.value = ''; // Reseta o input nativo do HTML
+      }
+    },
+    [thumbnailPreview]
+  );
 
-  const handlePackageSelect = useCallback((id: string, quantity: number) => () => {
-    setSelectedPackageId(id)
-    setFormData(prev => ({ ...prev, stock: quantity }))
-  }, [])
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (loading) return;
+
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      if (!imageFile) {
+        setError('Selecione uma imagem para a moldura');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setLoading(false);
+        return;
+      }
+
+      if (!selectedPackageId) {
+        setError('Selecione um pacote de distribuição válido.');
+        setLoading(false);
+        return;
+      }
+
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('description', formData.description);
+      submitData.append('packageId', selectedPackageId);
+      submitData.append('image', imageFile);
+
+      if (thumbnailFile) {
+        submitData.append('thumbnail', thumbnailFile);
+      }
+
+      try {
+        const res = await fetch('/api/cosmetics/create', {
+          method: 'POST',
+          body: submitData,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || 'Erro ao criar moldura');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setLoading(false);
+        } else {
+          setSuccess(data.message || 'Moldura criada com sucesso!');
+          router.push('/worldo/cosmetics/inventory');
+        }
+      } catch {
+        setError('Erro ao conectar com o servidor');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setLoading(false);
+      }
+    },
+    [imageFile, thumbnailFile, formData, selectedPackageId, router, loading]
+  );
+
+  const handlePackageSelect = useCallback(
+    (id: string, quantity: number) => () => {
+      setSelectedPackageId(id);
+      setFormData((prev) => ({ ...prev, stock: quantity }));
+    },
+    []
+  );
 
   if (status === 'unauthenticated') {
-    redirect('/login')
+    redirect('/login');
   }
 
   if (status === 'loading') {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 select-none">
-      <div className={`bg-slate-900/60 backdrop-blur-xl rounded-2xl overflow-hidden border ${currentStyle.borderClass} shadow-2xl transition-all duration-500`}>
-        
-        <div className={`relative h-36 bg-linear-to-r ${currentStyle.gradientHeader} flex flex-col items-center justify-center border-b ${currentStyle.borderClass} px-4 text-center transition-all duration-500`}>
-          <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] ${currentStyle.bgAlpha} opacity-60 transition-all duration-500`} />
-          <h1 className={`text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} flex items-center gap-2 z-10 tracking-wide transition-all duration-500`}>
+      <div
+        className={`bg-slate-900/60 backdrop-blur-xl rounded-2xl overflow-hidden border ${currentStyle.borderClass} shadow-2xl transition-all duration-500`}
+      >
+        <div
+          className={`relative h-36 bg-linear-to-r ${currentStyle.gradientHeader} flex flex-col items-center justify-center border-b ${currentStyle.borderClass} px-4 text-center transition-all duration-500`}
+        >
+          <div
+            className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] ${currentStyle.bgAlpha} opacity-60 transition-all duration-500`}
+          />
+          <h1
+            className={`text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} flex items-center gap-2 z-10 tracking-wide transition-all duration-500`}
+          >
             <Sparkles className={`w-6 h-6 ${currentStyle.textClass} animate-pulse`} />
             FORJAR NOVA MOLDURA
           </h1>
@@ -320,9 +336,7 @@ export default function CreateCosmeticPage() {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
             <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-7">
-              
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                   <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Nome da Moldura
@@ -330,7 +344,7 @@ export default function CreateCosmeticPage() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                   className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all`}
                   required
                   placeholder="Ex: Singularidade Estelar"
@@ -343,7 +357,9 @@ export default function CreateCosmeticPage() {
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, description: e.target.value }))
+                  }
                   className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all resize-none`}
                   rows={3}
                   placeholder="Descreva a história ou efeitos visuais desta moldura..."
@@ -357,7 +373,7 @@ export default function CreateCosmeticPage() {
                   </label>
                   <select
                     value={formData.rarity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, rarity: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, rarity: e.target.value }))}
                     className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all cursor-pointer`}
                   >
                     <option value="COMUM">🟢 Comum</option>
@@ -379,25 +395,28 @@ export default function CreateCosmeticPage() {
 
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-3 font-semibold text-sm tracking-wide uppercase">
-                  <Package className={`w-4 h-4 ${currentStyle.textClass}`} /> Seleção do Pacote de Distribuição
+                  <Package className={`w-4 h-4 ${currentStyle.textClass}`} /> Seleção do Pacote de
+                  Distribuição
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {packages.map((pkg) => {
-                    const isSelected = selectedPackageId === pkg.id
+                    const isSelected = selectedPackageId === pkg.id;
                     return (
                       <button
                         key={pkg.id}
                         type="button"
                         onClick={handlePackageSelect(pkg.id, pkg.quantity)}
                         className={`relative text-left p-4 rounded-xl border transition-all duration-200 bg-linear-to-br hover:border-purple-500/50 select-none ${
-                          isSelected 
-                            ? `${activePackageColor} ring-1 ring-purple-500/30 shadow-lg border-transparent` 
+                          isSelected
+                            ? `${activePackageColor} ring-1 ring-purple-500/30 shadow-lg border-transparent`
                             : 'from-slate-950/40 to-slate-900/40 border-slate-800 text-slate-400'
                         }`}
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className={`font-bold text-sm tracking-wide ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                            <div
+                              className={`font-bold text-sm tracking-wide ${isSelected ? 'text-white' : 'text-slate-200'}`}
+                            >
                               {pkg.name}
                             </div>
                             <div className="text-xs mt-0.5 opacity-80">{pkg.quantity} Unidades</div>
@@ -412,10 +431,12 @@ export default function CreateCosmeticPage() {
                           )}
                         </div>
                       </button>
-                    )
+                    );
                   })}
                   {packages.length === 0 && (
-                    <p className="text-slate-500 text-xs col-span-2 italic">Nenhum pacote disponível para esta raridade.</p>
+                    <p className="text-slate-500 text-xs col-span-2 italic">
+                      Nenhum pacote disponível para esta raridade.
+                    </p>
                   )}
                 </div>
               </div>
@@ -450,7 +471,8 @@ export default function CreateCosmeticPage() {
                 {/* Upload 2: Miniatura Condicional */}
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Miniatura (Opcional)
+                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Miniatura
+                    (Opcional)
                   </label>
                   <input
                     ref={thumbnailInputRef}
@@ -461,24 +483,25 @@ export default function CreateCosmeticPage() {
                     id="thumbnail-upload"
                     disabled={!imageFile} // Desabilita nativamente o input caso não tenha moldura
                   />
-                  
+
                   <div className="relative">
                     <label
-                      htmlFor={imageFile ? "thumbnail-upload" : undefined} // Só vincula o clique ao input se a moldura existir
+                      htmlFor={imageFile ? 'thumbnail-upload' : undefined} // Só vincula o clique ao input se a moldura existir
                       className={`flex flex-col items-center justify-center gap-2 border border-dashed rounded-xl p-4 bg-slate-950/40 text-sm font-medium transition-all text-center group min-h-22.5 select-none ${
-                        imageFile 
-                          ? `border-slate-800 hover:${currentStyle.borderClass} text-slate-300 cursor-pointer` 
+                        imageFile
+                          ? `border-slate-800 hover:${currentStyle.borderClass} text-slate-300 cursor-pointer`
                           : 'border-slate-900/20 text-slate-600 cursor-not-allowed opacity-40 select-none'
                       }`}
                     >
-                      <UploadCloud className={`w-5 h-5 transition-colors ${imageFile ? 'text-slate-500 group-hover:text-purple-400' : 'text-slate-700'}`} />
+                      <UploadCloud
+                        className={`w-5 h-5 transition-colors ${imageFile ? 'text-slate-500 group-hover:text-purple-400' : 'text-slate-700'}`}
+                      />
                       <span>
-                        {!imageFile 
-                          ? 'Aguardando Moldura...' 
-                          : thumbnailFile 
-                            ? 'Alterar Miniatura' 
-                            : 'Carregar Miniatura'
-                        }
+                        {!imageFile
+                          ? 'Aguardando Moldura...'
+                          : thumbnailFile
+                            ? 'Alterar Miniatura'
+                            : 'Carregar Miniatura'}
                       </span>
                     </label>
 
@@ -496,42 +519,57 @@ export default function CreateCosmeticPage() {
                   </div>
 
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                    {!imageFile 
-                      ? '⚠️ Faça o upload da moldura principal para liberar esta opção.' 
-                      : 'Imagem utilizada para exibição em feeds, inventário e listagens da loja.'
-                    }
+                    {!imageFile
+                      ? '⚠️ Faça o upload da moldura principal para liberar esta opção.'
+                      : 'Imagem utilizada para exibição em feeds, inventário e listagens da loja.'}
                   </p>
                 </div>
               </div>
 
-              <div className={`bg-slate-950/60 rounded-xl p-5 border ${currentStyle.borderClass} space-y-3 transition-all duration-500`}>
+              <div
+                className={`bg-slate-950/60 rounded-xl p-5 border ${currentStyle.borderClass} space-y-3 transition-all duration-500`}
+              >
                 <div className="flex justify-between items-center text-sm text-slate-400">
-                  <span className="flex items-center gap-1.5"><Coins className="w-4 h-4 text-slate-500" /> Custo Base ({formData.rarity})</span>
-                  <span className="font-semibold text-slate-200">{BASE_COSTS[formData.rarity] || 50} moedas</span>
+                  <span className="flex items-center gap-1.5">
+                    <Coins className="w-4 h-4 text-slate-500" /> Custo Base ({formData.rarity})
+                  </span>
+                  <span className="font-semibold text-slate-200">
+                    {BASE_COSTS[formData.rarity] || 50} moedas
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-sm text-slate-400">
-                  <span className="flex items-center gap-1.5"><Package className="w-4 h-4 text-slate-500" /> Multiplicador do Lote</span>
+                  <span className="flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-slate-500" /> Multiplicador do Lote
+                  </span>
                   <span className="font-semibold text-slate-200">
-                    {currentPackage ? `${currentPackage.multiplier}x (${currentPackage.name})` : '1x'}
+                    {currentPackage
+                      ? `${currentPackage.multiplier}x (${currentPackage.name})`
+                      : '1x'}
                   </span>
                 </div>
                 <div className="border-t border-slate-800/80 my-2 pt-2 flex justify-between items-center">
-                  <span className={`text-sm font-semibold ${currentStyle.textClass} transition-colors duration-500`}>Custo de Emissão do Contrato</span>
-                  <span className={`text-xl font-black text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} transition-all duration-500`}>
+                  <span
+                    className={`text-sm font-semibold ${currentStyle.textClass} transition-colors duration-500`}
+                  >
+                    Custo de Emissão do Contrato
+                  </span>
+                  <span
+                    className={`text-xl font-black text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} transition-all duration-500`}
+                  >
                     {creationCost} moedas
                   </span>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={loading}
                   className={`bg-linear-to-r ${currentStyle.buttonSubmit} text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-1 text-center tracking-wide select-none`}
                 >
                   {loading ? 'FORJANDO ATIVO...' : 'CONFIRMAR CRIAÇÃO'}
                 </button>
-                <Link 
+                <Link
                   href="/worldo/cosmetics/marketplace"
                   className="bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:flex-1 text-center select-none"
                 >
@@ -541,29 +579,33 @@ export default function CreateCosmeticPage() {
             </form>
 
             <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-4">
-              <div className={`bg-slate-950/40 rounded-2xl p-8 border ${currentStyle.borderClass} text-center transition-all duration-500`}>
-                
+              <div
+                className={`bg-slate-950/40 rounded-2xl p-8 border ${currentStyle.borderClass} text-center transition-all duration-500`}
+              >
                 <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-10 flex items-center justify-center gap-2">
-                  <Sparkles className={`w-4 h-4 ${currentStyle.textClass}`} /> 
+                  <Sparkles className={`w-4 h-4 ${currentStyle.textClass}`} />
                   Galeria de Visualização
                 </h3>
-                
+
                 {imagePreview ? (
                   <div className="flex flex-col gap-6">
-                    
                     <div className="bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
                       <div className="relative min-h-40 flex items-center justify-center">
                         <AvatarWithFrame
-                          avatarUrl={avatarUrl && avatarUrl !== "None" ? avatarUrl : null} 
+                          avatarUrl={avatarUrl && avatarUrl !== 'None' ? avatarUrl : null}
                           name={session?.user?.name}
                           frameUrl={imagePreview}
                           rarity={formData.rarity}
-                          size="md" 
+                          size="md"
                           priority
                         />
                       </div>
-                      <div className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.borderClass} shadow-sm backdrop-blur-md`}>
-                        <p className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}>
+                      <div
+                        className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.borderClass} shadow-sm backdrop-blur-md`}
+                      >
+                        <p
+                          className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}
+                        >
                           Visualização de Moldura
                         </p>
                       </div>
@@ -572,8 +614,12 @@ export default function CreateCosmeticPage() {
                     {thumbnailPreview && (
                       <div className="bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
                         <div className="relative group mx-auto">
-                          <div className={`absolute -inset-1 rounded-xl bg-linear-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}></div>
-                          <div className={`relative w-32 h-32 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 ${currentStyle.borderClass}`}>
+                          <div
+                            className={`absolute -inset-1 rounded-xl bg-linear-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}
+                          ></div>
+                          <div
+                            className={`relative w-32 h-32 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 ${currentStyle.borderClass}`}
+                          >
                             <ClientImage
                               src={thumbnailPreview}
                               alt="Miniatura"
@@ -582,14 +628,17 @@ export default function CreateCosmeticPage() {
                             />
                           </div>
                         </div>
-                        <div className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.borderClass} shadow-sm backdrop-blur-md`}>
-                          <p className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}>
+                        <div
+                          className={`bg-purple-500/10 px-4 py-1.5 rounded-full border ${currentStyle.borderClass} shadow-sm backdrop-blur-md`}
+                        >
+                          <p
+                            className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}
+                          >
                             Visualização de Miniatura
                           </p>
                         </div>
                       </div>
                     )}
-
                   </div>
                 ) : (
                   <div className="bg-slate-950/60 rounded-xl p-16 border border-slate-900 flex flex-col items-center justify-center min-h-90">
@@ -597,16 +646,16 @@ export default function CreateCosmeticPage() {
                       <ImageIcon className="w-10 h-10" />
                     </div>
                     <p className="text-slate-500 text-sm max-w-60 leading-relaxed mx-auto">
-                      Selecione uma imagem para visualizar como o cosmético ficará no perfil e nas listas do sistema.
+                      Selecione uma imagem para visualizar como o cosmético ficará no perfil e nas
+                      listas do sistema.
                     </p>
                   </div>
                 )}
               </div>
             </div>
-
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

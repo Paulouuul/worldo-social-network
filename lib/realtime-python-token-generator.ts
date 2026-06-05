@@ -36,33 +36,32 @@ export interface PythonTokenPayload {
  * @returns Dados formatados para o token Python
  */
 function extractUserFromSession(session: Session): PythonTokenPayload {
-    if (!session?.user) {
-        throw new Error('Sessão não contém dados de usuário');
-    }
+  if (!session?.user) {
+    throw new Error('Sessão não contém dados de usuário');
+  }
 
-    const user = session.user;
+  const user = session.user;
 
-    if (!user.id || !user.email || !user.name || !user.username) {
-        throw new Error('Sessão não contém todos os campos obrigatórios do usuário');
-    }
+  if (!user.id || !user.email || !user.name || !user.username) {
+    throw new Error('Sessão não contém todos os campos obrigatórios do usuário');
+  }
 
-  
-    return {
-        id: user.id as string,
-        publicId: user.publicId as string,
-        name: user.name as string,
-        username: user.username as string,
-        email: user.email as string,
-        avatar: user.avatar as string,
-        coverImage: user.coverImage as string,
-        bio: (user.bio as string) || '',
-        location: (user.location as string) || '',
-        website: (user.website as string) || '',
-        equippedFrame: user.equippedFrame as any,
-        provider: (user.provider as string) || 'credentials', 
-        isOAuth: (user.isOAuth as boolean) ?? false,
-        hasPassword: (user.hasPassword as boolean) ?? true,
-    };
+  return {
+    id: user.id as string,
+    publicId: user.publicId as string,
+    name: user.name as string,
+    username: user.username as string,
+    email: user.email as string,
+    avatar: user.avatar as string,
+    coverImage: user.coverImage as string,
+    bio: (user.bio as string) || '',
+    location: (user.location as string) || '',
+    website: (user.website as string) || '',
+    equippedFrame: user.equippedFrame as any,
+    provider: (user.provider as string) || 'credentials',
+    isOAuth: (user.isOAuth as boolean) ?? false,
+    hasPassword: (user.hasPassword as boolean) ?? true,
+  };
 }
 
 /**
@@ -71,40 +70,40 @@ function extractUserFromSession(session: Session): PythonTokenPayload {
  * @returns Token JWT assinado
  */
 export async function generatePythonTokenFromSession(session: Session): Promise<string> {
-    if (!session?.user) {
-        throw new Error('Sessão inválida ou usuário não autenticado');
-    }
+  if (!session?.user) {
+    throw new Error('Sessão inválida ou usuário não autenticado');
+  }
 
-    const userData = extractUserFromSession(session);
-    
-    const secretBuffer = new TextEncoder().encode(JWT_SECRET);
+  const userData = extractUserFromSession(session);
 
-    const token = await new SignJWT({
-        // Dados obrigatórios
-        id: userData.id,
-        publicId: userData.publicId,
-        email: userData.email,
-        name: userData.name,
-        username: userData.username,
-        
-        // Dados opcionais
-        avatar: userData.avatar || null,
-        coverImage: userData.coverImage || null,
-        bio: userData.bio || '',
-        location: userData.location || '',
-        website: userData.website || '',
-        equippedFrame: userData.equippedFrame || null,
-        provider: userData.provider || 'credentials',
-        isOAuth: userData.isOAuth ?? false,
-        hasPassword: userData.hasPassword ?? true,
-    })
-        .setProtectedHeader({ alg: JWT_ALGORITHM })
-        .setIssuedAt()
-        .setExpirationTime(TOKEN_EXPIRATION)
-        .setSubject(userData.id)
-        .sign(secretBuffer);
+  const secretBuffer = new TextEncoder().encode(JWT_SECRET);
 
-    return token;
+  const token = await new SignJWT({
+    // Dados obrigatórios
+    id: userData.id,
+    publicId: userData.publicId,
+    email: userData.email,
+    name: userData.name,
+    username: userData.username,
+
+    // Dados opcionais
+    avatar: userData.avatar || null,
+    coverImage: userData.coverImage || null,
+    bio: userData.bio || '',
+    location: userData.location || '',
+    website: userData.website || '',
+    equippedFrame: userData.equippedFrame || null,
+    provider: userData.provider || 'credentials',
+    isOAuth: userData.isOAuth ?? false,
+    hasPassword: userData.hasPassword ?? true,
+  })
+    .setProtectedHeader({ alg: JWT_ALGORITHM })
+    .setIssuedAt()
+    .setExpirationTime(TOKEN_EXPIRATION)
+    .setSubject(userData.id)
+    .sign(secretBuffer);
+
+  return token;
 }
 
 /**
@@ -157,7 +156,7 @@ export async function generatePythonToken(
  */
 export async function verifyPythonToken(token: string): Promise<PythonTokenPayload | null> {
   try {
-    const { payload } = await import('jose').then(jose => 
+    const { payload } = await import('jose').then((jose) =>
       jose.jwtVerify(token, new TextEncoder().encode(JWT_SECRET))
     );
     return payload as unknown as PythonTokenPayload;

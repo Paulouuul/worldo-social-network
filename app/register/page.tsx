@@ -1,118 +1,117 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ClientImage } from '@/components/ClientImage' 
-import { useSession } from 'next-auth/react'
-import { Sparkles, User, AtSign, Mail, Lock, UserPlus, ArrowLeft } from 'lucide-react'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ClientImage } from '@/components/ClientImage';
+import { useSession } from 'next-auth/react';
+import { Sparkles, User, AtSign, Mail, Lock, UserPlus, ArrowLeft } from 'lucide-react';
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [username, setUsername] = useState('')
-  const [name, setName] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [loading, setLoading] = useState(false)
-  useSession()
-
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  useSession();
 
   const validatePassword = (pass: string) => {
-    const errors = []
-    
+    const errors = [];
+
     if (pass.length < 6) {
-      errors.push('pelo menos 6 caracteres')
+      errors.push('pelo menos 6 caracteres');
     }
     if (pass.length > 50) {
-      errors.push('no máximo 50 caracteres')
+      errors.push('no máximo 50 caracteres');
     }
     if (!/[A-Z]/.test(pass)) {
-      errors.push('pelo menos 1 letra maiúscula')
+      errors.push('pelo menos 1 letra maiúscula');
     }
     if (!/[a-z]/.test(pass)) {
-      errors.push('pelo menos 1 letra minúscula')
+      errors.push('pelo menos 1 letra minúscula');
     }
     if (!/[0-9]/.test(pass)) {
-      errors.push('pelo menos 1 número')
+      errors.push('pelo menos 1 número');
     }
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) {
-      errors.push('pelo menos 1 caractere especial (!@#$%^&*)')
+      errors.push('pelo menos 1 caractere especial (!@#$%^&*)');
     }
-    
-    return errors
-  }
+
+    return errors;
+  };
 
   const validateUsername = (username: string) => {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
     if (!usernameRegex.test(username)) {
-      return 'Nome de usuário deve ter 3-30 caracteres e conter apenas letras, números e underline'
+      return 'Nome de usuário deve ter 3-30 caracteres e conter apenas letras, números e underline';
     }
-    return null
-  }
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setSuccess('')
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
-    const usernameError = validateUsername(username)
+    const usernameError = validateUsername(username);
     if (usernameError) {
-      setError(usernameError)
-      return
+      setError(usernameError);
+      return;
     }
 
-    const passwordErrors = validatePassword(password)
+    const passwordErrors = validatePassword(password);
     if (passwordErrors.length > 0) {
-      setError(`Senha fraca: ${passwordErrors.join(', ')}`)
-      return
+      setError(`Senha fraca: ${passwordErrors.join(', ')}`);
+      return;
     }
-    
+
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem')
-      return
+      setError('As senhas não coincidem');
+      return;
     }
-    
+
     const validateEmail = (email: string) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return emailRegex.test(email)
-    }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
 
     if (!validateEmail(email)) {
-      setError('Email inválido')
-      return
+      setError('Email inválido');
+      return;
     }
 
     if (name && (name.length < 2 || name.length > 100)) {
-      setError('Nome deve ter entre 2 e 100 caracteres')
-      return
+      setError('Nome deve ter entre 2 e 100 caracteres');
+      return;
     }
-    
-    setLoading(true)
+
+    setLoading(true);
 
     try {
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, username })
-      })
+        body: JSON.stringify({ email, password, name, username }),
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Erro ao criar conta')
+        setError(data.error || 'Erro ao criar conta');
       } else {
-        setSuccess(data.message || 'Conta criada com sucesso!')
-        setTimeout(() => router.push('/login'), 3000)
+        setSuccess(data.message || 'Conta criada com sucesso!');
+        setTimeout(() => router.push('/login'), 3000);
       }
     } catch (err) {
-      setError('Erro ao conectar com o servidor')
+      setError('Erro ao conectar com o servidor');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-slate-950 relative overflow-hidden">
@@ -121,7 +120,6 @@ export default function RegisterPage() {
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
 
       <div className="max-w-md w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
-        
         {/* Logo / Header */}
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="relative w-48 h-16 mb-4">
@@ -139,7 +137,7 @@ export default function RegisterPage() {
           </h1>
           <p className="text-slate-400 text-xs mt-1">Crie seu registro de acesso na rede</p>
         </div>
-        
+
         {/* Alertas de Erro */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs border border-red-500/20 flex items-center gap-2">
@@ -147,7 +145,7 @@ export default function RegisterPage() {
             <span className="leading-relaxed">{error}</span>
           </div>
         )}
-        
+
         {/* Alertas de Sucesso */}
         {success && (
           <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl mb-4 text-xs border border-emerald-500/20 flex items-center gap-2">
@@ -155,7 +153,7 @@ export default function RegisterPage() {
             <span className="leading-relaxed">{success}</span>
           </div>
         )}
-        
+
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -188,7 +186,7 @@ export default function RegisterPage() {
               placeholder="Seu nome real ou apelido"
             />
           </div>
-          
+
           <div>
             <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
               <Mail className="w-3.5 h-3.5 text-purple-400" /> Endereço de Email
@@ -202,7 +200,7 @@ export default function RegisterPage() {
               placeholder="seu@email.com"
             />
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
@@ -217,7 +215,7 @@ export default function RegisterPage() {
                 placeholder="Mín. 6 dígitos"
               />
             </div>
-            
+
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <Lock className="w-3.5 h-3.5 text-purple-400" /> Confirmar
@@ -232,7 +230,7 @@ export default function RegisterPage() {
               />
             </div>
           </div>
-          
+
           <button
             type="submit"
             disabled={loading}
@@ -251,16 +249,19 @@ export default function RegisterPage() {
             )}
           </button>
         </form>
-        
+
         {/* Link para o Login */}
         <p className="text-center text-slate-400 mt-6 text-xs tracking-wide">
           Já possui cadastro?{' '}
-          <Link href="/login" className="text-purple-400 hover:text-purple-300 font-semibold inline-flex items-center gap-1 group transition-colors">
-            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" /> Faça login
+          <Link
+            href="/login"
+            className="text-purple-400 hover:text-purple-300 font-semibold inline-flex items-center gap-1 group transition-colors"
+          >
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" /> Faça
+            login
           </Link>
         </p>
-
       </div>
     </div>
-  )
+  );
 }

@@ -1,17 +1,16 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import './globals.css'
-import Header from '@/components/Header'
-import { MainWrapper } from '@/components/MainWrapper'
-import { AuthProvider } from '@/components/providers/auth-provider'
-import { GlobalMediaProtector } from '@/components/GlobalMediaProtector'
+import './globals.css';
+import Header from '@/components/Header';
+import { MainWrapper } from '@/components/MainWrapper';
+import { AuthProvider } from '@/components/providers/auth-provider';
+import { GlobalMediaProtector } from '@/components/GlobalMediaProtector';
 
-
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-})
+});
 
 export const metadata: Metadata = {
   title: 'WORLDO',
@@ -19,32 +18,26 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.png', type: 'image/png', sizes: '32x32' }
+      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
     ],
-    apple: [
-      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }
-    ],
-    shortcut: ['/shortcut-icon.png']
-  }
-}
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: ['/shortcut-icon.png'],
+  },
+};
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
         <AuthProvider>
-          <GlobalMediaProtector/>
-          <Header/>
+          <GlobalMediaProtector />
+          <Header />
           <MainWrapper>{children}</MainWrapper>
-        </AuthProvider> 
+        </AuthProvider>
       </body>
     </html>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { signOut } from 'next-auth/react'
-import { LogOut } from 'lucide-react'
+import { signOut } from 'next-auth/react';
+import { LogOut } from 'lucide-react';
 
 export function LogoutButton() {
   return (
@@ -12,5 +12,5 @@ export function LogoutButton() {
       <LogOut className="w-5 h-5 transition-transform group-hover:translate-x-1" />
       <span>Sair</span>
     </button>
-  )
+  );
 }

@@ -1,54 +1,55 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
-import 'dotenv/config'
-import { PrismaClient } from '@prisma/client'
-import NextAuth from 'next-auth'
-import GoogleProvider from 'next-auth/providers/google'
-import GitHubProvider from 'next-auth/providers/github'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+import 'dotenv/config';
+import { PrismaClient } from '@prisma/client';
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import GitHubProvider from 'next-auth/providers/github';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
 // import { SignJWT, jwtVerify } from 'jose'
 
-const DATABASE_URL = process.env.DATABASE_URL
+const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  throw new Error('DATABASE_URL não configurada no .env')
+  throw new Error('DATABASE_URL não configurada no .env');
 }
 
-const pool = new Pool({ connectionString: DATABASE_URL })
-const adapter = new PrismaPg(pool)
-const prisma = new PrismaClient({ adapter })
+const pool = new Pool({ connectionString: DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function generateUniqueUsername(email: string): Promise<string> {
-  const baseName = email.split('@')[0]
+  const baseName = email
+    .split('@')[0]
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]/g, '_')
     .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '')
-  
-  const uuid = crypto.randomUUID().substring(0, 8)
-  let username = `user_${baseName}_${uuid}`
-  
+    .replace(/^_|_$/g, '');
+
+  const uuid = crypto.randomUUID().substring(0, 8);
+  let username = `user_${baseName}_${uuid}`;
+
   if (username.length > 30) {
-    username = `user_${uuid}`
+    username = `user_${uuid}`;
   }
-  
+
   const existing = await prisma.users.findUnique({
     where: { username },
-    select: { id: true }
-  })
-  
+    select: { id: true },
+  });
+
   if (existing) {
-    return generateUniqueUsername(email)
+    return generateUniqueUsername(email);
   }
-  
-  return username
+
+  return username;
 }
 
 const customAdapter = {
   async createUser(user: any) {
-    const username = await generateUniqueUsername(user.email)
-    
+    const username = await generateUniqueUsername(user.email);
+
     const newUser = await prisma.users.create({
       data: {
         email: user.email,
@@ -56,8 +57,8 @@ const customAdapter = {
         username,
         avatar: user.image || user.avatar, // Provedores OAuth usam .image por padrão
         emailVerified: user.emailVerified,
-      }
-    })
+      },
+    });
     return {
       id: newUser.id,
       publicId: newUser.publicId,
@@ -66,42 +67,46 @@ const customAdapter = {
       username: newUser.username,
       avatar: newUser.avatar,
       emailVerified: newUser.emailVerified,
-    }
+    };
   },
   async getUser(id: string) {
-    const user = await prisma.users.findUnique({ where: { id } })
-    return user ? {
-      id: user.id,
-      publicId: user.publicId,
-      email: user.email,
-      name: user.name,
-      username: user.username,
-      avatar: user.avatar,
-      coverImage: user.coverImage,
-      emailVerified: user.emailVerified,
-    } : null
+    const user = await prisma.users.findUnique({ where: { id } });
+    return user
+      ? {
+          id: user.id,
+          publicId: user.publicId,
+          email: user.email,
+          name: user.name,
+          username: user.username,
+          avatar: user.avatar,
+          coverImage: user.coverImage,
+          emailVerified: user.emailVerified,
+        }
+      : null;
   },
   async getUserByEmail(email: string) {
-    const user = await prisma.users.findUnique({ where: { email } })
-    return user ? {
-      id: user.id,
-      publicId: user.publicId,
-      email: user.email,
-      name: user.name,
-      username: user.username,
-      avatar: user.avatar,
-      coverImage: user.coverImage,
-      emailVerified: user.emailVerified,
-    } : null
+    const user = await prisma.users.findUnique({ where: { email } });
+    return user
+      ? {
+          id: user.id,
+          publicId: user.publicId,
+          email: user.email,
+          name: user.name,
+          username: user.username,
+          avatar: user.avatar,
+          coverImage: user.coverImage,
+          emailVerified: user.emailVerified,
+        }
+      : null;
   },
   async getUserByAccount({ provider, providerAccountId }: any) {
     const account = await prisma.accounts.findFirst({
       where: { provider, providerAccountId },
-      include: { users: true }
-    })
+      include: { users: true },
+    });
 
-    if (!account?.users) return null
-    
+    if (!account?.users) return null;
+
     return {
       id: account.users.id,
       publicId: account.users.publicId,
@@ -111,10 +116,10 @@ const customAdapter = {
       avatar: account.users.avatar,
       coverImage: account.users.coverImage,
       emailVerified: account.users.emailVerified,
-    }
+    };
   },
   async deleteUser(id: string) {
-    await prisma.users.delete({ where: { id } })
+    await prisma.users.delete({ where: { id } });
   },
   async linkAccount(account: any) {
     await prisma.accounts.create({
@@ -130,8 +135,8 @@ const customAdapter = {
         scope: account.scope,
         id_token: account.id_token,
         session_state: account.session_state,
-      }
-    })
+      },
+    });
   },
   async createVerificationToken(verificationToken: any) {
     return await prisma.verification_tokens.create({
@@ -139,19 +144,19 @@ const customAdapter = {
         identifier: verificationToken.identifier,
         token: verificationToken.token,
         expires: verificationToken.expires,
-      }
-    })
+      },
+    });
   },
   async useVerificationToken({ identifier, token }: any) {
     try {
       return await prisma.verification_tokens.delete({
-        where: { identifier_token: { identifier, token } }
-      })
+        where: { identifier_token: { identifier, token } },
+      });
     } catch (error) {
-      return null
+      return null;
     }
-  }
-}
+  },
+};
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: customAdapter,
@@ -169,29 +174,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Senha', type: 'password' }
+        password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Credenciais inválidas')
+          throw new Error('Credenciais inválidas');
         }
 
         const user = await prisma.users.findUnique({
-          where: { email: credentials.email as string }
-        })
+          where: { email: credentials.email as string },
+        });
 
         if (!user || !user.password) {
-          throw new Error('Usuário não encontrado')
+          throw new Error('Usuário não encontrado');
         }
 
         if (!user.emailVerified) {
-          throw new Error('Por favor, verifique seu email antes de fazer login')
+          throw new Error('Por favor, verifique seu email antes de fazer login');
         }
 
-        const isValid = await bcrypt.compare(credentials.password as string, user.password)
+        const isValid = await bcrypt.compare(credentials.password as string, user.password);
 
         if (!isValid) {
-          throw new Error('Senha inválida')
+          throw new Error('Senha inválida');
         }
 
         return {
@@ -203,10 +208,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           avatar: user.avatar,
           hasPassword: true,
           isOAuth: false,
-          provider: 'credentials'
-        }
-      }
-    })
+          provider: 'credentials',
+        };
+      },
+    }),
   ],
   pages: {
     signIn: '/login',
@@ -243,30 +248,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, account, trigger, session }) {
       // 1. Executado apenas no momento do Login Inicial
       if (user) {
-        token.id = user.id
-        token.publicId = user.publicId
-        
+        token.id = user.id;
+        token.publicId = user.publicId;
+
         if (account) {
-          token.provider = account.provider
-          token.isOAuth = account.provider !== 'credentials'
+          token.provider = account.provider;
+          token.isOAuth = account.provider !== 'credentials';
         }
-        token.hasPassword = user.hasPassword ?? true
+        token.hasPassword = user.hasPassword ?? true;
       }
 
       // 2. Executado quando a aplicação cliente dispara um update() manually
       if (trigger === 'update' && session?.user) {
-        if (session.user.name !== undefined) token.name = session.user.name
-        if (session.user.username !== undefined) token.username = session.user.username
-        if (session.user.bio !== undefined) token.bio = session.user.bio
-        if (session.user.location !== undefined) token.location = session.user.location
-        if (session.user.website !== undefined) token.website = session.user.website
-        if (session.user.email !== undefined) token.email = session.user.email
-        
+        if (session.user.name !== undefined) token.name = session.user.name;
+        if (session.user.username !== undefined) token.username = session.user.username;
+        if (session.user.bio !== undefined) token.bio = session.user.bio;
+        if (session.user.location !== undefined) token.location = session.user.location;
+        if (session.user.website !== undefined) token.website = session.user.website;
+        if (session.user.email !== undefined) token.email = session.user.email;
+
         // Fotos/Imagens (Aqui aceitamos a string vazia '' enviada pelo front de remoção)
-        if (session.user.avatar !== undefined) token.avatar = session.user.avatar
-        if (session.user.coverImage !== undefined) token.coverImage = session.user.coverImage
-        if (session.user.equippedFrame !== undefined) token.equippedFrame = session.user.equippedFrame
-        
+        if (session.user.avatar !== undefined) token.avatar = session.user.avatar;
+        if (session.user.coverImage !== undefined) token.coverImage = session.user.coverImage;
+        if (session.user.equippedFrame !== undefined)
+          token.equippedFrame = session.user.equippedFrame;
       }
 
       // 3. Resgate dinâmico do banco de dados para manter sincronia em navegações normais e F5
@@ -274,49 +279,49 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.id) {
         const dbUser = await prisma.users.findUnique({
           where: { id: token.id as string },
-          include: { equippedFrame: true, accounts: true }
-        })
+          include: { equippedFrame: true, accounts: true },
+        });
 
         if (dbUser) {
-          token.name = dbUser.name
-          token.username = dbUser.username
-          token.email = dbUser.email
-          token.avatar = dbUser.avatar
-          token.coverImage = dbUser.coverImage
-          token.equippedFrame = dbUser.equippedFrame
-          token.bio = dbUser.bio || ''
-          token.location = dbUser.location || ''
-          token.website = dbUser.website || ''
-          token.hasPassword = !!dbUser.password
-          token.isOAuth = Boolean(dbUser.accounts.length > 0)
+          token.name = dbUser.name;
+          token.username = dbUser.username;
+          token.email = dbUser.email;
+          token.avatar = dbUser.avatar;
+          token.coverImage = dbUser.coverImage;
+          token.equippedFrame = dbUser.equippedFrame;
+          token.bio = dbUser.bio || '';
+          token.location = dbUser.location || '';
+          token.website = dbUser.website || '';
+          token.hasPassword = !!dbUser.password;
+          token.isOAuth = Boolean(dbUser.accounts.length > 0);
           if (!token.provider) {
-            token.provider = dbUser.accounts[0]?.provider || 'credentials'
+            token.provider = dbUser.accounts[0]?.provider || 'credentials';
           }
         }
       }
 
-      return token
+      return token;
     },
 
     async session({ session, token }) {
       if (session.user && token) {
-        session.user.id = token.id as string
-        session.user.publicId = token.publicId as string
-        session.user.name = token.name as string
-        session.user.username = token.username as string
-        session.user.email = token.email as string
-        session.user.avatar = (token.avatar as string) || null
-        session.user.coverImage = (token.coverImage as string) || null
-        session.user.bio = (token.bio as string) || ''
-        session.user.location = (token.location as string) || ''
-        session.user.website = (token.website as string) || ''
-        session.user.equippedFrame = token.equippedFrame || null
-        session.user.provider = (token.provider as string) || 'credentials'
-        session.user.isOAuth = (token.isOAuth as boolean) ?? false
-        session.user.hasPassword = (token.hasPassword as boolean) ?? true
+        session.user.id = token.id as string;
+        session.user.publicId = token.publicId as string;
+        session.user.name = token.name as string;
+        session.user.username = token.username as string;
+        session.user.email = token.email as string;
+        session.user.avatar = (token.avatar as string) || null;
+        session.user.coverImage = (token.coverImage as string) || null;
+        session.user.bio = (token.bio as string) || '';
+        session.user.location = (token.location as string) || '';
+        session.user.website = (token.website as string) || '';
+        session.user.equippedFrame = token.equippedFrame || null;
+        session.user.provider = (token.provider as string) || 'credentials';
+        session.user.isOAuth = (token.isOAuth as boolean) ?? false;
+        session.user.hasPassword = (token.hasPassword as boolean) ?? true;
       }
-      return session
-    }
+      return session;
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
-})
+});

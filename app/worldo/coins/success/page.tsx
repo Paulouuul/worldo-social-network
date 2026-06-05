@@ -1,41 +1,41 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useRouter, redirect } from 'next/navigation'
-import { Suspense } from 'react'
-import { useSession } from 'next-auth/react'
-import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSession } from 'next-auth/react';
+import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
 function SuccessPageContent() {
-  const { status } = useSession() 
-  const router = useRouter()
-  
+  const { status } = useSession();
+  const router = useRouter();
+
   // Caso precise validar o ID do Stripe no banco futuramente:
-  
-  const [countdown, setCountdown] = useState(5)
+
+  const [countdown, setCountdown] = useState(5);
 
   if (status === 'unauthenticated') {
-    redirect('/login')
+    redirect('/login');
   }
 
   // Efeito 1: Gerencia apenas o relógio do countdown de forma limpa
   useEffect(() => {
-    if (countdown <= 0) return
+    if (countdown <= 0) return;
 
     const timer = setTimeout(() => {
-      setCountdown(prev => prev - 1)
-    }, 1000)
+      setCountdown((prev) => prev - 1);
+    }, 1000);
 
-    return () => clearTimeout(timer)
-  }, [countdown])
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   // Efeito 2: Monitora o countdown e dispara a navegação de forma isolada e segura
   useEffect(() => {
     if (countdown === 0) {
-      router.push('/worldo/coins')
+      router.push('/worldo/coins');
     }
-  }, [countdown, router])
+  }, [countdown, router]);
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 relative overflow-hidden">
@@ -53,23 +53,24 @@ function SuccessPageContent() {
         <h1 className="text-2xl font-black text-transparent bg-clip-text bg-linear-to-r from-white via-slate-200 to-slate-400 tracking-wide mb-3">
           Pagamento Realizado!
         </h1>
-        
+
         <p className="text-slate-400 text-sm leading-relaxed mb-6">
-          Suas moedas já foram creditadas na sua carteira digital e o saldo foi atualizado com sucesso na rede.
+          Suas moedas já foram creditadas na sua carteira digital e o saldo foi atualizado com
+          sucesso na rede.
         </p>
-        
+
         {/* Caixa do Contador */}
         <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3.5 mb-6 text-xs text-purple-300 font-medium tracking-wide flex items-center justify-center gap-2">
           <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
-          Redirecionando para a loja em 
+          Redirecionando para a loja em
           <span className="font-bold text-sm text-purple-200 bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-500/30">
             {countdown}s
           </span>
         </div>
 
         {/* Botão de Escape de Emergência */}
-        <Link 
-          href="/worldo/coins" 
+        <Link
+          href="/worldo/coins"
           className="w-full inline-flex items-center justify-center gap-2 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 group"
         >
           <span>Voltar para Loja Agora</span>
@@ -77,12 +78,12 @@ function SuccessPageContent() {
         </Link>
       </div>
     </div>
-  )
+  );
 }
 
 export default function SuccessPage() {
   return (
-    <Suspense 
+    <Suspense
       fallback={
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mb-4"></div>
@@ -92,5 +93,5 @@ export default function SuccessPage() {
     >
       <SuccessPageContent />
     </Suspense>
-  )
+  );
 }

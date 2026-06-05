@@ -1,129 +1,131 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
-import { ClientImage } from '@/components/ClientImage'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { getRarityDesigns } from '@/constants/cosmeticRarity'
-import { CosmeticActionModal } from '@/components/CosmeticActionModal'
-import { 
-  Package, Search, Plus, X, Loader2, Store, Box
-} from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { ClientImage } from '@/components/ClientImage';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getRarityDesigns } from '@/constants/cosmeticRarity';
+import { CosmeticActionModal } from '@/components/CosmeticActionModal';
+import { Package, Search, Plus, X, Loader2, Store, Box } from 'lucide-react';
 
 interface GroupedItem {
-  id: string
-  frameId: string
-  isListed: boolean
-  resalePrice: number | null
-  listingId?: string | null
-  count: number
+  id: string;
+  frameId: string;
+  isListed: boolean;
+  resalePrice: number | null;
+  listingId?: string | null;
+  count: number;
   frame: {
-    id: string
-    name: string
-    description: string
-    thumbnailUrl: string
-    imageUrl: string
-    rarity: string
-    stock: number
-  }
+    id: string;
+    name: string;
+    description: string;
+    thumbnailUrl: string;
+    imageUrl: string;
+    rarity: string;
+    stock: number;
+  };
 }
 
-type FilterType = 'all' | 'listed' | 'unlisted'
-type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | null
+type FilterType = 'all' | 'listed' | 'unlisted';
+type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | null;
 
 const rarityDesigns = getRarityDesigns('bottom-10');
 
 export default function MyCosmeticsPage() {
-  const { data: session, status } = useSession()
-  
-  // Estados da Lista e Filtros
-  const [items, setItems] = useState<GroupedItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeFilter, setActiveFilter] = useState<FilterType>('unlisted')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [rarityFilter, setRarityFilter] = useState('all')
-  const [sort, setSort] = useState('newest')
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  const [statsData, setStatsData] = useState({ all: 0, listed: 0, unlisted: 0 })
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png')
-  
-  // Estados do Modal
-  const [selectedItem, setSelectedItem] = useState<GroupedItem | null>(null)
-  const [modalMode, setModalMode] = useState<ModalMode>(null)
+  const { data: session, status } = useSession();
 
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  // Estados da Lista e Filtros
+  const [items, setItems] = useState<GroupedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<FilterType>('unlisted');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [rarityFilter, setRarityFilter] = useState('all');
+  const [sort, setSort] = useState('newest');
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [statsData, setStatsData] = useState({ all: 0, listed: 0, unlisted: 0 });
+  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+
+  // Estados do Modal
+  const [selectedItem, setSelectedItem] = useState<GroupedItem | null>(null);
+  const [modalMode, setModalMode] = useState<ModalMode>(null);
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   if (status === 'unauthenticated') {
-    redirect('/login')
+    redirect('/login');
   }
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/cosmetics/inventory/stats')
-      const data = await res.json()
-      setStatsData(data)
+      const res = await fetch('/api/cosmetics/inventory/stats');
+      const data = await res.json();
+      setStatsData(data);
     } catch (err) {
-      console.error('Erro ao buscar stats:', err)
+      console.error('Erro ao buscar stats:', err);
     }
   }, []);
 
-  const fetchInventory = useCallback(async (page: number, isLoadMore = false) => {
-    try {
-      if (isLoadMore) {
-        setLoadingMore(true)
-      } else {
-        setLoading(true)
+  const fetchInventory = useCallback(
+    async (page: number, isLoadMore = false) => {
+      try {
+        if (isLoadMore) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const res = await fetch(
+          `/api/cosmetics/inventory/grouped?page=${page}&limit=50&filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}&rarity=${rarityFilter}&sort=${sort}`
+        );
+        if (!res.ok) throw new Error('Falha ao sincronizar inventário');
+
+        const data = await res.json();
+
+        if (isLoadMore) {
+          setItems((prev) => [...prev, ...data.items]);
+        } else {
+          setItems(data.items);
+        }
+
+        setHasMore(data.pagination.hasNextPage);
+        setCurrentPage(page);
+      } catch (err) {
+        console.error('Erro ao processar inventário:', err);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-      
-      const res = await fetch(`/api/cosmetics/inventory/grouped?page=${page}&limit=50&filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}&rarity=${rarityFilter}&sort=${sort}`)
-      if (!res.ok) throw new Error('Falha ao sincronizar inventário')
-      
-      const data = await res.json()
-      
-      if (isLoadMore) {
-        setItems(prev => [...prev, ...data.items])
-      } else {
-        setItems(data.items)
-      }
-      
-      setHasMore(data.pagination.hasNextPage)
-      setCurrentPage(page)
-      
-    } catch (err) {
-      console.error('Erro ao processar inventário:', err)
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }, [activeFilter, searchTerm, rarityFilter, sort]);
+    },
+    [activeFilter, searchTerm, rarityFilter, sort]
+  );
 
   // Carrega avatar apenas uma vez quando houver a sessão do usuário
   useEffect(() => {
-    if (!session?.user) return
+    if (!session?.user) return;
 
     if (session.user.avatar) {
-      setAvatarUrl(session.user.avatar)
+      setAvatarUrl(session.user.avatar);
     }
 
-    if (!session.user.publicId) return
+    if (!session.user.publicId) return;
 
-    const controller = new AbortController()
-    
+    const controller = new AbortController();
+
     fetch(`/api/user/${session.user.publicId}`, { signal: controller.signal })
-      .then(res => res.json())
-      .then(data => {
-        if (data?.avatar) setAvatarUrl(data.avatar)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.avatar) setAvatarUrl(data.avatar);
       })
-      .catch(err => {
-        if (err.name !== 'AbortError') console.error(err)
-      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') console.error(err);
+      });
 
-    return () => controller.abort()
-  }, [session])
+    return () => controller.abort();
+  }, [session]);
 
   // Hook unificado com DEBOUNCE para evitar requisições infinitas na digitação
   useEffect(() => {
@@ -143,43 +145,45 @@ export default function MyCosmeticsPage() {
 
   // Intersection Observer para o Scroll Infinito
   useEffect(() => {
-    if (loading || loadingMore || !hasMore) return
-    
+    if (loading || loadingMore || !hasMore) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          fetchInventory(currentPage + 1, true)
+          fetchInventory(currentPage + 1, true);
         }
       },
       { threshold: 0.1 }
-    )
-    
+    );
+
     if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current)
+      observer.observe(loadMoreRef.current);
     }
-    
-    return () => observer.disconnect()
-  }, [loading, loadingMore, hasMore, currentPage, fetchInventory])
+
+    return () => observer.disconnect();
+  }, [loading, loadingMore, hasMore, currentPage, fetchInventory]);
 
   // Ações do Modal
   const handleOpenItem = (item: GroupedItem) => {
-    setSelectedItem(item)
-    setModalMode(item.isListed ? 'view' : 'sell')
-  }
+    setSelectedItem(item);
+    setModalMode(item.isListed ? 'view' : 'sell');
+  };
 
   const handleModalSuccess = () => {
-    fetchInventory(1, false)
-    fetchStats()
-  }
+    fetchInventory(1, false);
+    fetchStats();
+  };
 
   // Telas de Carregamento e Não Autenticado
   if (status === 'loading' || (loading && status === 'authenticated' && items.length === 0)) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-400">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-4" />
-        <p className="text-sm font-medium text-purple-300 uppercase tracking-wider">Acessando cofre de cosméticos...</p>
+        <p className="text-sm font-medium text-purple-300 uppercase tracking-wider">
+          Acessando cofre de cosméticos...
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -189,11 +193,13 @@ export default function MyCosmeticsPage() {
           <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-linear-to-r from-white via-slate-200 to-slate-400 tracking-wide flex items-center gap-3">
             <Package className="w-7 h-7 sm:w-8 sm:h-8 text-purple-500 shrink-0" /> MEUS COSMÉTICOS
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium">Gerencie seu inventário e comercialize suas molduras</p>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium">
+            Gerencie seu inventário e comercialize suas molduras
+          </p>
         </div>
         {items.length > 0 && (
-          <Link 
-            href="/worldo/cosmetics/create" 
+          <Link
+            href="/worldo/cosmetics/create"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50 text-purple-300 py-3 sm:py-2.5 px-5 rounded-xl transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold shadow-lg shadow-purple-900/10"
           >
             <Plus className="w-4 h-4" /> Criar Nova Moldura
@@ -203,7 +209,7 @@ export default function MyCosmeticsPage() {
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
-           <button
+          <button
             onClick={() => setSearchTerm(searchInput)}
             className="absolute left-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-700 transition z-10"
           >
@@ -216,15 +222,15 @@ export default function MyCosmeticsPage() {
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
           />
-            <button
-              onClick={() => {
-                setSearchInput('')
-                setSearchTerm('')
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-700 transition z-10"
-            >
-              <X className="w-4 h-4 text-slate-500" />
-            </button>
+          <button
+            onClick={() => {
+              setSearchInput('');
+              setSearchTerm('');
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-700 transition z-10"
+          >
+            <X className="w-4 h-4 text-slate-500" />
+          </button>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
@@ -245,14 +251,34 @@ export default function MyCosmeticsPage() {
       </div>
 
       <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-8 bg-slate-900/60 border border-slate-800/80 rounded-xl p-1.5 w-full sm:w-fit shadow-inner backdrop-blur-sm">
-        <button onClick={() => setActiveFilter('unlisted')} className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'unlisted' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}>
-          <Box className="w-4 h-4 shrink-0" /> <span className="hidden min-[400px]:inline">Disponíveis</span> <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{statsData.unlisted}</span>
+        <button
+          onClick={() => setActiveFilter('unlisted')}
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'unlisted' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}
+        >
+          <Box className="w-4 h-4 shrink-0" />{' '}
+          <span className="hidden min-[400px]:inline">Disponíveis</span>{' '}
+          <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
+            {statsData.unlisted}
+          </span>
         </button>
-        <button onClick={() => setActiveFilter('listed')} className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'listed' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}>
-          <Store className="w-4 h-4 shrink-0" /> <span className="hidden min-[400px]:inline">No Mercado</span> <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{statsData.listed}</span>
+        <button
+          onClick={() => setActiveFilter('listed')}
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'listed' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}
+        >
+          <Store className="w-4 h-4 shrink-0" />{' '}
+          <span className="hidden min-[400px]:inline">No Mercado</span>{' '}
+          <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
+            {statsData.listed}
+          </span>
         </button>
-        <button onClick={() => setActiveFilter('all')} className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'all' ? 'bg-slate-700 text-white shadow-lg shadow-slate-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}>
-          <Package className="w-4 h-4 shrink-0" /> Todos <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">{statsData.all}</span>
+        <button
+          onClick={() => setActiveFilter('all')}
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'all' ? 'bg-slate-700 text-white shadow-lg shadow-slate-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}
+        >
+          <Package className="w-4 h-4 shrink-0" /> Todos{' '}
+          <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
+            {statsData.all}
+          </span>
         </button>
       </div>
 
@@ -261,7 +287,9 @@ export default function MyCosmeticsPage() {
         <button
           onClick={() => setSort('newest')}
           className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-            sort === 'newest' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+            sort === 'newest'
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
           }`}
         >
           Mais recentes
@@ -269,7 +297,9 @@ export default function MyCosmeticsPage() {
         <button
           onClick={() => setSort('oldest')}
           className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-            sort === 'oldest' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+            sort === 'oldest'
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
           }`}
         >
           Mais antigos
@@ -280,7 +310,10 @@ export default function MyCosmeticsPage() {
         {loading && items.length === 0 && (
           <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
             {[...Array(12)].map((_, i) => (
-              <div key={i} className="h-48 sm:h-52 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse" />
+              <div
+                key={i}
+                className="h-48 sm:h-52 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse"
+              />
             ))}
           </div>
         )}
@@ -288,19 +321,21 @@ export default function MyCosmeticsPage() {
         {!loading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-900/20 border border-slate-800/50 rounded-2xl border-dashed">
             <Package className="w-16 h-16 text-slate-700 mb-4 animate-pulse" />
-            <h3 className="text-lg sm:text-xl font-bold text-slate-300 mb-2">Seu inventário está vazio</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-slate-300 mb-2">
+              Seu inventário está vazio
+            </h3>
             <p className="text-sm text-slate-500 max-w-md mb-6">
               Adquira no marketplace ou crie sua própria moldura!
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link 
+              <Link
                 href="/worldo/cosmetics/marketplace"
                 className="inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm px-6 py-3 rounded-xl transition-all"
               >
                 <Store className="w-4 h-4" />
                 Ir ao Marketplace
               </Link>
-              <Link 
+              <Link
                 href="/worldo/cosmetics/create"
                 className="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-all shadow-lg shadow-purple-900/20"
               >
@@ -315,18 +350,46 @@ export default function MyCosmeticsPage() {
           <>
             <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
               {items.map((item) => {
-                const config = rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM
+                const config =
+                  rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
                 return (
-                  <button key={`${item.frameId}-${item.isListed}`} onClick={() => handleOpenItem(item)} className={`group relative h-48 sm:h-52 rounded-2xl border flex flex-col items-center justify-start pt-4 sm:pt-5 px-2 sm:px-3 pb-3 overflow-hidden transition-[transform,border-color,background-color,box-shadow] duration-150 cursor-pointer hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${item.isListed ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]' : ''}`}>
-                    {item.isListed && (<div className="absolute top-2 left-2 z-20"><span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase"><Store className="w-2.5 h-2.5 hidden sm:block" /> Venda</span></div>)}
-                    <div className="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 font-black text-[10px] px-2 py-0.5 rounded-md shadow-md z-20">x{item.count}</div>
+                  <button
+                    key={`${item.frameId}-${item.isListed}`}
+                    onClick={() => handleOpenItem(item)}
+                    className={`group relative h-48 sm:h-52 rounded-2xl border flex flex-col items-center justify-start pt-4 sm:pt-5 px-2 sm:px-3 pb-3 overflow-hidden transition-[transform,border-color,background-color,box-shadow] duration-150 cursor-pointer hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${item.isListed ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]' : ''}`}
+                  >
+                    {item.isListed && (
+                      <div className="absolute top-2 left-2 z-20">
+                        <span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase">
+                          <Store className="w-2.5 h-2.5 hidden sm:block" /> Venda
+                        </span>
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 font-black text-[10px] px-2 py-0.5 rounded-md shadow-md z-20">
+                      x{item.count}
+                    </div>
                     {config.bgDecoration}
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.03]" />
-                    <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 mb-3 ${config.borderClass}`}><ClientImage src={item.frame.thumbnailUrl} alt={item.frame.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="(max-width: 640px) 64px, 80px" unoptimized /></div>
+                    <div
+                      className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border shadow-inner bg-slate-900/80 flex items-center justify-center z-10 mb-3 ${config.borderClass}`}
+                    >
+                      <ClientImage
+                        src={item.frame.thumbnailUrl}
+                        alt={item.frame.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        sizes="(max-width: 640px) 64px, 80px"
+                        unoptimized
+                      />
+                    </div>
                     {config.badge}
-                    <span className={`text-[10px] sm:text-[11px] text-center z-10 px-0.5 mt-auto w-full truncate mb-1 ${config.textClass}`}>{item.frame.name}</span>
+                    <span
+                      className={`text-[10px] sm:text-[11px] text-center z-10 px-0.5 mt-auto w-full truncate mb-1 ${config.textClass}`}
+                    >
+                      {item.frame.name}
+                    </span>
                   </button>
-                )
+                );
               })}
             </div>
 
@@ -336,9 +399,7 @@ export default function MyCosmeticsPage() {
               </div>
             )}
 
-            {hasMore && !loading && !loadingMore && (
-              <div ref={loadMoreRef} className="h-10" />
-            )}
+            {hasMore && !loading && !loadingMore && <div ref={loadMoreRef} className="h-10" />}
           </>
         )}
       </div>
@@ -349,13 +410,13 @@ export default function MyCosmeticsPage() {
           item={selectedItem}
           mode={modalMode}
           onClose={() => {
-            setSelectedItem(null)
-            setModalMode(null)
+            setSelectedItem(null);
+            setModalMode(null);
           }}
           onSuccess={handleModalSuccess}
           avatarUrl={avatarUrl}
         />
       )}
     </div>
-  )
+  );
 }

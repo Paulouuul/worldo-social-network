@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-background: #1e1f22;
@@ -10,7 +10,7 @@
   --color-gray-200: #2b2d31;
   --color-gray-300: #2b2d31;
   --color-gray-800: #949ba4;
-  
+
   /* Novas variáveis para centralizar a paleta galáctica */
   --color-galaxy-primary: #667eea;
   --color-galaxy-secondary: #764ba2;
@@ -20,32 +20,49 @@
 @layer base {
   body {
     /* Melhoria: Cores ligeiramente ajustadas para garantir contraste com textos brancos/cinzas */
-    background: 
-      radial-gradient(ellipse at 50% 50%, rgba(138, 43, 226, 0.35) 0%, rgba(75, 0, 130, 0.25) 30%, transparent 70%),
-      radial-gradient(ellipse at 20% 60%, rgba(255, 0, 128, 0.2) 0%, rgba(138, 43, 226, 0.15) 25%, rgba(25, 25, 112, 0.05) 50%, transparent 80%),
-      radial-gradient(ellipse at 85% 30%, rgba(0, 102, 204, 0.2) 0%, rgba(102, 0, 204, 0.15) 30%, rgba(25, 25, 112, 0.05) 55%, transparent 85%),
+    background:
+      radial-gradient(
+        ellipse at 50% 50%,
+        rgba(138, 43, 226, 0.35) 0%,
+        rgba(75, 0, 130, 0.25) 30%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse at 20% 60%,
+        rgba(255, 0, 128, 0.2) 0%,
+        rgba(138, 43, 226, 0.15) 25%,
+        rgba(25, 25, 112, 0.05) 50%,
+        transparent 80%
+      ),
+      radial-gradient(
+        ellipse at 85% 30%,
+        rgba(0, 102, 204, 0.2) 0%,
+        rgba(102, 0, 204, 0.15) 30%,
+        rgba(25, 25, 112, 0.05) 55%,
+        transparent 85%
+      ),
       linear-gradient(145deg, #05000a 0%, #0d001f 15%, #15002a 40%, #1f003d 70%, #05000a 100%);
-    
+
     background-attachment: fixed;
     background-blend-mode: overlay, overlay, overlay, normal;
     color: var(--color-gray-900);
     position: relative;
     min-height: 100vh;
   }
-  
+
   /* Otimização: Agrupamento das estrelas do background em uma única máscara otimizada */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: 
+    background-image:
       radial-gradient(2px 2px at 10% 20%, #ffffff, transparent),
       radial-gradient(1px 1px at 25% 45%, #ffffff, transparent),
-      radial-gradient(3px 3px at 40% 10%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(3px 3px at 40% 10%, rgba(255, 255, 255, 0.8), transparent),
       radial-gradient(1px 1px at 55% 70%, #ffffff, transparent),
       radial-gradient(2px 2px at 70% 30%, #ffffff, transparent),
       radial-gradient(1px 1px at 85% 55%, #ffffff, transparent),
-      radial-gradient(2px 2px at 15% 85%, rgba(255,255,255,0.9), transparent),
+      radial-gradient(2px 2px at 15% 85%, rgba(255, 255, 255, 0.9), transparent),
       radial-gradient(1px 1px at 45% 90%, #ffffff, transparent),
       radial-gradient(3px 3px at 75% 85%, #ffffff, transparent),
       radial-gradient(1px 1px at 95% 15%, #ffffff, transparent),
@@ -68,9 +85,9 @@
   .galaxy-btn-secondary,
   button,
   a[href],
-  [role="button"],
-  input[type="submit"],
-  input[type="button"] {
+  [role='button'],
+  input[type='submit'],
+  input[type='button'] {
     cursor: pointer;
   }
 
@@ -85,7 +102,7 @@
     color: var(--color-gray-900);
     transition: all 0.2s ease-in-out;
   }
-  
+
   .input:focus {
     outline: 2px solid var(--color-blue-600);
     border-color: transparent;
@@ -112,7 +129,7 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
   }
-  
+
   .btn-primary:active {
     transform: translateY(0);
   }
@@ -181,7 +198,8 @@
   }
 
   /* Estrelas Animadas Independentes */
-  .stars, .stars-small {
+  .stars,
+  .stars-small {
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -189,10 +207,10 @@
   }
 
   .stars {
-    background-image: 
+    background-image:
       radial-gradient(2px 2px at 10% 20%, #ffffff, transparent),
       radial-gradient(1px 1px at 25% 45%, #ffffff, transparent),
-      radial-gradient(3px 3px at 40% 10%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(3px 3px at 40% 10%, rgba(255, 255, 255, 0.8), transparent),
       radial-gradient(1px 1px at 55% 70%, #ffffff, transparent),
       radial-gradient(2px 2px at 70% 30%, #ffffff, transparent),
       radial-gradient(1px 1px at 85% 55%, #ffffff, transparent);
@@ -200,7 +218,7 @@
   }
 
   .stars-small {
-    background-image: 
+    background-image:
       radial-gradient(1px 1px at 15% 85%, #ffffff, transparent),
       radial-gradient(1px 1px at 45% 90%, #ffffff, transparent),
       radial-gradient(2px 2px at 75% 85%, #ffffff, transparent),
@@ -216,7 +234,7 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: 
+    background:
       radial-gradient(circle at 30% 40%, rgba(88, 101, 242, 0.08), transparent 50%),
       radial-gradient(circle at 70% 60%, rgba(155, 89, 182, 0.08), transparent 50%);
     animation: nebula-drift 25s ease-in-out infinite;
@@ -224,20 +242,27 @@
   }
 
   /* Componentes e Marcas Premium */
-  .logo-image, .galaxy-logo {
+  .logo-image,
+  .galaxy-logo {
     filter: drop-shadow(0 0 8px rgba(88, 101, 242, 0.4));
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     animation: galaxy-pulse 3s ease-in-out infinite;
   }
 
-  .logo-image:hover, .galaxy-logo:hover {
+  .logo-image:hover,
+  .galaxy-logo:hover {
     animation: none;
     transform: scale(1.05) rotate(2deg);
     filter: drop-shadow(0 0 16px rgba(88, 101, 242, 0.8));
   }
 
   .galaxy-text {
-    background: linear-gradient(135deg, var(--color-galaxy-primary) 0%, var(--color-galaxy-secondary) 50%, var(--color-galaxy-accent) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-galaxy-primary) 0%,
+      var(--color-galaxy-secondary) 50%,
+      var(--color-galaxy-accent) 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -247,7 +272,9 @@
 
   .galaxy-link {
     position: relative;
-    transition: color 0.2s ease, text-shadow 0.2s ease;
+    transition:
+      color 0.2s ease,
+      text-shadow 0.2s ease;
   }
 
   .galaxy-link:hover {
@@ -257,7 +284,11 @@
 
   /* Botões de Estilo Galáctico */
   .galaxy-btn-primary {
-    background: linear-gradient(135deg, var(--color-galaxy-primary) 0%, var(--color-galaxy-secondary) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-galaxy-primary) 0%,
+      var(--color-galaxy-secondary) 100%
+    );
     color: #ffffff;
     font-weight: 600;
     padding: 0.5rem 1.5rem;
@@ -274,7 +305,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
     transition: left 0.6s ease;
   }
 
@@ -366,32 +397,50 @@
 
 /* Keyframes Globais Otimizados (Evitando saltos de renderização de hardware) */
 @keyframes neonPulse {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(88, 101, 242, 0.15), 0 0 10px rgba(155, 89, 182, 0.05);
+  0%,
+  100% {
+    box-shadow:
+      0 0 5px rgba(88, 101, 242, 0.15),
+      0 0 10px rgba(155, 89, 182, 0.05);
     border-color: #404249;
   }
   50% {
-    box-shadow: 0 0 12px rgba(88, 101, 242, 0.4), 0 0 24px rgba(155, 89, 182, 0.2);
+    box-shadow:
+      0 0 12px rgba(88, 101, 242, 0.4),
+      0 0 24px rgba(155, 89, 182, 0.2);
     border-color: #5865f2;
   }
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.25; }
-  50% { opacity: 0.9; }
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
+  }
 }
 
 @keyframes nebula-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(1.5%, 0.8%) scale(1.02); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(1.5%, 0.8%) scale(1.02);
+  }
 }
 
 @keyframes galaxy-pulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 4px rgba(88, 101, 242, 0.25)) drop-shadow(0 0 6px rgba(155, 89, 182, 0.15));
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(88, 101, 242, 0.25))
+      drop-shadow(0 0 6px rgba(155, 89, 182, 0.15));
   }
   50% {
-    filter: drop-shadow(0 0 12px rgba(88, 101, 242, 0.6)) drop-shadow(0 0 16px rgba(155, 89, 182, 0.35));
+    filter: drop-shadow(0 0 12px rgba(88, 101, 242, 0.6))
+      drop-shadow(0 0 16px rgba(155, 89, 182, 0.35));
   }
 }
 
@@ -402,7 +451,7 @@ img {
   user-select: none;
 }
 
-img[draggable="true"] {
+img[draggable='true'] {
   -webkit-user-drag: element;
 }
 
