@@ -127,6 +127,7 @@ export async function generatePythonToken(
   const secretBuffer = new TextEncoder().encode(JWT_SECRET);
 
   const token = await new SignJWT({
+    id: userData.id,
     publicId: userData.publicId,
     email: userData.email,
     name: userData.name,
