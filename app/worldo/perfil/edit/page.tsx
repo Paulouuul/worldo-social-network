@@ -91,17 +91,18 @@ export default function EditProfilePage() {
     }
 
     const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 8 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`);
-      return;
-    }
 
     if (file.type === 'image/gif') {
-      const gifLimit = type === 'avatar' ? 3 : 5; // 3MB avatar, 5MB banner
+      const gifLimit = type === 'avatar' ? 3 : 5;
       if (file.size > gifLimit * 1024 * 1024) {
         setError(`GIF muito grande para ${type}. Máximo: ${gifLimit}MB`);
         return;
       }
+    }
+
+    if (file.size > maxSize) {
+      setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`);
+      return;
     }
 
     if (type === 'avatar') {

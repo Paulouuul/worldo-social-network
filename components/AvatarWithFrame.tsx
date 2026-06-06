@@ -56,6 +56,17 @@ export const AvatarWithFrame = ({
     full: 'w-full h-full',
   };
 
+  const getFontSize = (size?: 'sm' | 'smsm' | 'md' | 'lg' | 'full') => {
+    const sizes = {
+      smsm: '0.75rem', // 12px
+      sm: '1rem', // 16px
+      md: '2rem', // 32px
+      lg: '3rem', // 48px
+      full: 'clamp(2rem, 10vw, 6rem)', // responsivo
+    };
+    return sizes[size || 'md'];
+  };
+
   const getInitial = () => {
     if (!name) return '?';
     return name.charAt(0).toUpperCase();
@@ -85,7 +96,12 @@ export const AvatarWithFrame = ({
           <div
             className={`w-full h-full rounded-full ${bgColorClass} flex items-center justify-center`}
           >
-            <span className="text-3xl font-bold text-white drop-shadow-md">{getInitial()}</span>
+            <span
+              className="font-bold text-white drop-shadow-md"
+              style={{ fontSize: getFontSize(size) }}
+            >
+              {getInitial()}
+            </span>
           </div>
         )}
       </div>
