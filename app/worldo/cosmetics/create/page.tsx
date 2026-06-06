@@ -584,12 +584,12 @@ export default function CreateCosmeticPage() {
               >
                 <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-10 flex items-center justify-center gap-2">
                   <Sparkles className={`w-4 h-4 ${currentStyle.textClass}`} />
-                  Galeria de Visualização
+                 Preview de Cosmético
                 </h3>
 
                 {imagePreview ? (
-                  <div className="flex flex-col gap-6">
-                    <div className="bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
+                  <div className="flex flex-col md:flex-row flex-wrap gap-6">
+                    <div className="flex-1 bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
                       <div className="relative min-h-40 flex items-center justify-center">
                         <AvatarWithFrame
                           avatarUrl={avatarUrl && avatarUrl !== 'None' ? avatarUrl : null}
@@ -606,13 +606,13 @@ export default function CreateCosmeticPage() {
                         <p
                           className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}
                         >
-                          Visualização de Moldura
+                          Preview de Moldura
                         </p>
                       </div>
                     </div>
 
                     {thumbnailPreview && (
-                      <div className="bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
+                      <div className="flex-1 bg-slate-950/60 rounded-xl p-8 border border-slate-900 shadow-xl flex flex-col items-center justify-between gap-6">
                         <div className="relative group mx-auto">
                           <div
                             className={`absolute -inset-1 rounded-xl bg-linear-to-r ${currentStyle.glow} opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur`}
@@ -634,7 +634,7 @@ export default function CreateCosmeticPage() {
                           <p
                             className={`text-xs font-semibold tracking-wider ${currentStyle.textClass} uppercase`}
                           >
-                            Visualização de Miniatura
+                            Preview de Miniatura
                           </p>
                         </div>
                       </div>
@@ -646,8 +646,7 @@ export default function CreateCosmeticPage() {
                       <ImageIcon className="w-10 h-10" />
                     </div>
                     <p className="text-slate-500 text-sm max-w-60 leading-relaxed mx-auto">
-                      Selecione uma imagem para visualizar como o cosmético ficará no perfil e nas
-                      listas do sistema.
+                      Selecione uma imagem para visualizar como o cosmético ficará depois de sua criação.
                     </p>
                   </div>
                 )}
