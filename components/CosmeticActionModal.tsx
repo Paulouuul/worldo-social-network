@@ -263,22 +263,10 @@ export function CosmeticActionModal({
 
           <div className="text-center mb-4">
             <h3 className={`font-bold text-lg ${rarityConfig.textClass}`}>{item.frame.name}</h3>
-            <br />
-            <p
-              className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}
-            >
-              ------------------------
-            </p>
-            <p
-              className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}
-            >
+            <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>
               {item.frame.rarity}
             </p>
-            <p
-              className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}
-            >
-              ------------------------
-            </p>
+            <br/>
           </div>
 
           {/* MODO: VER (VIEW) */}
@@ -347,8 +335,8 @@ export function CosmeticActionModal({
             >
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 items-center gap-1.5">
-                    <Box className="w-3 h-3" /> Qtd. a Listar
+                  <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Box className="w-3 h-3 text-emerald-400" /> Qtd. a Listar
                   </label>
                   <input
                     type="number"
@@ -365,7 +353,7 @@ export function CosmeticActionModal({
                 </div>
                 <div>
                   <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Coins className="w-3 h-3 text-amber-500" /> Preço Un. (🪙)
+                     <Coins className="w-3 h-3 text-amber-500" /> Preço Un.
                   </label>
                   <input
                     type="number"
