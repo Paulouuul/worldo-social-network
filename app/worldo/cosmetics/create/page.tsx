@@ -584,7 +584,7 @@ export default function CreateCosmeticPage() {
               >
                 <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-10 flex items-center justify-center gap-2">
                   <Sparkles className={`w-4 h-4 ${currentStyle.textClass}`} />
-                 Preview de Cosmético
+                  Preview de Cosmético
                 </h3>
 
                 {imagePreview ? (
@@ -646,7 +646,8 @@ export default function CreateCosmeticPage() {
                       <ImageIcon className="w-10 h-10" />
                     </div>
                     <p className="text-slate-500 text-sm max-w-60 leading-relaxed mx-auto">
-                      Selecione uma imagem para visualizar como o cosmético ficará depois de sua criação.
+                      Selecione uma imagem para visualizar como o cosmético ficará depois de sua
+                      criação.
                     </p>
                   </div>
                 )}

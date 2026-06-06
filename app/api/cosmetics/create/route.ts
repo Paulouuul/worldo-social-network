@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import { convertToWebP } from '@/lib/image-converter';
+import { convertToWebP, addAnimatedSuffix } from '@/lib/image-utils';
 import { uploadPublic, deleteFile } from '@/lib/r2-upload';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
       type: 'image/webp',
     });
 
-    const imgPath = `frames/${timestamp}-${session.user.id}/image.webp`;
+    const imgPath = `frames/${timestamp}-${session.user.id}/${addAnimatedSuffix(`image-${timestamp}.webp`, isGif)}`;
     uploadedImageUrl = await uploadPublic(optimizedImage, imgPath);
 
     if (thumbnailFile && thumbnailFile.size > 0) {
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
         },
       );
 
-      const thumbPath = `frames/${timestamp}-${session.user.id}/thumbnail.webp`;
+      const thumbPath = `frames/${timestamp}-${session.user.id}/${addAnimatedSuffix(`thumbnail-${timestamp}.webp`, isThumbGif)}`;
       uploadedThumbnailUrl = await uploadPublic(optimizedThumb, thumbPath);
     } else {
       uploadedThumbnailUrl = uploadedImageUrl;

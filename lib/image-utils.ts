@@ -24,6 +24,18 @@ export interface ConvertResult {
   };
 }
 
+export function addAnimatedSuffix(filename: string, isGif: boolean): string {
+  if (!isGif) return filename;
+
+  const lastDotIndex = filename.lastIndexOf('.');
+  if (lastDotIndex === -1) return `${filename}-animated`;
+
+  const name = filename.substring(0, lastDotIndex);
+  const extension = filename.substring(lastDotIndex);
+
+  return `${name}-animated${extension}`;
+}
+
 function normalizeMimeType(mimeType: string): string {
   // JFIF é essencialmente JPEG
   if (mimeType === 'image/jfif') {

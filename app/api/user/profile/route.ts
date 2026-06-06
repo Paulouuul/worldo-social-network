@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { uploadPublic, deleteFile } from '@/lib/r2-upload';
-import { convertToWebP } from '@/lib/image-converter';
+import { convertToWebP, addAnimatedSuffix } from '@/lib/image-utils';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(request: NextRequest) {
@@ -157,7 +157,7 @@ export async function PUT(request: NextRequest) {
       );
 
       // Define o caminho e faz o upload
-      uploadedAvatarPath = `avatars/${session.user.id}/avatar-${Date.now()}.webp`;
+      uploadedAvatarPath = `avatars/${session.user.id}/${addAnimatedSuffix(`avatar-${Date.now()}.webp`, isGif)}`;
       newAvatarUrl = await uploadPublic(optimizedFile, uploadedAvatarPath);
     } else if (shouldRemoveAvatar) {
       newAvatarUrl = null;
@@ -217,7 +217,7 @@ export async function PUT(request: NextRequest) {
         },
       );
 
-      uploadedCoverPath = `cover_image/${session.user.id}/cover_image-${Date.now()}.webp`;
+      uploadedCoverPath = `cover_image/${session.user.id}/${addAnimatedSuffix(`cover_image-${Date.now()}.webp`, isGif)}`;
       newCoverImageUrl = await uploadPublic(optimizedFile, uploadedCoverPath);
     } else if (shouldRemoveCover) {
       newCoverImageUrl = null;

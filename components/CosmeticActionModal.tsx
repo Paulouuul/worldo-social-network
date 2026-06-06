@@ -263,10 +263,12 @@ export function CosmeticActionModal({
 
           <div className="text-center mb-4">
             <h3 className={`font-bold text-lg ${rarityConfig.textClass}`}>{item.frame.name}</h3>
-            <p className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}>
+            <p
+              className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}
+            >
               {item.frame.rarity}
             </p>
-            <br/>
+            <br />
           </div>
 
           {/* MODO: VER (VIEW) */}
@@ -353,7 +355,7 @@ export function CosmeticActionModal({
                 </div>
                 <div>
                   <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                     <Coins className="w-3 h-3 text-amber-500" /> Preço Un.
+                    <Coins className="w-3 h-3 text-amber-500" /> Preço Un.
                   </label>
                   <input
                     type="number"
