@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { syncToListing, removeFromElasticsearch } from '@/lib/prisma-sync';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -131,6 +132,7 @@ export async function POST(request: NextRequest) {
           where: { id: listingId },
         });
         console.log('[REMOVE] Listing deletado');
+        await removeFromElasticsearch(listingId);
         return { deleted: true, remainingQuantity: 0 };
       } else {
         // Atualizar a quantidade do anúncio
@@ -140,6 +142,7 @@ export async function POST(request: NextRequest) {
           data: { quantity: newQuantity },
         });
         console.log('[REMOVE] Listing atualizado');
+        await syncToListing(listingId);
         return { deleted: false, remainingQuantity: newQuantity };
       }
     });

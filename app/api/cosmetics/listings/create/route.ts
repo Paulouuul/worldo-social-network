@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { syncToListing } from '@/lib/prisma-sync';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
             listingId: listing.id,
           },
         });
+        await syncToListing(listing.id);
         console.log('[LISTING] Anúncio atualizado:', listing.id);
       } else {
         // CRIAR NOVO ANÚNCIO

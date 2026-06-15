@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { syncToListing } from '@/lib/prisma-sync';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(request: NextRequest) {
@@ -39,7 +40,7 @@ export async function PATCH(request: NextRequest) {
       where: { listingId: listingId },
       data: { resalePrice: priceCoins },
     });
-
+    await syncToListing(listingId);
     return NextResponse.json({
       success: true,
       listing: updatedListing,
