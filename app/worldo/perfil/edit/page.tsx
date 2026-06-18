@@ -145,20 +145,32 @@ export default function EditProfilePage() {
     setSuccess('');
 
     try {
+      const tokenRes = await fetch('/api/auth/token');
+      const tokenData = await tokenRes.json();
+      const token = tokenData.pythonToken || tokenData.token;
+
+      if (!token) {
+        setError('Token de autenticação não encontrado. Faça login novamente.');
+        setLoading(false);
+        return;
+      }
+
+
       const submitData = new FormData();
       submitData.append('name', formData.name);
       submitData.append('username', formData.username.trim());
       submitData.append('bio', formData.bio);
       submitData.append('location', formData.location);
       submitData.append('website', formData.website);
-
+      
       if (avatarFile) submitData.append('avatar', avatarFile);
       if (removeAvatar) submitData.append('removeAvatar', 'true');
 
       if (coverFile) submitData.append('cover', coverFile);
       if (removeCover) submitData.append('removeCover', 'true');
-
-      const res = await fetch('/api/user/profile', {
+      const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_URL || 'http://localhost:8000';
+      const res = await fetch(`${PYTHON_API}/api/py/profile/update`, {
+        headers: { Authorization: `Bearer ${token}` },
         method: 'PUT',
         body: submitData,
       });

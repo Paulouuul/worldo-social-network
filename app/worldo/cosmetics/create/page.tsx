@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useCoinStore } from '@/stores/coinStore';
 import { useRouter, redirect } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -37,6 +38,9 @@ function LoadingSpinner() {
 export default function CreateCosmeticPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Store de moedas conectada
+  const { balance: userCoins, fetchBalance, updateBalance } = useCoinStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -69,6 +73,13 @@ export default function CreateCosmeticPage() {
     [formData.rarity, rarityDesigns],
   );
 
+  // Busca o saldo atualizado quando a sessão estiver autenticada
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchBalance();
+    }
+  }, [status, fetchBalance]);
+
   useEffect(() => {
     if (!formData.rarity) return;
 
@@ -85,7 +96,7 @@ export default function CreateCosmeticPage() {
       })
       .catch((err) => console.error('Erro ao buscar pacotes:', err));
   }, [formData.rarity]);
-
+  
   const currentPackage = useMemo(() => {
     return packages.find((pkg) => pkg.id === selectedPackageId) || null;
   }, [packages, selectedPackageId]);
@@ -93,6 +104,9 @@ export default function CreateCosmeticPage() {
   const creationCost = useMemo(() => {
     return currentPackage?.totalCost || 0;
   }, [currentPackage]);
+
+  // Checagem de saldo insuficiente
+  const hasInsufficientCoins = userCoins < creationCost;
 
   const activePackageColor = useMemo(() => {
     const colors: Record<string, string> = {
@@ -119,6 +133,7 @@ export default function CreateCosmeticPage() {
     };
   }, []);
 
+  // Fetch das informações do usuário para atualizar avatar
   useEffect(() => {
     if (!session?.user) return;
 
@@ -207,11 +222,10 @@ export default function CreateCosmeticPage() {
     setError('');
   }, []);
 
-  // Nova Handler para remover a miniatura sem recarregar ou estragar o formulário
   const handleRemoveThumbnail = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
-      e.stopPropagation(); // Impede que o clique dispare o label abrindo o seletor de arquivos de novo
+      e.stopPropagation();
 
       if (thumbnailPreview) {
         URL.revokeObjectURL(thumbnailPreview);
@@ -219,7 +233,7 @@ export default function CreateCosmeticPage() {
       setThumbnailFile(null);
       setThumbnailPreview('');
       if (thumbnailInputRef.current) {
-        thumbnailInputRef.current.value = ''; // Reseta o input nativo do HTML
+        thumbnailInputRef.current.value = ''; 
       }
     },
     [thumbnailPreview],
@@ -233,6 +247,14 @@ export default function CreateCosmeticPage() {
       setLoading(true);
       setError('');
       setSuccess('');
+
+      // Validação de saldo imediata no front-end
+      if (hasInsufficientCoins) {
+        setError(`Saldo insuficiente. Você precisa de ${creationCost} moedas, mas possui apenas ${userCoins}.`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setLoading(false);
+        return;
+      }
 
       if (!imageFile) {
         setError('Selecione uma imagem para a moldura');
@@ -258,7 +280,12 @@ export default function CreateCosmeticPage() {
       }
 
       try {
-        const res = await fetch('/api/cosmetics/create', {
+        const tokenRes = await fetch('/api/auth/token');
+        const tokenData = await tokenRes.json();
+        const token = tokenData.pythonToken || tokenData.token;
+        const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_URL || 'http://localhost:8000';
+        const res = await fetch(`${PYTHON_API}/api/py/cosmetics/create`, {
+          headers: { Authorization: `Bearer ${token}` },
           method: 'POST',
           body: submitData,
         });
@@ -271,6 +298,8 @@ export default function CreateCosmeticPage() {
           setLoading(false);
         } else {
           setSuccess(data.message || 'Moldura criada com sucesso!');
+          // Débito otimista na store
+          updateBalance(userCoins - creationCost);
           router.push('/worldo/cosmetics/inventory');
         }
       } catch {
@@ -279,7 +308,7 @@ export default function CreateCosmeticPage() {
         setLoading(false);
       }
     },
-    [imageFile, thumbnailFile, formData, selectedPackageId, router, loading],
+    [imageFile, thumbnailFile, formData, selectedPackageId, router, loading, hasInsufficientCoins, userCoins, creationCost, updateBalance],
   );
 
   const handlePackageSelect = useCallback(
@@ -443,7 +472,6 @@ export default function CreateCosmeticPage() {
 
               {/* Uploads de Arquivos Dinâmicos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Upload 1: Moldura Principal */}
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                     <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Camada da Moldura
@@ -468,7 +496,6 @@ export default function CreateCosmeticPage() {
                   </p>
                 </div>
 
-                {/* Upload 2: Miniatura Condicional */}
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                     <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Miniatura
@@ -481,12 +508,12 @@ export default function CreateCosmeticPage() {
                     onChange={handleThumbnailChange}
                     className="hidden"
                     id="thumbnail-upload"
-                    disabled={!imageFile} // Desabilita nativamente o input caso não tenha moldura
+                    disabled={!imageFile}
                   />
 
                   <div className="relative">
                     <label
-                      htmlFor={imageFile ? 'thumbnail-upload' : undefined} // Só vincula o clique ao input se a moldura existir
+                      htmlFor={imageFile ? 'thumbnail-upload' : undefined}
                       className={`flex flex-col items-center justify-center gap-2 border border-dashed rounded-xl p-4 bg-slate-950/40 text-sm font-medium transition-all text-center group min-h-22.5 select-none ${
                         imageFile
                           ? `border-slate-800 hover:${currentStyle.borderClass} text-slate-300 cursor-pointer`
@@ -505,7 +532,6 @@ export default function CreateCosmeticPage() {
                       </span>
                     </label>
 
-                    {/* Botão Flutuante de Remoção de Miniatura */}
                     {thumbnailFile && (
                       <button
                         type="button"
@@ -526,6 +552,7 @@ export default function CreateCosmeticPage() {
                 </div>
               </div>
 
+              {/* Tabela de Custos Atualizada */}
               <div
                 className={`bg-slate-950/60 rounded-xl p-5 border ${currentStyle.borderClass} space-y-3 transition-all duration-500`}
               >
@@ -547,27 +574,48 @@ export default function CreateCosmeticPage() {
                       : '1x'}
                   </span>
                 </div>
-                <div className="border-t border-slate-800/80 my-2 pt-2 flex justify-between items-center">
-                  <span
-                    className={`text-sm font-semibold ${currentStyle.textClass} transition-colors duration-500`}
-                  >
-                    Custo de Emissão do Contrato
-                  </span>
-                  <span
-                    className={`text-xl font-black text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} transition-all duration-500`}
-                  >
-                    {creationCost} moedas
-                  </span>
+                
+                {/* Linha separadora + Saldo do Usuário vs Custo Final */}
+                <div className="border-t border-slate-800/80 my-2 pt-3 flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold text-slate-400">
+                      Seu Saldo
+                    </span>
+                    <span className={`text-sm font-bold ${hasInsufficientCoins ? 'text-red-400' : 'text-slate-400'}`}>
+                      {userCoins} moedas
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`text-sm font-semibold ${currentStyle.textClass} transition-colors duration-500`}
+                    >
+                      Custo de Emissão do Contrato
+                    </span>
+                    <span
+                      className={`text-xl font-black text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} transition-all duration-500`}
+                    >
+                      {creationCost} moedas
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                {/* Botão de Submit com Estilo Condicional */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className={`bg-linear-to-r ${currentStyle.buttonSubmit} text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-1 text-center tracking-wide select-none`}
+                  disabled={loading || hasInsufficientCoins}
+                  className={`${
+                    hasInsufficientCoins
+                      ? 'bg-red-950/40 text-red-500 border border-red-500/20 cursor-not-allowed opacity-70'
+                      : `bg-linear-to-r ${currentStyle.buttonSubmit} text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`
+                  } font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex-1 text-center tracking-wide select-none`}
                 >
-                  {loading ? 'FORJANDO ATIVO...' : 'CONFIRMAR CRIAÇÃO'}
+                  {loading 
+                    ? 'FORJANDO ATIVO...' 
+                    : hasInsufficientCoins 
+                      ? 'SALDO INSUFICIENTE' 
+                      : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link
                   href="/worldo/cosmetics/marketplace"
