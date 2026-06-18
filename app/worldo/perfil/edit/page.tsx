@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
-import { tokenManager } from '@/lib/pythonTokenManager';
+import { pythonApiCall } from '@/lib/pythonApiClient';
 import { redirect } from 'next/navigation';
 import {
   Sparkles,
@@ -146,14 +146,6 @@ export default function EditProfilePage() {
     setSuccess('');
 
     try {
-      const token = await tokenManager.getToken();
-
-      if (!token) {
-        setError('Token de autenticação não encontrado. Faça login novamente.');
-        setLoading(false);
-        return;
-      }
-
 
       const submitData = new FormData();
       submitData.append('name', formData.name);
@@ -167,9 +159,7 @@ export default function EditProfilePage() {
 
       if (coverFile) submitData.append('cover', coverFile);
       if (removeCover) submitData.append('removeCover', 'true');
-      const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_URL || 'http://localhost:8000';
-      const res = await fetch(`${PYTHON_API}/api/py/profile/update`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await pythonApiCall('/api/py/profile/update', {
         method: 'PUT',
         body: submitData,
       });

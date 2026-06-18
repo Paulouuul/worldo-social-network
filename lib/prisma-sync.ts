@@ -1,14 +1,17 @@
 // lib/prisma-sync.ts
 import { esClient, LISTINGS_INDEX } from './elasticsearch';
-import { baseClient } from './prisma'; // Se você exportar o baseClient
+import { baseClient } from './prisma';
+
 
 // Se
 /**
  * Busca os dados completos no banco e envia para o Elasticsearch
  */
-export async function syncToListing(listingId: string) {
+export async function syncToListing(listingId: string, tx?: any) {
   try {
-    const listing = await baseClient.cosmetic_listing.findUnique({
+
+    const client = tx || baseClient;
+    const listing = await client.cosmetic_listing.findUnique({
       where: { id: listingId },
       include: {
         frame: {

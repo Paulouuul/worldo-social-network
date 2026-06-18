@@ -81,9 +81,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[REMOVE] Iniciando transação...');
+    console.log('[REMOVE] Iniciando transação PostgreSQL...');
 
-    // Remover do mercado
     const result = await prisma.$transaction(async (tx) => {
       console.log('[REMOVE] Buscando itens listados...');
 
@@ -126,26 +125,39 @@ export async function POST(request: NextRequest) {
       console.log('[REMOVE] Nova quantidade:', newQuantity);
 
       if (newQuantity <= 0) {
-        // Se não tem mais unidades, deletar o anúncio
         console.log('[REMOVE] Deletando listing (quantidade zerada)...');
         await tx.cosmetic_listing.delete({
           where: { id: listingId },
         });
         console.log('[REMOVE] Listing deletado');
-        await removeFromElasticsearch(listingId);
         return { deleted: true, remainingQuantity: 0 };
       } else {
-        // Atualizar a quantidade do anúncio
         console.log('[REMOVE] Atualizando quantidade do listing...');
         await tx.cosmetic_listing.update({
           where: { id: listingId },
           data: { quantity: newQuantity },
         });
         console.log('[REMOVE] Listing atualizado');
-        await syncToListing(listingId);
         return { deleted: false, remainingQuantity: newQuantity };
       }
     });
+
+    console.log('[REMOVE] Transação PostgreSQL concluída');
+
+    try {
+      if (result.deleted) {
+        console.log('[REMOVE] Removendo do Elasticsearch...');
+        await removeFromElasticsearch(listingId);
+        console.log('[REMOVE] Removido do Elasticsearch com sucesso');
+      } else {
+        console.log('[REMOVE] Sincronizando com Elasticsearch...');
+        await syncToListing(listingId);
+        console.log('[REMOVE] Sincronizado com Elasticsearch com sucesso');
+      }
+    } catch (esError) {
+      console.error('[REMOVE] ERRO ao sincronizar com Elasticsearch:', esError);
+      // Não lançar erro para não quebrar a resposta
+    }
 
     console.log('[REMOVE] Operação concluída com sucesso:', result);
 
@@ -157,7 +169,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[REMOVE] Erro crítico:', error);
 
-    // Log detalhado do erro
     if (error instanceof Error) {
       console.error('[REMOVE] Mensagem:', error.message);
       console.error('[REMOVE] Stack:', error.stack);

@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
             listingId: listing.id,
           },
         });
-        await syncToListing(listing.id);
+        await syncToListing(listing.id, tx);
         console.log('[LISTING] Anúncio atualizado:', listing.id);
       } else {
         // CRIAR NOVO ANÚNCIO
@@ -138,6 +138,7 @@ export async function POST(request: NextRequest) {
             listingId: listing.id, // Usa o ID do anúncio (novo ou existente)
           },
         });
+        await syncToListing(listing.id, tx);
         console.log('[LISTING] Itens atualizados');
       }
 

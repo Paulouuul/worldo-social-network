@@ -7,13 +7,14 @@ import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
+import { pythonApiCall } from '@/lib/pythonApiClient';
 import {
   Coins,
   User,
   Store,
   Package,
   ArrowLeft,
-  ShoppingBag,
+  ShoppingCart,
   Sparkles,
   Calendar,
   AlertTriangle,
@@ -108,34 +109,56 @@ export default function ListingDetailPage() {
       });
   }, [listingId]);
 
-  const handleBuy = async () => {
+  const handleAddToCart = async () => {
     if (!session) {
       router.push('/login');
       return;
     }
 
+    if (!listing) return;
+
     setBuying(true);
     setError('');
 
     try {
-      const res = await fetch('/api/cosmetics/buy', {
+      
+      // 1. Monta os dados do item
+      const itemData = {
+        listing_id: listing.id,
+        frame_id: listing.frame.id,
+        name: listing.frame.name,
+        price: listing.priceCoins,
+        seller_id: listing.seller.id,
+        seller_name: listing.seller.name,
+        image_url: listing.frame.imageUrl,
+        thumbnail_url: listing.frame.thumbnailUrl,
+        max_quantity: listing.quantity,
+        quantity: buyQuantity
+      };
+
+
+      // 2. Chama a API do Python (carrinho)
+      const res = await pythonApiCall('/api/py/cosmetics/marketplace/cart/add/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          listingId: listing?.id,
-          quantity: buyQuantity,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ item_data: itemData }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        alert('Compra realizada com sucesso!');
-        router.push('/worldo/cosmetics/inventory');
-      } else {
-        setError(data.error || 'Erro ao processar compra');
+      if (!res.ok) {
+        setError(data.detail || data.error || 'Erro ao adicionar ao carrinho');
+        return;
       }
-    } catch {
+
+      // 4. Sucesso - redireciona para o carrinho
+      alert('Item adicionado ao carrinho!');
+      router.push('/worldo/cosmetics/cart');
+
+    } catch (error) {
+      console.error('Erro ao adicionar ao carrinho:', error);
       setError('Erro ao conectar com o servidor');
     } finally {
       setBuying(false);
@@ -338,7 +361,7 @@ export default function ListingDetailPage() {
               </div>
 
               <button
-                onClick={handleBuy}
+                onClick={handleAddToCart}
                 disabled={buying}
                 className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm uppercase tracking-wider py-4 rounded-xl transition-[transform,shadow] hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(147,51,234,0.2)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
               >
@@ -346,8 +369,8 @@ export default function ListingDetailPage() {
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <ShoppingBag className="w-5 h-5" />
-                    Finalizar Compra
+                    <ShoppingCart className="w-5 h-5" />
+                    Adicionar ao Carrinho
                   </>
                 )}
               </button>

@@ -5,7 +5,7 @@ import { useRouter, redirect } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
-import { tokenManager } from '@/lib/pythonTokenManager';
+import { pythonApiCall } from '@/lib/pythonApiClient';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import {
@@ -281,27 +281,28 @@ export default function CreateCosmeticPage() {
       }
 
       try {
-        const token = await tokenManager.getToken();
-        const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_URL || 'http://localhost:8000';
-        const res = await fetch(`${PYTHON_API}/api/py/cosmetics/create`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await pythonApiCall('/api/py/cosmetics/create', {
           method: 'POST',
           body: submitData,
-        });
+      });
 
         const data = await res.json();
 
         if (!res.ok) {
-          setError(data.error || 'Erro ao criar moldura');
+          setError(data.error || data.detail || 'Erro ao criar moldura');
           window.scrollTo({ top: 0, behavior: 'smooth' });
           setLoading(false);
+          return;
         } else {
           setSuccess(data.message || 'Moldura criada com sucesso!');
           // Débito otimista na store
           updateBalance(userCoins - creationCost);
+          setTimeout(() => {
           router.push('/worldo/cosmetics/inventory');
+        }, 1500);
         }
-      } catch {
+      } catch(error) {
+         console.error('Erro ao criar moldura:', error);
         setError('Erro ao conectar com o servidor');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setLoading(false);

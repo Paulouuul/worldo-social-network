@@ -84,10 +84,10 @@ export async function GET(req: NextRequest) {
     let sortField: any = [];
     switch (sort) {
       case 'price_asc':
-        sortField = [{ priceCoins: { order: 'asc' } }];
+        sortField = [{ priceCoins: { order: 'asc' } }, { createdAt: { order: 'desc' } }];
         break;
       case 'price_desc':
-        sortField = [{ priceCoins: { order: 'desc' } }];
+        sortField = [{ priceCoins: { order: 'desc' } }, { createdAt: { order: 'desc' } }];
         break;
       case 'oldest':
         sortField = [{ createdAt: { order: 'asc' } }];
