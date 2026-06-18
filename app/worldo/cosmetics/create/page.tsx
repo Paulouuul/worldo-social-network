@@ -5,6 +5,7 @@ import { useRouter, redirect } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
+import { tokenManager } from '@/lib/pythonTokenManager';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import {
@@ -280,9 +281,7 @@ export default function CreateCosmeticPage() {
       }
 
       try {
-        const tokenRes = await fetch('/api/auth/token');
-        const tokenData = await tokenRes.json();
-        const token = tokenData.pythonToken || tokenData.token;
+        const token = await tokenManager.getToken();
         const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_URL || 'http://localhost:8000';
         const res = await fetch(`${PYTHON_API}/api/py/cosmetics/create`, {
           headers: { Authorization: `Bearer ${token}` },

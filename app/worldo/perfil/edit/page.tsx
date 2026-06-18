@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
+import { tokenManager } from '@/lib/pythonTokenManager';
 import { redirect } from 'next/navigation';
 import {
   Sparkles,
@@ -145,9 +146,7 @@ export default function EditProfilePage() {
     setSuccess('');
 
     try {
-      const tokenRes = await fetch('/api/auth/token');
-      const tokenData = await tokenRes.json();
-      const token = tokenData.pythonToken || tokenData.token;
+      const token = await tokenManager.getToken();
 
       if (!token) {
         setError('Token de autenticação não encontrado. Faça login novamente.');
