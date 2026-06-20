@@ -169,7 +169,7 @@ export default function CreateCosmeticPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jfif'];
     if (!allowedTypes.includes(file.type)) {
       setError('Formato não suportado.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -198,7 +198,7 @@ export default function CreateCosmeticPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jfif'];
     if (!allowedTypes.includes(file.type)) {
       setError('Formato não suportado.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -479,7 +479,7 @@ export default function CreateCosmeticPage() {
                   <input
                     ref={imageInputRef}
                     type="file"
-                    accept="image/png,image/jpeg,image/gif,image/webp,image/jfif"
+                    accept="image/png,image/jpeg,image/gif,iimage/jfif"
                     onChange={handleImageChange}
                     className="hidden"
                     id="image-upload"
@@ -504,7 +504,7 @@ export default function CreateCosmeticPage() {
                   <input
                     ref={thumbnailInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/webp,image/jfif"
+                    accept="image/jpeg,image/png,image/gif,image/jfif"
                     onChange={handleThumbnailChange}
                     className="hidden"
                     id="thumbnail-upload"

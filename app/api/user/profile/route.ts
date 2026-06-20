@@ -10,8 +10,8 @@ export async function PUT(request: NextRequest) {
 
   const MAX_AVATAR_GIF = 3 * 1024 * 1024;
   const MAX_COVER_GIF = 5 * 1024 * 1024;
-  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif'];
-  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif'];
+  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'jfif'];
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/jfif'];
 
   // Rastreamento estrito para reversão (Rollback) em caso de falha no banco
   let uploadedAvatarPath: string | null = null;
@@ -112,7 +112,7 @@ export async function PUT(request: NextRequest) {
         !ALLOWED_EXTENSIONS.includes(extension)
       ) {
         return NextResponse.json(
-          { error: 'Formato do avatar não suportado. Use JPG, PNG, GIF ou WEBP' },
+          { error: 'Formato do avatar não suportado. Use JPG, PNG, GIF ou JFIF' },
           { status: 400 },
         );
       }
@@ -173,7 +173,7 @@ export async function PUT(request: NextRequest) {
         !ALLOWED_EXTENSIONS.includes(extension)
       ) {
         return NextResponse.json(
-          { error: 'Formato do cover não suportado. Use JPG, PNG, GIF ou WEBP' },
+          { error: 'Formato do cover não suportado. Use JPG, PNG, GIF ou JFIF' },
           { status: 400 },
         );
       }

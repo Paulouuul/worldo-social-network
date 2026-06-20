@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
   const MAX_FRAME_GIF = 3 * 1024 * 1024; // 3MB
   const MAX_THUMB_SIZE = 2 * 1024 * 1024; // 2MB
   const MAX_THUMB_GIF = 1 * 1024 * 1024; // 1MB
-  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif'];
-  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jfif'];
+  const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'jfif'];
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/jfif'];
 
   try {
     const session = await auth();
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       !ALLOWED_EXTENSIONS.includes(imgExtension)
     ) {
       return NextResponse.json(
-        { error: 'Formato não suportado. Use JPG, PNG, GIF ou WEBP' },
+        { error: 'Formato não suportado. Use JPG, PNG, GIF ou JFIF' },
         { status: 400 },
       );
     }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         !ALLOWED_EXTENSIONS.includes(thumbExtension)
       ) {
         return NextResponse.json(
-          { error: 'Formato da miniatura não suportado. Use JPG, PNG, GIF ou WEBP' },
+          { error: 'Formato da miniatura não suportado. Use JPG, PNG, GIF ou JFIF' },
           { status: 400 },
         );
       }

@@ -85,7 +85,7 @@ export default function EditProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/jfif', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/jfif', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       setError(`Formato de ${type} não suportado.`);
       return;
@@ -307,7 +307,7 @@ export default function EditProfilePage() {
                   <input
                     ref={coverInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/webp,image/jfif"
+                    accept="image/jpeg,image/png,image/gif,image/jfif"
                     onChange={(e) => handleFileChange(e, 'cover')}
                     className="hidden"
                     id="cover-upload"
@@ -361,7 +361,7 @@ export default function EditProfilePage() {
                 <input
                   ref={avatarInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp,image/jfif"
+                  accept="image/jpeg,image/png,image/gif,image/jfif"
                   onChange={(e) => handleFileChange(e, 'avatar')}
                   className="hidden"
                   id="avatar-upload"
