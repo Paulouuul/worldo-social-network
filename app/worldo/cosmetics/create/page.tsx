@@ -281,7 +281,7 @@ export default function CreateCosmeticPage() {
       }
 
       try {
-        const res = await backendApiCall('/api/py/cosmetics/create', {
+        const res = await backendApiCall('/cosmetics/create', {
           method: 'POST',
           body: submitData,
       });
