@@ -8,11 +8,10 @@ function SessionForceSync() {
   const { update } = useSession();
 
   useEffect(() => {
-    // 🔥 A MAGIA ACONTECE AQUI
     const handlePageShow = async (event: PageTransitionEvent) => {
       if (event.persisted) {
-        console.log('🔄 Página restaurada do cache, forçando sync...');
-        await update(); // ← Isso resolve tudo!
+        console.log('Página restaurada do cache, forçando sync...');
+        await update();
       }
     };
 

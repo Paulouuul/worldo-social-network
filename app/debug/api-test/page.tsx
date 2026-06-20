@@ -14,8 +14,7 @@ export default function ApiTestPage() {
     const data = await tokenRes.json();
     const token = data.pythonToken || data.token;
 
-    console.log('Token obtido:', token);
-    console.log('Token length:', token?.length);
+
 
     // 2. Testar endpoint debug-token
     const debugRes = await fetch('http://localhost:8000/test/auth/debug-token', {

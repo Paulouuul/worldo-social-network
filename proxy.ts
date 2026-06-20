@@ -11,7 +11,6 @@ export async function proxy(req: NextRequest) {
 
   const pathname = req.nextUrl.pathname;
 
-  console.log('Proxy - path:', pathname, 'token:', !!token);
 
   // Usuário autenticado na raiz → /worldo
   if (token && (pathname === '/' || pathname === '/login' || pathname === '/register')) {

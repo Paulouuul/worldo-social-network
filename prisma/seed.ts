@@ -312,12 +312,12 @@ async function main() {
     console.log(`Moldura: ${frame.name} (${frame.rarity})`);
   }
 
-  console.log('✅ Seed completed!');
+  console.log('Seed completed!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error('Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {

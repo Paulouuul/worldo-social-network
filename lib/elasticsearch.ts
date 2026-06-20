@@ -18,17 +18,17 @@ export const esClient = new Client({
   },
 });
 
-export const LISTINGS_INDEX = 'cosmetic_listings';
+export const LISTINGS_INDEX= 'cosmetic_listings';
 
 // Verificar conexão
 export async function checkElasticsearchConnection() {
   try {
     // Agora realmente testa a conexão
     await esClient.ping();
-    console.log('Ok! Elasticsearch connected and authenticated');
+    console.log('Elasticsearch connected and authenticated');
     return true;
   } catch (error) {
-    console.error('X Elasticsearch connection failed:', error);
+    console.error('XElasticsearch connection failed:', error);
     return false;
   }
 }
@@ -72,9 +72,9 @@ export async function setupElasticsearchIndices() {
           },
         },
       });
-      console.log(`Ok! Index ${LISTINGS_INDEX} created`);
+      console.log(`IndeX${LISTINGS_INDEX} created`);
     } else {
-      console.log(`ℹ️ Index ${LISTINGS_INDEX} already exists`);
+      console.log(`IndeX${LISTINGS_INDEX} already exists`);
     }
   } catch (error) {
     console.error('Error setting up indices:', error);
@@ -144,7 +144,7 @@ export async function setupElasticsearchIndicesWithCustomAnalysis() {
           },
         },
       });
-      console.log(`Ok! Index ${LISTINGS_INDEX} created with custom analysis`);
+      console.log(`IndeX${LISTINGS_INDEX} created with custom analysis`);
     }
   } catch (error) {
     console.error('Error setting up indices with custom analysis:', error);

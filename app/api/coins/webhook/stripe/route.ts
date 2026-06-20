@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
       });
 
       if (existingPurchase) {
-        // console.log(`Evento duplicado ignorado. Sessão do Stripe já processada: ${session.id}`)
         // Retorna status 200 para o Stripe parar de reenviar este mesmo evento
         return NextResponse.json({ received: true, message: 'Already processed' });
       }
@@ -96,7 +95,6 @@ export async function POST(request: NextRequest) {
         });
       });
 
-      // console.log(`Sucesso! ${coinsToCredit} moedas creditadas para o usuário ${userId}`)
     } catch (dbError) {
       console.error('Falha crítica ao persistir dados do pagamento no banco:', dbError);
       // Retorna 500 para que o Stripe guarde o evento na fila e tente enviá-lo novamente mais tarde

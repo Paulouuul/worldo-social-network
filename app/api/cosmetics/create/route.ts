@@ -37,13 +37,6 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get('image') as File | null;
     const thumbnailFile = formData.get('thumbnail') as File | null;
 
-    console.log('[4] Dados recebidos:', {
-      name,
-      hasImage: !!imageFile,
-      imageSize: imageFile?.size,
-      hasThumbnail: !!thumbnailFile,
-    });
-
     // 1. Validação Rápida (Fail Fast)
     if (!name || !packageId) {
       return NextResponse.json(
@@ -127,7 +120,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Verificar custo e moedas ANTES do upload do arquivo
-    console.log('[7] Buscando pacote:', packageId);
 
     const selectedPackage = await prisma.cosmetic_creation_package.findUnique({
       where: { id: packageId },
@@ -172,7 +164,6 @@ export async function POST(request: NextRequest) {
     uploadedImageUrl = await uploadPublic(optimizedImage, imgPath);
 
     if (thumbnailFile && thumbnailFile.size > 0) {
-      console.log('[12] Convertendo e fazendo upload da thumbnail...');
       const thumbBuffer = Buffer.from(await thumbnailFile.arrayBuffer());
       const isThumbGif = thumbnailFile.type === 'image/gif';
 

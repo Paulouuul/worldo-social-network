@@ -28,7 +28,7 @@ export async function syncToListing(listingId: string, tx?: any) {
     });
 
     if (!listing) {
-      console.log(`!! [Auto-sync] Listing ${listingId} not found`);
+      console.log(`[Auto-sync] Listing ${listingId} not found`);
       return;
     }
 
@@ -58,9 +58,9 @@ export async function syncToListing(listingId: string, tx?: any) {
       },
     });
 
-    console.log(`Ok! [Auto-sync] Listing ${listingId} synced to Elasticsearch`);
+    console.log(`[Auto-sync] Listing ${listingId} synced to Elasticsearch`);
   } catch (error) {
-    console.error(`!! [Auto-sync] Failed to sync listing ${listingId}:`, error);
+    console.error(`[Auto-sync] Failed to sync listing ${listingId}:`, error);
   }
 }
 
@@ -73,8 +73,8 @@ export async function removeFromElasticsearch(listingId: string) {
       index: LISTINGS_INDEX,
       id: listingId,
     });
-    console.log(`🗑️ [Auto-sync] Listing ${listingId} removed from Elasticsearch`);
+    console.log(`[Auto-sync] Listing ${listingId} removed from Elasticsearch`);
   } catch (error) {
-    console.error(`!! [Auto-sync] Error removing listing ${listingId} from ES:`, error);
+    console.error(`[Auto-sync] Error removing listing ${listingId} from ES:`, error);
   }
 }

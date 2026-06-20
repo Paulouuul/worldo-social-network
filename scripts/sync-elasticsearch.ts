@@ -4,12 +4,12 @@ import { prisma } from '../lib/prisma';
 import { esClient, LISTINGS_INDEX, setupElasticsearchIndices } from '../lib/elasticsearch';
 
 async function syncExistingListings() {
-  console.log('🔄 Starting Elasticsearch sync...');
+  console.log('Starting Elasticsearch sync...');
 
   try {
     // Testar conexão com PostgreSQL
     const userCount = await prisma.users.count();
-    console.log(`✅ Connected to PostgreSQL. Users: ${userCount}`);
+    console.log(`Connected to PostgreSQL. Users: ${userCount}`);
 
     // Setup Elasticsearch
     await setupElasticsearchIndices();
@@ -42,10 +42,10 @@ async function syncExistingListings() {
       },
     });
 
-    console.log(`📊 Found ${listings.length} listings to sync`);
+    console.log(`Found ${listings.length} listings to sync`);
 
     if (listings.length === 0) {
-      console.log('⚠️ No active listings found in database');
+      console.log('No active listings found in database');
       return;
     }
 
@@ -91,17 +91,17 @@ async function syncExistingListings() {
           console.log(`   Indexed ${indexedCount}/${listings.length} listings`);
         }
       } catch (error) {
-        console.error(`   ❌ Failed to index listing ${listing.id}:`, error);
+        console.error(`   Failed to index listing ${listing.id}:`, error);
       }
     }
 
-    console.log(`✅ Synced ${indexedCount}/${listings.length} listings to Elasticsearch`);
+    console.log(`Synced ${indexedCount}/${listings.length} listings to Elasticsearch`);
 
     // Verificar total no Elasticsearch
     const count = await esClient.count({ index: LISTINGS_INDEX });
-    console.log(`📊 Total documents in Elasticsearch: ${count.count}`);
+    console.log(`Total documents in Elasticsearch: ${count.count}`);
   } catch (error) {
-    console.error('❌ Sync failed:', error);
+    console.error('Sync failed:', error);
   } finally {
     await prisma.$disconnect();
   }
