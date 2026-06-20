@@ -42,7 +42,7 @@ class BackendTokenManager {
         }
         
         const data = await res.json();
-        const newToken = data.BackendToken || data.token;
+        const newToken = data.token || "";
         
         if (!newToken) {
           throw new Error('Token não retornado pela API');

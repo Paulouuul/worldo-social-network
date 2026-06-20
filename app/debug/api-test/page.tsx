@@ -12,18 +12,18 @@ export default function ApiTestPage() {
     // 1. Buscar token
     const tokenRes = await fetch('/api/auth/token');
     const data = await tokenRes.json();
-    const token = data.jwtToken || data.token;
+    const token = data.token || "";
 
 
 
     // 2. Testar endpoint debug-token
-    const debugRes = await fetch('http://localhost:8000/test/auth/debug-token', {
+    const debugRes = await fetch('http://localhost:8000/api/py/auth_test/test/auth/debug-token', {
       headers: { Authorization: `Bearer ${token}` },
     });
     const debugData = await debugRes.json();
 
     // 3. Testar endpoint debug-jwt
-    const jwtRes = await fetch('http://localhost:8000/test/auth/debug-jwt', {
+    const jwtRes = await fetch('http://localhost:8000/api/py/auth_test/test/auth/debug-jwt', {
       headers: { Authorization: `Bearer ${token}` },
     });
     const jwtData = await jwtRes.json();

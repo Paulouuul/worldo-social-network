@@ -12,10 +12,10 @@ export async function GET() {
     }
 
     // 2. Gera o token JWT para o Backend
-    const jwtToken = await generateJwtToken(session);
+    const token = await generateJwtToken(session);
 
     // Token é o JWT
-    return NextResponse.json({ jwtToken });
+    return NextResponse.json({ token });
   } catch (error) {
     console.error('Erro ao obter token:', error);
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
