@@ -12,7 +12,7 @@ export default function ApiTestPage() {
     // 1. Buscar token
     const tokenRes = await fetch('/api/auth/token');
     const data = await tokenRes.json();
-    const token = data.pythonToken || data.token;
+    const token = data.jwtToken || data.token;
 
 
 

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
-import { pythonApiCall } from '@/lib/pythonApiClient';
+import { backendApiCall } from '@/lib/backendApiClient';
 import {
   Coins,
   User,
@@ -137,8 +137,8 @@ export default function ListingDetailPage() {
       };
 
 
-      // 2. Chama a API do Python (carrinho)
-      const res = await pythonApiCall('/api/py/cosmetics/marketplace/cart/add/', {
+      // 2. Chama a API do Backend (carrinho)
+      const res = await backendApiCall('/cosmetics/marketplace/cart/add/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

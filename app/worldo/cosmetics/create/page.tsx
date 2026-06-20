@@ -5,7 +5,7 @@ import { useRouter, redirect } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
-import { pythonApiCall } from '@/lib/pythonApiClient';
+import { backendApiCall } from '@/lib/backendApiClient';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import {
@@ -281,7 +281,7 @@ export default function CreateCosmeticPage() {
       }
 
       try {
-        const res = await pythonApiCall('/api/py/cosmetics/create', {
+        const res = await backendApiCall('/api/py/cosmetics/create', {
           method: 'POST',
           body: submitData,
       });

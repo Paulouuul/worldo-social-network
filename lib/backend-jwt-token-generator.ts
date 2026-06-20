@@ -1,11 +1,11 @@
-// lib/backend-python-token-generator.ts
+// lib/backend-Backend-token-generator.ts
 import { SignJWT } from 'jose';
 import { Session } from 'next-auth';
 
 // Configurações
-const JWT_SECRET = process.env.PYTHON_BACKEND_JWT_SECRET;
-const JWT_ALGORITHM = process.env.PYTHON_BACKEND_JWT_ALGORITHM || 'HS256';
-const TOKEN_EXPIRATION = process.env.PYTHON_BACKEND_TOKEN_EXPIRATION || '15m';
+const JWT_SECRET = process.env.BACKEND_JWT_SECRET;
+const JWT_ALGORITHM = process.env.BACKEND_JWT_ALGORITHM || 'HS256';
+const TOKEN_EXPIRATION = process.env.BACKEND_TOKEN_EXPIRATION || '15m';
 
 // Validação da secret
 if (!JWT_SECRET) {
@@ -13,7 +13,7 @@ if (!JWT_SECRET) {
 }
 
 // Interface para os dados do token
-export interface PythonTokenPayload {
+export interface BackendTokenPayload {
   id: string;
   publicId: string;
   email: string;
@@ -33,9 +33,9 @@ export interface PythonTokenPayload {
 /**
  * Extrai os dados do usuário da sessão do NextAuth
  * @param session - Sessão completa do NextAuth
- * @returns Dados formatados para o token Python
+ * @returns Dados formatados para o token Backend
  */
-function extractUserFromSession(session: Session): PythonTokenPayload {
+function extractUserFromSession(session: Session): BackendTokenPayload {
   if (!session?.user) {
     throw new Error('Sessão não contém dados de usuário');
   }
@@ -65,11 +65,11 @@ function extractUserFromSession(session: Session): PythonTokenPayload {
 }
 
 /**
- * Gera um token JWT para comunicação com o backend Python a partir da sessão completa
+ * Gera um token JWT para comunicação com o backend Backend a partir da sessão completa
  * @param session - Sessão completa do NextAuth (retornada por auth())
  * @returns Token JWT assinado
  */
-export async function generatePythonTokenFromSession(session: Session): Promise<string> {
+export async function generateJwtTokenFromSession(session: Session): Promise<string> {
   if (!session?.user) {
     throw new Error('Sessão inválida ou usuário não autenticado');
   }
@@ -111,17 +111,17 @@ export async function generatePythonTokenFromSession(session: Session): Promise<
  * @param sessionOrUser - Sessão completa OU dados do usuário diretamente
  * @returns Token JWT assinado
  */
-export async function generatePythonToken(
-  sessionOrUser: Session | PythonTokenPayload,
+export async function generateJwtToken(
+  sessionOrUser: Session | BackendTokenPayload,
 ): Promise<string> {
-  let userData: PythonTokenPayload;
+  let userData: BackendTokenPayload;
 
   // Verifica se é uma sessão do NextAuth (tem a propriedade 'user')
   if ('user' in sessionOrUser && sessionOrUser.user) {
     userData = extractUserFromSession(sessionOrUser as Session);
   } else {
     // Assume que é o payload direto
-    userData = sessionOrUser as PythonTokenPayload;
+    userData = sessionOrUser as BackendTokenPayload;
   }
 
   const secretBuffer = new TextEncoder().encode(JWT_SECRET);
@@ -152,16 +152,16 @@ export async function generatePythonToken(
 }
 
 /**
- * Decodifica e valida um token Python (útil para debug)
+ * Decodifica e valida um token Backend (útil para debug)
  */
-export async function verifyPythonToken(token: string): Promise<PythonTokenPayload | null> {
+export async function verifyBackendToken(token: string): Promise<BackendTokenPayload | null> {
   try {
     const { payload } = await import('jose').then((jose) =>
       jose.jwtVerify(token, new TextEncoder().encode(JWT_SECRET)),
     );
-    return payload as unknown as PythonTokenPayload;
+    return payload as unknown as BackendTokenPayload;
   } catch (error) {
-    console.error('Erro ao validar token Python:', error);
+    console.error('Erro ao validar token Backend:', error);
     return null;
   }
 }

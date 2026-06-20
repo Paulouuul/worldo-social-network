@@ -1,12 +1,12 @@
-// lib/pythonTokenManager.ts
-class PythonTokenManager {
+// lib/backendTokenManager.ts
+class BackendTokenManager {
   private token: string | null = null;
   private expiryTime: number = 0;
   private isGenerating: boolean = false;
   private generatePromise: Promise<string> | null = null;
   
   // Configurações
-  private readonly TOKEN_EXPIRY_MS = (Number(process.env.PYTHON_BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
+  private readonly TOKEN_EXPIRY_MS = (Number(process.env.BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
   private readonly SAFETY_MARGIN_MS = 2 * 60 * 1000;
 
   /**
@@ -42,7 +42,7 @@ class PythonTokenManager {
         }
         
         const data = await res.json();
-        const newToken = data.pythonToken || data.token;
+        const newToken = data.BackendToken || data.token;
         
         if (!newToken) {
           throw new Error('Token não retornado pela API');
@@ -96,4 +96,4 @@ class PythonTokenManager {
   }
 }
 
-export const tokenManager = new PythonTokenManager();
+export const tokenManager = new BackendTokenManager();

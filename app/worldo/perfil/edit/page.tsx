@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
-import { pythonApiCall } from '@/lib/pythonApiClient';
+import { backendApiCall } from '@/lib/backendApiClient';
 import { redirect } from 'next/navigation';
 import {
   Sparkles,
@@ -159,7 +159,7 @@ export default function EditProfilePage() {
 
       if (coverFile) submitData.append('cover', coverFile);
       if (removeCover) submitData.append('removeCover', 'true');
-      const res = await pythonApiCall('/api/py/profile/update', {
+      const res = await backendApiCall('/profile/update', {
         method: 'PUT',
         body: submitData,
       });

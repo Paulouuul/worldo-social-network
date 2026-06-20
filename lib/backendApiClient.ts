@@ -1,10 +1,10 @@
-// lib/pythonApiClient.ts
-import { tokenManager } from './pythonTokenManager';
+// lib/backendApiClient.ts
+import { tokenManager } from './backendTokenManager';
 
-const PYTHON_API = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_API = process.env.BACKEND_URL || 'http://localhost:8000';
 type FetchOptions = Parameters<typeof fetch>[1];
 
-export async function pythonApiCall(
+export async function backendApiCall(
   endpoint: string, 
   options: FetchOptions = {}
 ) {
@@ -22,7 +22,7 @@ export async function pythonApiCall(
     ...(options.headers as Record<string, string> || {}),
   };
   
-  const response = await fetch(`${PYTHON_API}${endpoint}`, {
+  const response = await fetch(`${BACKEND_API}${endpoint}`, {
     ...options,
     headers: mergedHeaders,
   });
