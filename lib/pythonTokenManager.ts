@@ -6,7 +6,7 @@ class PythonTokenManager {
   private generatePromise: Promise<string> | null = null;
   
   // Configurações
-  private readonly TOKEN_EXPIRY_MS = (Number(process.env.REALTIME_TOKEN_EXPIRATION) || 15) * 60 * 1000;
+  private readonly TOKEN_EXPIRY_MS = (Number(process.env.PYTHON_BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
   private readonly SAFETY_MARGIN_MS = 2 * 60 * 1000;
 
   /**

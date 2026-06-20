@@ -1,7 +1,7 @@
 // lib/pythonApiClient.ts
 import { tokenManager } from './pythonTokenManager';
 
-const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_URL || 'http://localhost:8000';
+const PYTHON_API = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
 type FetchOptions = Parameters<typeof fetch>[1];
 
 export async function pythonApiCall(

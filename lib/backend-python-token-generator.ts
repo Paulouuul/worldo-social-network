@@ -1,15 +1,15 @@
-// lib/realtime-python-token-generator.ts
+// lib/backend-python-token-generator.ts
 import { SignJWT } from 'jose';
 import { Session } from 'next-auth';
 
 // Configurações
-const JWT_SECRET = process.env.REALTIME_JWT_SECRET;
-const JWT_ALGORITHM = process.env.REALTIME_JWT_ALGORITHM || 'HS256';
-const TOKEN_EXPIRATION = process.env.REALTIME_TOKEN_EXPIRATION || '15m';
+const JWT_SECRET = process.env.PYTHON_BACKEND_JWT_SECRET;
+const JWT_ALGORITHM = process.env.PYTHON_BACKEND_JWT_ALGORITHM || 'HS256';
+const TOKEN_EXPIRATION = process.env.PYTHON_BACKEND_TOKEN_EXPIRATION || '15m';
 
 // Validação da secret
 if (!JWT_SECRET) {
-  throw new Error('REALTIME_JWT_SECRET não configurada no ambiente');
+  throw new Error('JWT_SECRET não configurada no ambiente');
 }
 
 // Interface para os dados do token

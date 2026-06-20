@@ -1,7 +1,7 @@
 // worldo-social-network/app/api/auth/token/route.ts
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
-import { generatePythonToken } from '@/lib/realtime-python-token-generator';
+import { generatePythonToken } from '@/lib/backend-python-token-generator';
 
 export async function GET() {
   try {
