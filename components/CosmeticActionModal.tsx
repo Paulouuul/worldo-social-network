@@ -255,7 +255,6 @@ export function CosmeticActionModal({
               avatarUrl={avatarUrl}
               name={session?.user?.name || 'Usuário'}
               frameUrl={item.frame.imageUrl}
-              className="w-28 h-28 md:w-36 md:h-36"
               rarity={item.frame.rarity}
               priority
             />

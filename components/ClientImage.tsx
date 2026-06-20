@@ -13,6 +13,8 @@ interface ClientImageProps {
   priority?: boolean;
   sizes?: string;
   unoptimized?: boolean;
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none';
+  isAnimated?: boolean;
   [key: string]: any;
 }
 
@@ -26,12 +28,14 @@ export function ClientImage({
   priority = false,
   sizes,
   unoptimized: forcedUnoptimized,
+  objectFit = 'cover',
+  isAnimated: forcedAnimated = false,
   ...props
 }: ClientImageProps) {
   // Verifica a extensão e se o sufixo "animated" está no nome do arquivo
   const lowerSrc = src.toLowerCase();
   const isGif = lowerSrc.endsWith('.gif');
-  const isAnimated = lowerSrc.includes('-animated');
+  const isAnimated = forcedAnimated || lowerSrc.includes('-animated');
 
   // Utiliza a tag <img> padrão para GIFs e imagens animadas
   if (isGif || isAnimated) {
@@ -40,7 +44,7 @@ export function ClientImage({
           position: 'absolute' as React.CSSProperties['position'],
           width: '100%',
           height: '100%',
-          objectFit: 'cover' as React.CSSProperties['objectFit'],
+          objectFit: objectFit as React.CSSProperties['objectFit'],
         }
       : undefined;
 

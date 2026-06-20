@@ -114,6 +114,7 @@ export const AvatarWithFrame = ({
             alt="Moldura"
             fill
             sizes="(max-width: 768px) 120px, 160px"
+            objectFit='contain'
             className="object-contain"
             priority={priority}
           />
