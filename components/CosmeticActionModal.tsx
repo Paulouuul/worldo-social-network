@@ -11,7 +11,6 @@ import {
   Edit2,
   MinusCircle,
   X,
-  AlertTriangle,
   Loader2,
   Coins,
   Box,
@@ -238,13 +237,11 @@ export function CosmeticActionModal({
           {/* MENSAGENS DE FEEDBACK */}
           {errorMessage && (
             <div className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl p-3 text-xs flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
           {successMessage && (
             <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl p-3 text-xs flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 block shrink-0 mt-1.5 animate-ping" />
               <span>{successMessage}</span>
             </div>
           )}

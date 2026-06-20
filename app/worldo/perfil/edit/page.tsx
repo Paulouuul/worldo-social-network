@@ -264,14 +264,12 @@ export default function EditProfilePage() {
         {/* Alertas */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-6 text-xs border border-red-500/20 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 block shrink-0" />
             <span className="leading-relaxed">{error}</span>
           </div>
         )}
 
         {success && (
           <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl mb-6 text-xs border border-emerald-500/20 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 block shrink-0" />
             <span className="leading-relaxed">{success}</span>
           </div>
         )}

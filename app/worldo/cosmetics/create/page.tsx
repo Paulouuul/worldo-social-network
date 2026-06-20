@@ -352,14 +352,12 @@ export default function CreateCosmeticPage() {
         <div className="p-8">
           {error && (
             <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-500/20 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-500 block" />
               {error}
             </div>
           )}
 
           {success && (
             <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl mb-6 text-sm border border-emerald-500/20 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 block" />
               {success}
             </div>
           )}
@@ -479,7 +477,7 @@ export default function CreateCosmeticPage() {
                   <input
                     ref={imageInputRef}
                     type="file"
-                    accept="image/png,image/jpeg,image/gif,iimage/jfif"
+                    accept="image/png,image/jpeg,image/gif,image/jfif"
                     onChange={handleImageChange}
                     className="hidden"
                     id="image-upload"

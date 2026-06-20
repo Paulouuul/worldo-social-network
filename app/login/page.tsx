@@ -106,7 +106,6 @@ function LoginContent() {
         {/* Alertas de Sucesso */}
         {success && (
           <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl mb-4 text-xs border border-emerald-500/20 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 block shrink-0" />
             {success}
           </div>
         )}
