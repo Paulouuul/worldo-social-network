@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 
 import { LogoutButton } from '@/components/LogoutButton';
 import { CoinBalance } from '@/components/CoinBalance';
+import { CartBadge } from '@/components/CartBadge';
 import { AvatarWithFrame } from './AvatarWithFrame';
 
 import { Home, User, Compass, Menu, X, Store, Package, Sparkles, ChevronDown } from 'lucide-react';
@@ -180,7 +181,8 @@ export default function Header() {
 
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-3 xl:gap-4 shrink-0">
-              <CoinBalance />
+              <CoinBalance/>
+              <CartBadge/>
 
               {/* Cartão de Usuário Glassmorphic */}
               <div className="flex items-center gap-2 xl:gap-3 galaxy-user-card bg-white/5 border border-white/10 px-2 py-1.5 xl:px-3 rounded-xl backdrop-blur-sm shadow-inner max-w-50 xl:max-w-62.5">
@@ -272,7 +274,8 @@ export default function Header() {
 
               {/* Widget de Moedas no Perfil Mobile */}
               <div className="mt-4 flex justify-center w-full">
-                <CoinBalance onClick={handleLinkClick} />
+                <CoinBalance onClick={handleLinkClick}/>
+                <CartBadge onClick={handleLinkClick}/>
               </div>
             </div>
           )}
