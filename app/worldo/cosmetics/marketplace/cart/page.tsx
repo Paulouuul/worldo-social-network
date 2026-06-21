@@ -20,7 +20,6 @@ import {
   Loader2,
   Package,
   User,
-  RefreshCw,
   AlertTriangle
 } from 'lucide-react';
 
@@ -66,7 +65,6 @@ export default function CartPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [syncing, setSyncing] = useState(false);
   const { fetchSummary } = useCartSummaryStore();
 
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
@@ -97,31 +95,6 @@ export default function CartPage() {
       if (showLoading) setLoading(false);
     }
   }, []);
-
-  const handleSync = async () => {
-    setSyncing(true);
-    setError('');
-
-    try {
-      const res = await backendApiCall('/cosmetics/marketplace/cart/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.detail || data.error || 'Erro ao sincronizar');
-
-      setSuccess('Carrinho sincronizado com sucesso!');
-      await fetchCart(false);
-    } catch (err) {
-      console.error('Erro ao sincronizar:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao sincronizar carrinho');
-    } finally {
-      setSyncing(false);
-      setTimeout(() => setSuccess(''), 3000);
-    }
-  };
 
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 0) return;
@@ -304,14 +277,7 @@ export default function CartPage() {
           </p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
-          <button
-            onClick={handleSync}
-            disabled={syncing || isEmpty}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-800 transition text-slate-300 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed z-10"
-          >
-            {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            Sincronizar
-          </button>
+        {!isEmpty && (
           <button
             onClick={() => setIsClearModalOpen(true)}
             disabled={submitting || isEmpty}
@@ -320,6 +286,7 @@ export default function CartPage() {
             <Trash2 className="w-4 h-4" />
             Limpar
           </button>
+        )}
         </div>
       </div>
 
