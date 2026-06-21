@@ -71,14 +71,7 @@ export default function CartPage() {
     redirect('/login');
   }
 
-  // Auto-limpar mensagens de erro após 5 segundos
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(''), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
-
+  
   // Buscar carrinho
   const fetchCart = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
