@@ -16,12 +16,14 @@ import {
   Box,
   ExternalLink,
   ArrowLeft,
+  CheckCircle,
+  Circle,
 } from 'lucide-react';
 
 // ==========================================
 // TIPAGENS
 // ==========================================
-type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | null;
+type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
 
 interface GroupedItem {
   id: string;
@@ -30,6 +32,8 @@ interface GroupedItem {
   resalePrice: number | null;
   listingId?: string | null;
   count: number;
+  isEquipped: boolean;
+  equippedItemId: string | null;
   frame: {
     id: string;
     name: string;
@@ -61,7 +65,7 @@ export function CosmeticActionModal({
   onSuccess,
   avatarUrl,
 }: CosmeticActionModalProps) {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
 
   const [currentMode, setCurrentMode] = useState<NonNullable<ModalMode>>(mode);
   const [quantity, setQuantity] = useState(mode === 'sell' ? 1 : item.count);
@@ -71,9 +75,19 @@ export function CosmeticActionModal({
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const [localIsEquipped, setLocalIsEquipped] = useState(item.isEquipped);
+  const [hasEquipChanged, setHasEquipChanged] = useState(false);
+  useEffect(() => {
+    setLocalIsEquipped(item.isEquipped);
+  }, [item.isEquipped]);
+
   const rarityConfig = useMemo(() => {
     return rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
   }, [item]);
+
+  const maxAvailable = useMemo(() => {
+    return localIsEquipped ? item.count - 1 : item.count;
+  }, [localIsEquipped, item.count]);
 
   // Limpa mensagens de sucesso sozinhas
   useEffect(() => {
@@ -83,13 +97,73 @@ export function CosmeticActionModal({
     }
   }, [successMessage]);
 
-  // ==========================================
   // FUNÇÕES DE API
-  // ==========================================
+
+  // Equipar/Desequipar
+  const handleEquip = async () => {
+    if (localIsEquipped) {
+      // Desequipar
+      setSubmitting(true);
+      setErrorMessage('');
+      try {
+        const res = await fetch('/api/cosmetics/item/unequip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setLocalIsEquipped(false);
+          setHasEquipChanged(true);
+          setSuccessMessage('Cosmético desequipado!');
+          onSuccess();
+        } else {
+          setErrorMessage(data.error || 'Erro ao desequipar');
+        }
+      } catch (_err) {
+        setErrorMessage('Erro de comunicação com o servidor');
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      // Equipar
+      if (item.isListed) {
+        setErrorMessage('Não é possível equipar um item que está à venda.');
+        return;
+      }
+      setSubmitting(true);
+      setErrorMessage('');
+      try {
+        const res = await fetch('/api/cosmetics/item/equip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ frameId: item.frameId }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setLocalIsEquipped(true);
+          setHasEquipChanged(true);
+          setSuccessMessage('Cosmético equipado com sucesso!');
+          onSuccess();
+        } else {
+          setErrorMessage(data.error || 'Erro ao equipar');
+        }
+      } catch (_err) {
+        setErrorMessage('Erro de comunicação com o servidor');
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  };
+  const handleClose = async () => {
+    if (hasEquipChanged) {
+      await update();
+    }
+    onClose(); 
+  };
   const handleSell = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (quantity > item.count) {
-      setErrorMessage(`Você possui apenas ${item.count} unidades desta moldura.`);
+    if (quantity > maxAvailable) {
+      setErrorMessage(`Você possui apenas ${maxAvailable} unidades desta moldura disponíveis.`);
       return;
     }
     if (price <= 0) {
@@ -110,7 +184,7 @@ export function CosmeticActionModal({
       if (res.ok) {
         setSuccessMessage('Anúncio publicado no mercado!');
         onSuccess();
-        setTimeout(onClose, 1500);
+        setTimeout(() => handleClose(), 1500);
       } else {
         setErrorMessage(data.error || 'Erro na validação do anúncio.');
       }
@@ -165,7 +239,7 @@ export function CosmeticActionModal({
         setSuccessMessage(`${quantity} unidade(s) retiradas do mercado!`);
         onSuccess();
         if (quantity >= item.count) {
-          setTimeout(onClose, 1500);
+          setTimeout(() => handleClose(), 1500);
         } else {
           setTimeout(() => setCurrentMode('view'), 1500);
         }
@@ -179,9 +253,7 @@ export function CosmeticActionModal({
     }
   };
 
-  // ==========================================
   // RENDERIZAÇÃO
-  // ==========================================
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-200">
       <div
@@ -222,9 +294,17 @@ export function CosmeticActionModal({
                 </h2>
               </>
             )}
+            {currentMode === 'equip' && (
+              <>
+                <Box className="w-4 h-4 text-purple-400" />
+                <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
+                  Detalhes do Item
+                </h2>
+              </>
+            )}
           </div>
           <button
-            onClick={onClose}
+            onClick={() => handleClose()}
             className="text-slate-500 hover:text-slate-300 transition p-1 shrink-0"
             disabled={submitting}
           >
@@ -264,8 +344,59 @@ export function CosmeticActionModal({
             >
               {item.frame.rarity}
             </p>
-            <br />
           </div>
+
+          {/* MODO: EQUIPAR (EQUIP) - ATUA COMO VISÃO GERAL PARA ITENS NÃO LISTADOS */}
+          {currentMode === 'equip' && (
+            <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-left-4 duration-200">
+              
+              <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex justify-between items-center shadow-inner">
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Quantidade no Cofre:
+                </span>
+                <span className="text-sm sm:text-base font-black text-slate-200 flex items-center gap-1.5">
+                  <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" /> {item.count}
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
+                <button
+                  onClick={handleEquip}
+                  disabled={submitting || (item.isListed && !localIsEquipped)}
+                  className={`flex-[1.5] ${
+                    localIsEquipped
+                      ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20'
+                      : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20'
+                  } text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                >
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : localIsEquipped ? (
+                    <>
+                      <Circle className="w-4 h-4" /> Desequipar
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" /> Equipar
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentMode('sell');
+                    setQuantity(1);
+                    setPrice(item.resalePrice || 100);
+                    setErrorMessage('');
+                    setSuccessMessage('');
+                  }}
+                  disabled={item.isListed}
+                  className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Tag className="w-4 h-4" /> Anunciar
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* MODO: VER (VIEW) */}
           {currentMode === 'view' && (
@@ -289,7 +420,8 @@ export function CosmeticActionModal({
                   </span>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+              
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
                 <button
                   onClick={() => {
                     setCurrentMode('edit');
@@ -297,7 +429,7 @@ export function CosmeticActionModal({
                     setErrorMessage('');
                     setSuccessMessage('');
                   }}
-                  className="flex-1 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 hover:border-indigo-500 text-indigo-300 hover:text-white font-semibold text-sm py-3 sm:py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
+                  className="flex-1 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 hover:border-indigo-500 text-indigo-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
                 >
                   <Edit2 className="w-4 h-4" /> Editar Preço
                 </button>
@@ -308,7 +440,7 @@ export function CosmeticActionModal({
                     setErrorMessage('');
                     setSuccessMessage('');
                   }}
-                  className="flex-1 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/30 hover:border-rose-500 text-rose-300 hover:text-white font-semibold text-sm py-3 sm:py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
+                  className="flex-1 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/30 hover:border-rose-500 text-rose-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
                 >
                   <MinusCircle className="w-4 h-4" /> Retirar Lote
                 </button>
@@ -316,7 +448,7 @@ export function CosmeticActionModal({
               {item.listingId && (
                 <Link
                   href={`/worldo/cosmetics/marketplace/${item.listingId}`}
-                  className="flex items-center justify-center gap-2 w-full bg-purple-600/20 hover:bg-purple-600 border border-purple-500/30 hover:border-purple-500 text-purple-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200"
+                  className="flex items-center justify-center gap-2 w-full bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200"
                 >
                   <ExternalLink className="w-4 h-4" />
                   Ver anúncio público
@@ -339,10 +471,10 @@ export function CosmeticActionModal({
                   <input
                     type="number"
                     min="1"
-                    max={item.count}
+                    max={maxAvailable}
                     value={quantity}
                     onChange={(e) =>
-                      setQuantity(Math.min(parseInt(e.target.value) || 1, item.count))
+                      setQuantity(Math.min(parseInt(e.target.value) || 1, maxAvailable))
                     }
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold"
                     disabled={submitting}
@@ -366,7 +498,7 @@ export function CosmeticActionModal({
               </div>
               <div className="bg-purple-500/5 border border-purple-500/10 rounded-xl p-3 sm:p-3.5 flex justify-between items-center text-xs">
                 <span className="text-slate-400 font-medium text-[10px] sm:text-xs">
-                  Rendimento Total:
+                  Rendimento Total Previsto:
                 </span>
                 <span className="font-black text-purple-400 text-sm flex items-center gap-1.5">
                   <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
@@ -376,24 +508,24 @@ export function CosmeticActionModal({
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={submitting || maxAvailable === 0}
+                  className="flex-[1.5] bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      <Store className="w-4 h-4" /> Anunciar no Mercado
+                      <Store className="w-4 h-4" /> Confirmar Anúncio
                     </>
                   )}
                 </button>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={() => setCurrentMode('equip')}
                   disabled={submitting}
                   className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
                 >
-                  <X className="w-4 h-4" /> Cancelar
+                  <ArrowLeft className="w-4 h-4" /> Voltar
                 </button>
               </div>
             </form>

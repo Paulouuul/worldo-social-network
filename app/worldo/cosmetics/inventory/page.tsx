@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { CosmeticActionModal } from '@/components/CosmeticActionModal';
-import { Package, Search, Plus, X, Loader2, Store, Box } from 'lucide-react';
+import { Package, Search, Plus, X, Loader2, Store, CheckCircle, Box } from 'lucide-react';
 
 interface GroupedItem {
   id: string;
@@ -15,6 +15,8 @@ interface GroupedItem {
   isListed: boolean;
   resalePrice: number | null;
   listingId?: string | null;
+  isEquipped: boolean;
+  equippedItemId: string | null;
   count: number;
   frame: {
     id: string;
@@ -28,7 +30,7 @@ interface GroupedItem {
 }
 
 type FilterType = 'all' | 'listed' | 'unlisted';
-type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | null;
+type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
 
 const rarityDesigns = getRarityDesigns('bottom-10');
 
@@ -166,7 +168,7 @@ export default function MyCosmeticsPage() {
   // Ações do Modal
   const handleOpenItem = (item: GroupedItem) => {
     setSelectedItem(item);
-    setModalMode(item.isListed ? 'view' : 'sell');
+    setModalMode(item.isListed ? 'view' : 'equip');
   };
 
   const handleModalSuccess = () => {
@@ -362,6 +364,13 @@ export default function MyCosmeticsPage() {
                       <div className="absolute top-2 left-2 z-20">
                         <span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase">
                           <Store className="w-2.5 h-2.5 hidden sm:block" /> Venda
+                        </span>
+                      </div>
+                    )}
+                    {item.isEquipped && (
+                      <div className="absolute top-2 left-2 z-20">
+                        <span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase">
+                          <CheckCircle className="w-2.5 h-2.5 hidden sm:block" /> Equipado
                         </span>
                       </div>
                     )}

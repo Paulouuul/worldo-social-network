@@ -53,22 +53,27 @@ export async function GET(request: NextRequest) {
       }
 
       if (!groupedMap.has(key)) {
+        
         groupedMap.set(key, {
           id: key,
           frameId: item.frameId,
           isListed: item.isListed,
           resalePrice: item.resalePrice,
-
+          isEquipped: false,
+          equippedItemId: null,
           count: 0,
           frame: item.frame,
           listingId: listingId,
-          lastActivityAt: item.updatedAt, // Usar updatedAt como atividade
+          lastActivityAt: item.updatedAt,
         });
       }
 
       const group = groupedMap.get(key);
       group.count++;
-
+      if (item.isEquipped) {
+        group.isEquipped = true;
+        group.equippedItemId = item.id;
+      }
       // Atualizar a data mais recente se este item for mais novo
       if (item.updatedAt > group.lastActivityAt) {
         group.lastActivityAt = item.updatedAt;
