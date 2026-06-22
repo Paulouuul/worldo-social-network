@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { Rarity } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -96,9 +97,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (rarity && rarity !== 'all') {
-      allGroupedItems = allGroupedItems.filter(
-        (item) => item.frame.rarity.toUpperCase() === rarity.toUpperCase(),
-      );
+      // Verificar se é um valor válido do enum
+      const validRarities = Object.values(Rarity);
+      if (validRarities.includes(rarity as Rarity)) {
+        allGroupedItems = allGroupedItems.filter(
+          (item) => item.frame.rarity === rarity
+        );
+      }
     }
 
     // Ordenar pela data mais recente (já vem ordenado pela query)

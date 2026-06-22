@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { Rarity } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,14 +12,25 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const rarity = searchParams.get('rarity');
-
+    const rarityParam = searchParams.get('rarity');
+    let rarityFilter: Rarity | undefined;
+    if (rarityParam && rarityParam !== '') {
+      const validRarities = Object.values(Rarity);
+      if (validRarities.includes(rarityParam as Rarity)) {
+        rarityFilter = rarityParam as Rarity;
+      } else {
+        return NextResponse.json(
+          { error: 'Raridade inválida. Valores permitidos: COMUM, RARO, EPICO, LENDARIO' },
+          { status: 400 }
+        );
+      }
+    }
     const whereClause: any = {
       isActive: true,
     };
 
-    if (rarity && rarity !== '') {
-      whereClause.rarity = rarity;
+    if (rarityFilter) {
+      whereClause.rarity = rarityFilter;
     }
 
     const packages = await prisma.cosmetic_creation_package.findMany({
@@ -27,7 +39,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Se não especificou rarity, retorna agrupado
-    if (!rarity) {
+    if (!rarityFilter) {
       const grouped = packages.reduce(
         (acc, pkg) => {
           if (!acc[pkg.rarity]) {

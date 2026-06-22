@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { convertToWebP, addAnimatedSuffix } from '@/lib/image-utils';
 import { uploadPublic, deleteFile } from '@/lib/r2-upload';
 import { NextRequest, NextResponse } from 'next/server';
+import { Rarity } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   // Variáveis para controle de rollback do R2 se o banco falhar
@@ -128,6 +129,14 @@ export async function POST(request: NextRequest) {
     if (!selectedPackage) {
       return NextResponse.json({ error: 'Pacote inválido' }, { status: 400 });
     }
+
+    const validRarities = Object.values(Rarity);
+    if (!validRarities.includes(selectedPackage.rarity as Rarity)) {
+      return NextResponse.json(
+        { error: 'Raridade inválida' },
+        { status: 400 }
+      );
+    }
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
       select: { coins: true },
@@ -205,7 +214,7 @@ export async function POST(request: NextRequest) {
           description: description || '',
           imageUrl: uploadedImageUrl!,
           thumbnailUrl: uploadedThumbnailUrl || uploadedImageUrl!,
-          rarity: selectedPackage.rarity,
+          rarity: selectedPackage.rarity as Rarity,
           stock: selectedPackage.quantity,
           createdBy: session.user.id,
         },

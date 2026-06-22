@@ -25,6 +25,13 @@ model accounts {
   @@unique([provider, providerAccountId])
 }
 
+enum Rarity {
+  COMUM
+  RARO
+  EPICO
+  LENDARIO
+}
+
 
 model users {
   id            String     @id @default(cuid())
@@ -83,7 +90,7 @@ model verification_tokens {
 
 model cosmetic_creation_cost {
   id           String   @id @default(cuid())
-  rarity       String   @unique
+  rarity       Rarity   @unique
   costCoins    Int
   timeMinutes  Int
 }
@@ -91,7 +98,7 @@ model cosmetic_creation_cost {
 model cosmetic_creation_package {
   id         String   @id @default(cuid())
   name       String
-  rarity     String
+  rarity     Rarity
   quantity   Int
   multiplier Float
   totalCost  Int
@@ -276,7 +283,7 @@ model cosmetic_frame {
   description  String?
   imageUrl     String
   thumbnailUrl String
-  rarity       String   @default("COMUM") // COMUM, RARO, EPICO, LENDARIO
+  rarity       Rarity   @default(COMUM)
   stock        Int      @default(1)  // Quantidade disponível para venda
   soldCount    Int      @default(0)  // Quantas já foram vendidas
   isActive     Boolean  @default(true)

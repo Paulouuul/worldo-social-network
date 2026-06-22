@@ -3,12 +3,21 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { esClient, LISTINGS_INDEX } from '@/lib/elasticsearch';
 import { NextRequest, NextResponse } from 'next/server';
+import { Rarity } from '@prisma/client';
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const { searchParams } = new URL(req.url);
-    const rarity = searchParams.get('rarity');
+    const rarityParam = searchParams.get('rarity');
+    let rarityFilter: Rarity | undefined;
+    if (rarityParam && rarityParam !== 'all') {
+      const validRarities = Object.values(Rarity);
+      if (validRarities.includes(rarityParam as Rarity)) {
+        rarityFilter = rarityParam as Rarity;
+      }
+      // Se for inválido, pode ignorar ou retornar erro
+    }
     const sort = searchParams.get('sort') || 'newest';
     const search = searchParams.get('search') || '';
     const page = parseInt(searchParams.get('page') || '1');
@@ -32,8 +41,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Filtro por raridade
-    if (rarity && rarity !== 'all') {
-      must.push({ term: { frameRarity: rarity } });
+    if (rarityFilter) {
+      must.push({ term: { frameRarity: rarityFilter } });
     }
 
     // Busca por texto

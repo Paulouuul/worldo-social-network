@@ -1,7 +1,6 @@
 // app/api/cosmetics/listings/[listing_id]/route.ts
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
-
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request, { params }: { params: { listing_id: string } }) {
