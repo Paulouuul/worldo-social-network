@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         ownerId: session.user.id,
         frameId: frameId,
         isListed: false,
+        isEquipped: false,
       },
     });
     console.log(`[LISTING] Itens disponíveis: ${userItems.length}`);
