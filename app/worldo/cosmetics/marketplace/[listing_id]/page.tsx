@@ -342,7 +342,7 @@ export default function ListingDetailPage() {
             </Link>
 
             <Link
-              href={`/worldo/perfil/${listing.frame.creator.username}`}
+              href={`/worldo/perfil/${listing.frame.creator.id}`}
               className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-purple-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all"
             >
               <AvatarWithFrame
