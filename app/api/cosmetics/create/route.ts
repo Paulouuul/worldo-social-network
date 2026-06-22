@@ -132,10 +132,7 @@ export async function POST(request: NextRequest) {
 
     const validRarities = Object.values(Rarity);
     if (!validRarities.includes(selectedPackage.rarity as Rarity)) {
-      return NextResponse.json(
-        { error: 'Raridade inválida' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Raridade inválida' }, { status: 400 });
     }
     const user = await prisma.users.findUnique({
       where: { id: session.user.id },
