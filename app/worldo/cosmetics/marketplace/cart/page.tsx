@@ -250,13 +250,13 @@ export default function CartPage() {
             <div className="flex gap-3 w-full">
               <button
                 onClick={() => setIsClearModalOpen(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition font-medium"
+                  className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleClearCart}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition font-medium flex justify-center items-center gap-2"
+                  className="flex-[1.5] bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-rose-900/20 flex items-center justify-center gap-2"
               >
                 Esvaziar
               </button>
@@ -422,7 +422,7 @@ export default function CartPage() {
                           </span>
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                            disabled={item.quantity >= item.max_quantity || submitting || isOutOfStock}
+                            disabled={item.quantity >= Math.min(item.max_quantity, 99) || submitting || isOutOfStock}
                             aria-label="Aumentar quantidade"
                             className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 transition flex items-center justify-center text-slate-300 border border-slate-700 backdrop-blur-sm"
                           >
