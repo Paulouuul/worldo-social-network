@@ -32,6 +32,7 @@ interface ListingData {
   priceCoins: number;
   quantity: number;
   createdAt: string;
+  isOwnListing: boolean;
   frame: {
     id: string;
     name: string;
@@ -316,6 +317,7 @@ export default function ListingDetailPage() {
           </div>
 
           {/* Cards de Perfil (Vendedor & Criador) */}
+          {!listing.isOwnListing && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Link
               href={`/worldo/seller/${listing.seller.id}`}
@@ -361,7 +363,7 @@ export default function ListingDetailPage() {
               <User className="w-4 h-4 text-slate-600 group-hover:text-purple-400 transition-colors" />
             </Link>
           </div>
-
+          )}
           {/* Área de Compra Glassmorphic */}
           <div className="p-6 sm:p-8 bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-700/50 shadow-2xl mt-auto relative overflow-hidden">
             {/* Background Accent Glow */}
@@ -393,7 +395,7 @@ export default function ListingDetailPage() {
                       <span>{listing.quantity} em estoque</span>
                     )}
                   </p>
-                  {cartQuantity > 0 && (
+                  {cartQuantity > 0 && !listing.isOwnListing && (
                     <span className="text-xs font-medium text-emerald-400 mt-1 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
                       {cartQuantity} já no seu carrinho
@@ -404,8 +406,27 @@ export default function ListingDetailPage() {
             </div>
 
             <div className="space-y-6 relative z-10">
-              {/* LÓGICA DE EXIBIÇÃO DE BOTÕES baseada no estoque e carrinho */}
-              {isAllInCart ? (
+              {/* Se for anúncio do próprio usuário */}
+              {listing.isOwnListing ? (
+                <div className="flex flex-col items-center justify-center gap-4 py-8">
+                  <div className="bg-purple-500/20 p-4 rounded-full">
+                    <Package className="w-12 h-12 text-purple-400" />
+                  </div>
+                  <p className="text-center text-slate-300 font-medium">
+                    Este é seu anúncio
+                  </p>
+                  <p className="text-center text-sm text-slate-400 max-w-sm">
+                    Gerencie seus itens e anúncios no seu inventário
+                  </p>
+                  <Link
+                    href="/worldo/cosmetics/inventory"
+                    className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-xl transition-all hover:scale-105 shadow-lg shadow-purple-900/30"
+                  >
+                    <Package className="w-4 h-4" />
+                    Ver no Inventário
+                  </Link>
+                </div>
+              ) : isAllInCart ? (
                 // 1. TUDO JÁ ADICIONADO AO CARRINHO
                 <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center justify-center gap-3 text-emerald-400 font-medium">
@@ -522,7 +543,7 @@ export default function ListingDetailPage() {
       </div>
 
       {/* Outros anúncios do vendedor */}
-      {listing.sellerOtherListings.length > 0 && (
+      {(listing.sellerOtherListings.length > 0 && !listing.isOwnListing )&& (
         <div className="mt-20 pt-10 border-t border-slate-800/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
             <h2 className="text-2xl font-black text-slate-200 flex items-center gap-3">

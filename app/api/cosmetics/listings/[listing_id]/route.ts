@@ -81,12 +81,14 @@ export async function GET(request: Request, { params }: { params: { listing_id: 
       orderBy: { createdAt: 'desc' },
       take: 12,
     });
+    const isOwnListing = listing.sellerId === session.user.id;
 
     return NextResponse.json({
       id: listing.id,
       priceCoins: listing.priceCoins,
       quantity: listing.quantity,
       createdAt: listing.createdAt,
+      isOwnListing,
       frame: {
         id: listing.frame.id,
         name: listing.frame.name,
