@@ -79,6 +79,7 @@ export function CosmeticActionModal({
   const [hasEquipChanged, setHasEquipChanged] = useState(false);
   const [localItem, setLocalItem] = useState(item);
   const MAX_PRICE = 1000000;
+  const MAX_QUANTITY = 1000000;
   useEffect(() => {
     setLocalIsEquipped(item.isEquipped);
   }, [item.isEquipped]);
@@ -490,7 +491,7 @@ export function CosmeticActionModal({
                   <input
                     type="number"
                     min="1"
-                    max={maxAvailable}
+                    max={Math.min(maxAvailable, MAX_QUANTITY)}
                     value={quantity}
                     onChange={(e) =>
                       setQuantity(Math.min(parseInt(e.target.value) || 1, maxAvailable))

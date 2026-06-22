@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const MAX_PRICE = 1000000;
+    const MAX_QUANTITY = 100000;
     console.log('[LISTING] Iniciando criação de anúncio...');
 
     const session = await auth();
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const { frameId, quantity, priceCoins } = body;
 
-    if (!frameId || !quantity || !priceCoins || quantity <= 0 || priceCoins <= 0 || priceCoins > MAX_PRICE) {
+    if (!frameId || !quantity || !priceCoins || quantity <= 0 || quantity > MAX_QUANTITY || priceCoins <= 0 || priceCoins > MAX_PRICE) {
       console.log('[LISTING] Campos inválidos:', { frameId, quantity, priceCoins });
       return NextResponse.json({ error: 'Campos inválidos' }, { status: 400 });
     }
@@ -62,57 +63,12 @@ export async function POST(request: NextRequest) {
 
     // Verificar se já existe um anúncio ativo para este frame
     console.log('[LISTING] Verificando anúncio existente para este frame...');
-    const existingListing = await prisma.cosmetic_listing.findFirst({
-      where: {
-        frameId: frameId,
-        sellerId: session.user.id,
-        isActive: true,
-      },
-    });
+
 
     // Criar ou atualizar o anúncio
     console.log('[LISTING] Iniciando transação...');
     const result = await prisma.$transaction(async (tx) => {
       let listing;
-
-      if (existingListing) {
-        // Atualiza anúcio existente
-        console.log('[LISTING] Anúncio existente encontrado:', existingListing.id);
-        console.log(
-          `[LISTING] Quantidade atual: ${existingListing.quantity}, Adicionando: ${quantity}`,
-        );
-
-        // Atualizar a quantidade do anúncio existente
-        listing = await tx.cosmetic_listing.update({
-          where: { id: existingListing.id },
-          data: {
-            quantity: existingListing.quantity + quantity,
-            priceCoins: priceCoins,
-            updatedAt: new Date(),
-          },
-        });
-
-        await tx.user_frame_item.updateMany({
-          where: {
-            listingId: existingListing.id, // ← Todos os itens do anúncio
-          },
-          data: {
-            resalePrice: priceCoins, // ← Sincroniza com o novo preço
-          },
-        });
-
-        const itemsToUpdate = userItems.slice(0, quantity);
-        await tx.user_frame_item.updateMany({
-          where: { id: { in: itemsToUpdate.map((item) => item.id) } },
-          data: {
-            isListed: true, // ← Essa é a diferença!
-            resalePrice: priceCoins,
-            listingId: listing.id,
-          },
-        });
-        await syncToListing(listing.id, tx);
-        console.log('[LISTING] Anúncio atualizado:', listing.id);
-      } else {
         // CRIAR NOVO ANÚNCIO
         console.log('[LISTING] Criando novo anúncio...');
         listing = await tx.cosmetic_listing.create({
@@ -142,22 +98,16 @@ export async function POST(request: NextRequest) {
         });
         await syncToListing(listing.id, tx);
         console.log('[LISTING] Itens atualizados');
-      }
 
-      return { listing, isNew: !existingListing };
+      return { listing };
     });
 
-    const mensagem = result.isNew
-      ? `${quantity} unidade(s) colocadas à venda por ${priceCoins} moedas cada!`
-      : `${quantity} unidade(s) adicionadas ao anúncio existente! Total: ${result.listing.quantity} unidades`;
-
-    console.log('[LISTING] Operação concluída com sucesso!', mensagem);
+    console.log('[LISTING] Operação concluída com sucesso!');
     return NextResponse.json(
       {
         success: true,
         listing: result.listing,
-        isNewListing: result.isNew,
-        message: mensagem,
+        message: `${quantity} unidade(s) colocadas à venda por ${priceCoins} moedas cada!`,
       },
       { status: 201 },
     );
