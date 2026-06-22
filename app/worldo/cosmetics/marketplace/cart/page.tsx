@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -62,11 +62,13 @@ export default function CartPage() {
 
   const [cart, setCart] = useState<CartData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { fetchSummary } = useCartSummaryStore();
-
+  const isInitialLoad = useRef(true);
+  const hasRedirected = useRef(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   if (status === 'unauthenticated') {
@@ -88,6 +90,17 @@ export default function CartPage() {
       if (!res.ok) throw new Error(data.detail || data.error || 'Erro ao buscar carrinho');
 
       setCart(data.data);
+
+      if (isInitialLoad.current && data.data && data.data.items.length === 0) {
+        isInitialLoad.current = false;
+        if (!hasRedirected.current) {
+          hasRedirected.current = true;
+          setRedirecting(true);
+          router.push('/worldo');
+          return;
+        }
+    }
+      isInitialLoad.current = false;
     } catch (err) {
       console.error('Erro ao buscar carrinho:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar carrinho');
@@ -216,7 +229,7 @@ export default function CartPage() {
     fetchCart();
   }, [fetchCart]);
 
-  if (loading) {
+  if (loading || redirecting) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>

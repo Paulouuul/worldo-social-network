@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
       },
     }));
 
-    // Verificar se o usuário já possui cada item (ainda usa PostgreSQL para isso)
+    // Verificar se o usuário já possui cada item
     let ownedFrameIds: string[] = [];
     if (session?.user?.id && listings.length > 0) {
       const ownedItems = await prisma.user_frame_item.findMany({
