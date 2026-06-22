@@ -78,7 +78,7 @@ export function CosmeticActionModal({
   const [localIsEquipped, setLocalIsEquipped] = useState(item.isEquipped);
   const [hasEquipChanged, setHasEquipChanged] = useState(false);
   const [localItem, setLocalItem] = useState(item);
-
+  const MAX_PRICE = 1000000;
   useEffect(() => {
     setLocalIsEquipped(item.isEquipped);
   }, [item.isEquipped]);
@@ -507,6 +507,7 @@ export function CosmeticActionModal({
                   <input
                     type="number"
                     min="1"
+                    max={MAX_PRICE}
                     value={price}
                     onChange={(e) => setPrice(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-amber-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
@@ -563,6 +564,7 @@ export function CosmeticActionModal({
                 <input
                   type="number"
                   min="1"
+                  max={MAX_PRICE}
                   value={price}
                   onChange={(e) => setPrice(Math.max(1, parseInt(e.target.value) || 1))}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"

@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(request: NextRequest) {
   try {
+
+    const MAX_PRICE = 1000000;
     console.log('[UPDATE PRICE] Iniciando atualização de preço...');
 
     const session = await auth();
@@ -18,9 +20,9 @@ export async function PATCH(request: NextRequest) {
     const { listingId, priceCoins } = await request.json();
     console.log('[UPDATE PRICE] Dados recebidos:', { listingId, priceCoins });
 
-    if (!listingId || !priceCoins || priceCoins <= 0) {
+    if (!listingId || !priceCoins || priceCoins <= 0 || priceCoins > MAX_PRICE) {
       console.log('[UPDATE PRICE] Campos inválidos');
-      return NextResponse.json({ error: 'Campos obrigatórios faltando' }, { status: 400 });
+      return NextResponse.json({ error: 'Campos inválidos' }, { status: 400 });
     }
 
     // Buscar o anúncio
