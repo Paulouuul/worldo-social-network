@@ -6,7 +6,6 @@ import Header from '@/components/Header';
 import { MainWrapper } from '@/components/MainWrapper';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { GlobalMediaProtector } from '@/components/GlobalMediaProtector';
-
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -24,9 +23,6 @@ export const metadata: Metadata = {
     shortcut: ['/shortcut-icon.png'],
   },
 };
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
