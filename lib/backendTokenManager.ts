@@ -4,9 +4,10 @@ class BackendTokenManager {
   private expiryTime: number = 0;
   private isGenerating: boolean = false;
   private generatePromise: Promise<string> | null = null;
-  
+
   // Configurações
-  private readonly TOKEN_EXPIRY_MS = (Number(process.env.BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
+  private readonly TOKEN_EXPIRY_MS =
+    (Number(process.env.BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
   private readonly SAFETY_MARGIN_MS = 2 * 60 * 1000;
 
   /**
@@ -15,7 +16,7 @@ class BackendTokenManager {
    */
   async getToken(): Promise<string> {
     const now = Date.now();
-    
+
     // Se token existe e ainda é válido, retorna
     if (this.token && now < this.expiryTime - this.SAFETY_MARGIN_MS) {
       console.log('[TokenManager] Token válido, reutilizando');
@@ -31,29 +32,30 @@ class BackendTokenManager {
     // Gera novo token via API
     console.log('[TokenManager] Gerando novo token JWT...');
     this.isGenerating = true;
-    
+
     this.generatePromise = (async () => {
       try {
         const res = await fetch('/api/auth/token');
-        
+
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
           throw new Error(errorData.error || `Erro ao obter token: ${res.status}`);
         }
-        
+
         const data = await res.json();
-        const newToken = data.token || "";
-        
+        const newToken = data.token || '';
+
         if (!newToken) {
           throw new Error('Token não retornado pela API');
         }
-        
+
         this.token = newToken;
         this.expiryTime = Date.now() + this.TOKEN_EXPIRY_MS;
-        
-        console.log(`[TokenManager] Token gerado com sucesso (expira em ${this.TOKEN_EXPIRY_MS/1000}s)`);
+
+        console.log(
+          `[TokenManager] Token gerado com sucesso (expira em ${this.TOKEN_EXPIRY_MS / 1000}s)`,
+        );
         return newToken;
-        
       } catch (error) {
         console.error('[TokenManager] Erro ao gerar token:', error);
         throw error;

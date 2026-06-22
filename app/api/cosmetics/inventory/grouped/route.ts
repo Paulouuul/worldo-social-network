@@ -54,7 +54,6 @@ export async function GET(request: NextRequest) {
       }
 
       if (!groupedMap.has(key)) {
-        
         groupedMap.set(key, {
           id: key,
           frameId: item.frameId,
@@ -100,9 +99,7 @@ export async function GET(request: NextRequest) {
       // Verificar se é um valor válido do enum
       const validRarities = Object.values(Rarity);
       if (validRarities.includes(rarity as Rarity)) {
-        allGroupedItems = allGroupedItems.filter(
-          (item) => item.frame.rarity === rarity
-        );
+        allGroupedItems = allGroupedItems.filter((item) => item.frame.rarity === rarity);
       }
     }
 

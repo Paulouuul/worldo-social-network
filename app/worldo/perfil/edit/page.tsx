@@ -146,14 +146,13 @@ export default function EditProfilePage() {
     setSuccess('');
 
     try {
-
       const submitData = new FormData();
       submitData.append('name', formData.name);
       submitData.append('username', formData.username.trim());
       submitData.append('bio', formData.bio);
       submitData.append('location', formData.location);
       submitData.append('website', formData.website);
-      
+
       if (avatarFile) submitData.append('avatar', avatarFile);
       if (removeAvatar) submitData.append('removeAvatar', 'true');
 

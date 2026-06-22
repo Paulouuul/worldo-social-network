@@ -38,7 +38,6 @@ export default function MarketplacePage() {
   const [sort, setSort] = useState('newest');
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
 
-
   if (status === 'unauthenticated') {
     redirect('/login');
   }

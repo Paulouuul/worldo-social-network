@@ -182,8 +182,8 @@ export default function Header() {
 
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-3 xl:gap-4 shrink-0">
-              <CoinBalance/>
-              <CartBadge/>
+              <CoinBalance />
+              <CartBadge />
 
               {/* Cartão de Usuário Glassmorphic */}
               <div className="flex items-center gap-2 xl:gap-3 galaxy-user-card bg-white/5 border border-white/10 px-2 py-1.5 xl:px-3 rounded-xl backdrop-blur-sm shadow-inner max-w-50 xl:max-w-62.5">
@@ -275,8 +275,8 @@ export default function Header() {
 
               {/* Widget de Moedas no Perfil Mobile */}
               <div className="mt-4 flex justify-center w-full">
-                <CoinBalance onClick={handleLinkClick}/>
-                <CartBadge onClick={handleLinkClick}/>
+                <CoinBalance onClick={handleLinkClick} />
+                <CartBadge onClick={handleLinkClick} />
               </div>
             </div>
           )}

@@ -18,7 +18,6 @@ export function CartBadge({ onClick }: CartBadgeProps) {
 
   // Buscar resumo do carrinho quando autenticar
   useEffect(() => {
-    
     if (status === 'authenticated') {
       fetchSummary();
 
@@ -59,11 +58,8 @@ export function CartBadge({ onClick }: CartBadgeProps) {
         // Shimmer/Skeleton loading
         <div className="w-4 h-4 bg-purple-500/20 animate-pulse rounded" />
       ) : (
-        <span className="font-bold text-sm text-slate-100 tracking-wide">
-          {totalItems}
-        </span>
+        <span className="font-bold text-sm text-slate-100 tracking-wide">{totalItems}</span>
       )}
-
     </Link>
   );
 }

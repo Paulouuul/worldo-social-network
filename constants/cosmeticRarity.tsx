@@ -10,7 +10,7 @@ export const RARITY = {
   LENDARIO: 'LENDARIO',
 } as const;
 
-export type Rarity = typeof RARITY[keyof typeof RARITY];
+export type Rarity = (typeof RARITY)[keyof typeof RARITY];
 
 export const VALID_RARITIES = Object.values(RARITY);
 

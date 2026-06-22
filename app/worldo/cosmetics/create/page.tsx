@@ -18,6 +18,7 @@ import {
   Coins,
   X,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
 
 interface FormData {
@@ -36,12 +37,6 @@ interface CreationPackage {
   isActive: boolean;
   sortOrder: number;
 }
-const BASE_COSTS: Record<string, number> = {
-  COMUM: 50,
-  RARO: 200,
-  EPICO: 500,
-  LENDARIO: 1000,
-};
 
 function LoadingSpinner() {
   return (
@@ -55,7 +50,7 @@ function LoadingSpinner() {
 export default function CreateCosmeticPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   // Store de moedas conectada
   const { balance: userCoins, fetchBalance, updateBalance } = useCoinStore();
 
@@ -82,9 +77,9 @@ export default function CreateCosmeticPage() {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
-
   const rarityDesigns = getRarityDesigns('static');
-
+  const [baseCosts, setBaseCosts] = useState<Record<string, number>>({});
+  const [loadingCosts, setLoadingCosts] = useState(true);
   const currentStyle = useMemo(
     () => rarityDesigns[formData.rarity] || rarityDesigns.COMUM,
     [formData.rarity, rarityDesigns],
@@ -113,7 +108,40 @@ export default function CreateCosmeticPage() {
       })
       .catch((err) => console.error('Erro ao buscar pacotes:', err));
   }, [formData.rarity]);
-  
+
+  useEffect(() => {
+    fetch('/api/cosmetics/creation-costs')
+      .then((res) => res.json())
+      .then((data) => {
+        // Se veio agrupado (quando não tem rarity)
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          const map: Record<string, number> = {};
+          for (const rarity in data) {
+            const costs = data[rarity];
+            if (Array.isArray(costs)) {
+              costs.forEach((cost: any) => {
+                map[cost.rarity] = cost.costCoins;
+              });
+            }
+          }
+          setBaseCosts(map);
+        }
+        // Se veio array (quando tem filtro)
+        else if (Array.isArray(data)) {
+          const map: Record<string, number> = {};
+          data.forEach((cost: any) => {
+            map[cost.rarity] = cost.costCoins;
+          });
+          setBaseCosts(map);
+        }
+        setLoadingCosts(false);
+      })
+      .catch((err) => {
+        console.error('Erro ao buscar custos base:', err);
+        setLoadingCosts(false);
+      });
+  }, []);
+
   const currentPackage = useMemo(() => {
     return packages.find((pkg) => pkg.id === selectedPackageId) || null;
   }, [packages, selectedPackageId]);
@@ -250,7 +278,7 @@ export default function CreateCosmeticPage() {
       setThumbnailFile(null);
       setThumbnailPreview('');
       if (thumbnailInputRef.current) {
-        thumbnailInputRef.current.value = ''; 
+        thumbnailInputRef.current.value = '';
       }
     },
     [thumbnailPreview],
@@ -267,7 +295,9 @@ export default function CreateCosmeticPage() {
 
       // Validação de saldo imediata no front-end
       if (hasInsufficientCoins) {
-        setError(`Saldo insuficiente. Você precisa de ${creationCost} moedas, mas possui apenas ${userCoins}.`);
+        setError(
+          `Saldo insuficiente. Você precisa de ${creationCost} moedas, mas possui apenas ${userCoins}.`,
+        );
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setLoading(false);
         return;
@@ -300,7 +330,7 @@ export default function CreateCosmeticPage() {
         const res = await backendApiCall('/cosmetics/create', {
           method: 'POST',
           body: submitData,
-      });
+        });
 
         const data = await res.json();
 
@@ -314,17 +344,28 @@ export default function CreateCosmeticPage() {
           // Débito otimista na store
           updateBalance(userCoins - creationCost);
           setTimeout(() => {
-          router.push('/worldo/cosmetics/inventory');
-        }, 1500);
+            router.push('/worldo/cosmetics/inventory');
+          }, 1500);
         }
-      } catch(error) {
-         console.error('Erro ao criar moldura:', error);
+      } catch (error) {
+        console.error('Erro ao criar moldura:', error);
         setError('Erro ao conectar com o servidor');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setLoading(false);
       }
     },
-    [imageFile, thumbnailFile, formData, selectedPackageId, router, loading, hasInsufficientCoins, userCoins, creationCost, updateBalance],
+    [
+      imageFile,
+      thumbnailFile,
+      formData,
+      selectedPackageId,
+      router,
+      loading,
+      hasInsufficientCoins,
+      userCoins,
+      creationCost,
+      updateBalance,
+    ],
   );
 
   const handlePackageSelect = useCallback(
@@ -415,20 +456,20 @@ export default function CreateCosmeticPage() {
                     <Layers className={`w-4 h-4 ${currentStyle.textClass}`} /> Nível de Raridade
                   </label>
                   <select
-                  value={formData.rarity}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (VALID_RARITIES.includes(value as Rarity)) {
-                      setFormData((prev) => ({ ...prev, rarity: value as Rarity }));
-                    }
-                  }}
-                  className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all cursor-pointer`}
-                >
-                  <option value={RARITY.COMUM}>🟢 Comum</option>
-                  <option value={RARITY.RARO}>🔵 Raro</option>
-                  <option value={RARITY.EPICO}>🟣 Épico</option>
-                  <option value={RARITY.LENDARIO}>🟠 Lendário</option>
-                </select>
+                    value={formData.rarity}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (VALID_RARITIES.includes(value as Rarity)) {
+                        setFormData((prev) => ({ ...prev, rarity: value as Rarity }));
+                      }
+                    }}
+                    className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all cursor-pointer`}
+                  >
+                    <option value={RARITY.COMUM}>🟢 Comum</option>
+                    <option value={RARITY.RARO}>🔵 Raro</option>
+                    <option value={RARITY.EPICO}>🟣 Épico</option>
+                    <option value={RARITY.LENDARIO}>🟠 Lendário</option>
+                  </select>
                 </div>
 
                 <div>
@@ -580,7 +621,11 @@ export default function CreateCosmeticPage() {
                     <Coins className="w-4 h-4 text-slate-500" /> Custo Base ({formData.rarity})
                   </span>
                   <span className="font-semibold text-slate-200">
-                    {BASE_COSTS[formData.rarity] || 50} moedas
+                    {loadingCosts ? (
+                      <Loader2 className="w-4 h-4 animate-spin inline" />
+                    ) : (
+                      `${baseCosts[formData.rarity] || 0} moedas`
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm text-slate-400">
@@ -593,14 +638,14 @@ export default function CreateCosmeticPage() {
                       : '1x'}
                   </span>
                 </div>
-                
+
                 {/* Linha separadora + Saldo do Usuário vs Custo Final */}
                 <div className="border-t border-slate-800/80 my-2 pt-3 flex flex-col gap-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold text-slate-400">
-                      Seu Saldo
-                    </span>
-                    <span className={`text-sm font-bold ${hasInsufficientCoins ? 'text-red-400' : 'text-slate-400'}`}>
+                    <span className="text-sm font-semibold text-slate-400">Seu Saldo</span>
+                    <span
+                      className={`text-sm font-bold ${hasInsufficientCoins ? 'text-red-400' : 'text-slate-400'}`}
+                    >
                       {userCoins} moedas
                     </span>
                   </div>
@@ -630,10 +675,10 @@ export default function CreateCosmeticPage() {
                       : `bg-linear-to-r ${currentStyle.buttonSubmit} text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`
                   } font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex-1 text-center tracking-wide select-none`}
                 >
-                  {loading 
-                    ? 'FORJANDO ATIVO...' 
-                    : hasInsufficientCoins 
-                      ? 'SALDO INSUFICIENTE' 
+                  {loading
+                    ? 'FORJANDO ATIVO...'
+                    : hasInsufficientCoins
+                      ? 'SALDO INSUFICIENTE'
                       : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link

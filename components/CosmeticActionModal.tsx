@@ -158,7 +158,7 @@ export function CosmeticActionModal({
     if (hasEquipChanged) {
       await update();
     }
-    onClose(); 
+    onClose();
   };
   const handleSell = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -349,7 +349,6 @@ export function CosmeticActionModal({
           {/* MODO: EQUIPAR (EQUIP) - ATUA COMO VISÃO GERAL PARA ITENS NÃO LISTADOS */}
           {currentMode === 'equip' && (
             <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-left-4 duration-200">
-              
               <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex justify-between items-center shadow-inner">
                 <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Quantidade no Cofre:
@@ -420,7 +419,7 @@ export function CosmeticActionModal({
                   </span>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
                 <button
                   onClick={() => {

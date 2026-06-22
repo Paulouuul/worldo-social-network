@@ -24,7 +24,7 @@ import {
   Minus,
   Plus,
   CheckCircle2,
-  ShoppingBag
+  ShoppingBag,
 } from 'lucide-react';
 
 interface ListingData {
@@ -97,7 +97,7 @@ export default function ListingDetailPage() {
 
   const listingId = params.listing_id as string;
   const MAX_QUANTITY_PER_ITEM = 99;
-  
+
   if (status === 'unauthenticated') {
     redirect('/login');
   }
@@ -125,23 +125,20 @@ export default function ListingDetailPage() {
     const fetchCartQuantity = async () => {
       setLoadingCart(true);
       try {
-        const res = await backendApiCall(
-          `/cosmetics/marketplace/cart/item/${listingId}/quantity`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
+        const res = await backendApiCall(`/cosmetics/marketplace/cart/item/${listingId}/quantity`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
 
         const data = await res.json();
 
         if (res.ok && data.data) {
           const quantityInCart = data.data.quantity || 0;
           setCartQuantity(quantityInCart);
-          
+
           const available = listing.quantity - quantityInCart;
           setAvailableQuantity(Math.max(0, available));
-          
+
           const initialQuantity = available > 0 ? 1 : 0;
           setBuyQuantity(initialQuantity);
         }
@@ -158,13 +155,13 @@ export default function ListingDetailPage() {
 
   const handleIncrement = () => {
     if (buyQuantity < availableQuantity && buyQuantity < MAX_QUANTITY_PER_ITEM) {
-      setBuyQuantity(prev => prev + 1);
+      setBuyQuantity((prev) => prev + 1);
     }
   };
 
   const handleDecrement = () => {
     if (buyQuantity > 1) {
-      setBuyQuantity(prev => prev - 1);
+      setBuyQuantity((prev) => prev - 1);
     }
   };
 
@@ -176,7 +173,9 @@ export default function ListingDetailPage() {
 
     if (!listing) return;
     if (buyQuantity > availableQuantity) {
-      setError(`Você já tem ${cartQuantity} unidades no carrinho. Disponível: ${availableQuantity}`);
+      setError(
+        `Você já tem ${cartQuantity} unidades no carrinho. Disponível: ${availableQuantity}`,
+      );
       return;
     }
 
@@ -184,7 +183,7 @@ export default function ListingDetailPage() {
       setError('Selecione pelo menos 1 unidade');
       return;
     }
-    
+
     setBuying(true);
     setError('');
 
@@ -199,7 +198,7 @@ export default function ListingDetailPage() {
         image_url: listing.frame.imageUrl,
         thumbnail_url: listing.frame.thumbnailUrl,
         max_quantity: listing.quantity,
-        quantity: buyQuantity
+        quantity: buyQuantity,
       };
 
       const res = await backendApiCall('/cosmetics/marketplace/cart/add/', {
@@ -278,7 +277,9 @@ export default function ListingDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
         {/* Lado Esquerdo: Preview com AvatarWithFrame */}
         <div className="lg:col-span-2">
-          <div className={`relative rounded-3xl border overflow-hidden flex flex-col items-center justify-center p-8 min-h-100 h-full shadow-2xl ${config.cardClass}`}>
+          <div
+            className={`relative rounded-3xl border overflow-hidden flex flex-col items-center justify-center p-8 min-h-100 h-full shadow-2xl ${config.cardClass}`}
+          >
             {config.bgDecoration}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none" />
 
@@ -306,10 +307,11 @@ export default function ListingDetailPage() {
 
         {/* Lado Direito: Informações do Anúncio */}
         <div className="lg:col-span-3 flex flex-col gap-8">
-          
           {/* Header do Item */}
           <div className="pb-6 border-b border-slate-800/60">
-            <h1 className={`text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-sm ${config.textClass}`}>
+            <h1
+              className={`text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-sm ${config.textClass}`}
+            >
               {listing.frame.name}
             </h1>
             <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl font-medium">
@@ -319,57 +321,57 @@ export default function ListingDetailPage() {
 
           {/* Cards de Perfil (Vendedor & Criador) */}
           {!listing.isOwnListing && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Link
-              href={`/worldo/seller/${listing.seller.id}`}
-              className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-emerald-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all relative overflow-hidden"
-            >
-              <AvatarWithFrame
-                avatarUrl={listing.seller.avatar}
-                name={listing.seller.name}
-                frameUrl={listing.seller.equippedFrame?.imageUrl}
-                rarity={listing.seller.equippedFrame?.rarity}
-                size="sm"
-              />
-              <div className="flex-1 overflow-hidden z-10">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                  <Store className="w-3 h-3 text-emerald-500" /> Vendedor
-                </p>
-                <p className="font-bold text-slate-200 group-hover:text-emerald-400 transition truncate text-sm">
-                  {listing.seller.name}
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 transition-colors z-10 group-hover:translate-x-1" />
-            </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link
+                href={`/worldo/seller/${listing.seller.id}`}
+                className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-emerald-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all relative overflow-hidden"
+              >
+                <AvatarWithFrame
+                  avatarUrl={listing.seller.avatar}
+                  name={listing.seller.name}
+                  frameUrl={listing.seller.equippedFrame?.imageUrl}
+                  rarity={listing.seller.equippedFrame?.rarity}
+                  size="sm"
+                />
+                <div className="flex-1 overflow-hidden z-10">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Store className="w-3 h-3 text-emerald-500" /> Vendedor
+                  </p>
+                  <p className="font-bold text-slate-200 group-hover:text-emerald-400 transition truncate text-sm">
+                    {listing.seller.name}
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 transition-colors z-10 group-hover:translate-x-1" />
+              </Link>
 
-            <Link
-              href={`/worldo/perfil/${listing.frame.creator.id}`}
-              className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-purple-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all"
-            >
-              <AvatarWithFrame
-                avatarUrl={listing.frame.creator.avatar}
-                name={listing.frame.creator.name}
-                frameUrl={listing.frame.creator.equippedFrame?.imageUrl}
-                rarity={listing.frame.creator.equippedFrame?.rarity}
-                size="sm"
-              />
-              <div className="flex-1 overflow-hidden">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                  <Sparkles className="w-3 h-3 text-purple-400" /> Criador Original
-                </p>
-                <p className="font-bold text-slate-200 group-hover:text-purple-400 transition truncate text-sm">
-                  {listing.frame.creator.name}
-                </p>
-              </div>
-              <User className="w-4 h-4 text-slate-600 group-hover:text-purple-400 transition-colors" />
-            </Link>
-          </div>
+              <Link
+                href={`/worldo/perfil/${listing.frame.creator.id}`}
+                className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-purple-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all"
+              >
+                <AvatarWithFrame
+                  avatarUrl={listing.frame.creator.avatar}
+                  name={listing.frame.creator.name}
+                  frameUrl={listing.frame.creator.equippedFrame?.imageUrl}
+                  rarity={listing.frame.creator.equippedFrame?.rarity}
+                  size="sm"
+                />
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Sparkles className="w-3 h-3 text-purple-400" /> Criador Original
+                  </p>
+                  <p className="font-bold text-slate-200 group-hover:text-purple-400 transition truncate text-sm">
+                    {listing.frame.creator.name}
+                  </p>
+                </div>
+                <User className="w-4 h-4 text-slate-600 group-hover:text-purple-400 transition-colors" />
+              </Link>
+            </div>
           )}
           {/* Área de Compra Glassmorphic */}
           <div className="p-6 sm:p-8 bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-700/50 shadow-2xl mt-auto relative overflow-hidden">
             {/* Background Accent Glow */}
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none" />
-            
+
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 pb-6 border-b border-slate-800/80 gap-4 relative z-10">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -382,14 +384,14 @@ export default function ListingDetailPage() {
                   <Coins className="w-7 h-7 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                 </div>
               </div>
-              
+
               <div className="sm:text-right bg-slate-950/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-800 sm:border-none">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                   Disponibilidade
                 </p>
                 <div className="flex flex-col sm:items-end">
                   <p className="text-lg font-bold text-slate-200 flex items-center gap-2 justify-start sm:justify-end">
-                    <Package className="w-4 h-4 text-slate-400" /> 
+                    <Package className="w-4 h-4 text-slate-400" />
                     {loadingCart ? (
                       <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
                     ) : (
@@ -413,9 +415,7 @@ export default function ListingDetailPage() {
                   <div className="bg-purple-500/20 p-4 rounded-full">
                     <Package className="w-12 h-12 text-purple-400" />
                   </div>
-                  <p className="text-center text-slate-300 font-medium">
-                    Este é seu anúncio
-                  </p>
+                  <p className="text-center text-slate-300 font-medium">Este é seu anúncio</p>
                   <p className="text-center text-sm text-slate-400 max-w-sm">
                     Gerencie seus itens e anúncios no seu inventário
                   </p>
@@ -436,7 +436,7 @@ export default function ListingDetailPage() {
                     </div>
                     Você já adicionou todo o estoque disponível ao seu carrinho.
                   </div>
-                  
+
                   <Link
                     href="/worldo/cosmetics/marketplace/cart"
                     className="w-full bg-slate-800 hover:bg-slate-700 text-white font-black text-sm uppercase tracking-wider py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border border-slate-700 hover:border-slate-500 shadow-lg hover:shadow-xl hover:-translate-y-1"
@@ -445,12 +445,11 @@ export default function ListingDetailPage() {
                     Ver no Carrinho
                   </Link>
                 </div>
-
               ) : isEsgotado ? (
                 // 2. ESGOTADO GERAL
                 <div className="w-full bg-slate-900 border border-slate-800 text-slate-500 font-black text-sm uppercase tracking-wider py-4 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
-                   <AlertTriangle className="w-5 h-5" />
-                   Produto Esgotado
+                  <AlertTriangle className="w-5 h-5" />
+                  Produto Esgotado
                 </div>
               ) : (
                 // 3. NORMAL - SELETOR DE QUANTIDADE E BOTÃO DE COMPRAR
@@ -470,7 +469,7 @@ export default function ListingDetailPage() {
                         >
                           <Minus className="w-4 h-4" />
                         </button>
-                        
+
                         <span className="font-black text-lg text-slate-200 w-12 text-center">
                           {buyQuantity}
                         </span>
@@ -509,7 +508,7 @@ export default function ListingDetailPage() {
                   >
                     {/* Efeito Hover animado de gradiente */}
                     <div className="absolute inset-0 w-full h-full bg-linear-to-r from-purple-600 to-indigo-600 transition-opacity duration-300 opacity-90 group-hover:opacity-100" />
-                    
+
                     <span className="relative z-10 flex items-center gap-2 group-hover:-translate-y-0.5 transition-transform">
                       {buying ? (
                         <>
@@ -544,7 +543,7 @@ export default function ListingDetailPage() {
       </div>
 
       {/* Outros anúncios do vendedor */}
-      {(listing.sellerOtherListings.length > 0 && !listing.isOwnListing )&& (
+      {listing.sellerOtherListings.length > 0 && !listing.isOwnListing && (
         <div className="mt-20 pt-10 border-t border-slate-800/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
             <h2 className="text-2xl font-black text-slate-200 flex items-center gap-3">
@@ -562,7 +561,8 @@ export default function ListingDetailPage() {
 
           <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6">
             {listing.sellerOtherListings.map((item) => {
-              const itemConfig = rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
+              const itemConfig =
+                rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
 
               return (
                 <Link
@@ -582,7 +582,9 @@ export default function ListingDetailPage() {
                     </span>
                   </div>
 
-                  <div className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-110 shadow-xl ${itemConfig.borderClass}`}>
+                  <div
+                    className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-110 shadow-xl ${itemConfig.borderClass}`}
+                  >
                     <ClientImage
                       src={item.frame.thumbnailUrl || item.frame.imageUrl}
                       alt={item.frame.name}
@@ -598,7 +600,9 @@ export default function ListingDetailPage() {
                   </div>
 
                   <div className="mt-auto w-full z-10 pt-3 border-t border-slate-800/40">
-                    <span className={`block text-xs sm:text-sm text-center px-1 truncate font-bold drop-shadow-md ${itemConfig.textClass}`}>
+                    <span
+                      className={`block text-xs sm:text-sm text-center px-1 truncate font-bold drop-shadow-md ${itemConfig.textClass}`}
+                    >
                       {item.frame.name}
                     </span>
                   </div>

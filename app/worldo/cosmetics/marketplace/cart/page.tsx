@@ -20,7 +20,7 @@ import {
   Loader2,
   Package,
   User,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react';
 
 interface CartItem {
@@ -99,7 +99,7 @@ export default function CartPage() {
           router.push('/worldo');
           return;
         }
-    }
+      }
       isInitialLoad.current = false;
     } catch (err) {
       console.error('Erro ao buscar carrinho:', err);
@@ -120,7 +120,7 @@ export default function CartPage() {
     try {
       const res = await backendApiCall(
         `/cosmetics/marketplace/cart/update/${itemId}?quantity=${newQuantity}`,
-        { method: 'PATCH', headers: { 'Content-Type': 'application/json' } }
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json' } },
       );
 
       const data = await res.json();
@@ -150,7 +150,7 @@ export default function CartPage() {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.detail || data.error || 'Erro ao remover item');
-      
+
       await fetchCart(false);
       await fetchSummary();
     } catch (err) {
@@ -212,11 +212,10 @@ export default function CartPage() {
 
       setSuccess('Carrinho validado com sucesso!');
       await fetchSummary();
-      
+
       setTimeout(() => {
         router.push('/worldo/cosmetics/checkout');
       }, 1500);
-      
     } catch (err) {
       console.error('Erro ao validar carrinho:', err);
       setError(err instanceof Error ? err.message : 'Erro ao validar carrinho');
@@ -248,7 +247,6 @@ export default function CartPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 relative">
-      
       {/* Modal de Limpeza */}
       {isClearModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -258,18 +256,19 @@ export default function CartPage() {
             </div>
             <h3 className="text-xl font-bold text-slate-200 mb-2">Esvaziar Carrinho?</h3>
             <p className="text-slate-400 text-sm mb-6">
-              Todos os itens serão removidos e você precisará adicioná-los novamente. Essa ação não pode ser desfeita.
+              Todos os itens serão removidos e você precisará adicioná-los novamente. Essa ação não
+              pode ser desfeita.
             </p>
             <div className="flex gap-3 w-full">
               <button
                 onClick={() => setIsClearModalOpen(false)}
-                  className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
+                className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleClearCart}
-                  className="flex-[1.5] bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-rose-900/20 flex items-center justify-center gap-2"
+                className="flex-[1.5] bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-rose-900/20 flex items-center justify-center gap-2"
               >
                 Esvaziar
               </button>
@@ -290,16 +289,16 @@ export default function CartPage() {
           </p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
-        {!isEmpty && (
-          <button
-            onClick={() => setIsClearModalOpen(true)}
-            disabled={submitting || isEmpty}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/30 rounded-xl hover:bg-red-500/20 transition text-red-400 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed z-10"
-          >
-            <Trash2 className="w-4 h-4" />
-            Limpar
-          </button>
-        )}
+          {!isEmpty && (
+            <button
+              onClick={() => setIsClearModalOpen(true)}
+              disabled={submitting || isEmpty}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/30 rounded-xl hover:bg-red-500/20 transition text-red-400 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed z-10"
+            >
+              <Trash2 className="w-4 h-4" />
+              Limpar
+            </button>
+          )}
         </div>
       </div>
 
@@ -309,7 +308,7 @@ export default function CartPage() {
           <div className="text-sm whitespace-pre-line">{error}</div>
         </div>
       )}
-      
+
       {success && (
         <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-4 mb-6 flex items-center gap-3 transition-opacity duration-300">
           <span className="text-sm font-semibold">{success}</span>
@@ -318,7 +317,6 @@ export default function CartPage() {
 
       {/* Grid: Items + Resumo */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
         {/* Lista de itens ou Mensagem Vazia */}
         <div className="lg:col-span-2 space-y-4">
           {isEmpty ? (
@@ -353,8 +351,8 @@ export default function CartPage() {
                     isOutOfStock
                       ? 'border-red-500/30 opacity-60 grayscale-50'
                       : isQuantityAdjusted
-                      ? 'border-amber-500/30'
-                      : config.cardClass || 'border-slate-800 bg-slate-900/50'
+                        ? 'border-amber-500/30'
+                        : config.cardClass || 'border-slate-800 bg-slate-900/50'
                   }`}
                 >
                   {/* Efeitos de Fundo (Mesmo do Marketplace) */}
@@ -362,10 +360,11 @@ export default function CartPage() {
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none z-0" />
 
                   <div className="relative z-10 flex flex-col sm:flex-row gap-5 sm:items-center">
-                    
                     {/* Esquerda: Imagem + Badge de Raridade */}
                     <div className="shrink-0 flex flex-col items-center">
-                      <div className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center shadow-xl transition-transform duration-500 sm:group-hover:scale-105 ${config.borderClass || 'border-slate-700'}`}>
+                      <div
+                        className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center shadow-xl transition-transform duration-500 sm:group-hover:scale-105 ${config.borderClass || 'border-slate-700'}`}
+                      >
                         <ClientImage
                           src={item.thumbnail_url || item.image_url}
                           alt={item.name}
@@ -375,7 +374,7 @@ export default function CartPage() {
                           unoptimized
                         />
                       </div>
-                      
+
                       {/* Pílula de Raridade Substituindo o Texto Antigo */}
                       <div className="relative w-full flex justify-center z-20 -mt-3 h-6">
                         {config.badge}
@@ -392,11 +391,13 @@ export default function CartPage() {
                           >
                             {item.name}
                           </Link>
-                          
+
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-1">
                             <span className="flex items-center gap-1.5">
                               <User className="w-3.5 h-3.5" />
-                              <span className="truncate max-w-25 sm:max-w-37.5 font-medium">{item.seller_name}</span>
+                              <span className="truncate max-w-25 sm:max-w-37.5 font-medium">
+                                {item.seller_name}
+                              </span>
                             </span>
                           </div>
 
@@ -411,7 +412,7 @@ export default function CartPage() {
                             </span>
                           )}
                         </div>
-                        
+
                         {/* Tag de Preço com estilo Marketplace (Glassmorphism + Neon) */}
                         <span className="flex items-center gap-1.5 text-sm sm:text-base font-black text-amber-400 bg-amber-950/90 border border-amber-500/40 px-3 py-1.5 rounded-lg shadow-[0_0_10px_rgba(245,158,11,0.2)] tracking-wider backdrop-blur-sm shrink-0 mt-2 sm:mt-0">
                           <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -435,7 +436,11 @@ export default function CartPage() {
                           </span>
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                            disabled={item.quantity >= Math.min(item.max_quantity, 99) || submitting || isOutOfStock}
+                            disabled={
+                              item.quantity >= Math.min(item.max_quantity, 99) ||
+                              submitting ||
+                              isOutOfStock
+                            }
                             aria-label="Aumentar quantidade"
                             className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 transition flex items-center justify-center text-slate-300 border border-slate-700 backdrop-blur-sm"
                           >
@@ -459,7 +464,6 @@ export default function CartPage() {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
               );
@@ -500,29 +504,30 @@ export default function CartPage() {
               </div>
             )}
 
-            {!isEmpty && cart?.items.some((item) => item.quantity > item.max_quantity && item.in_stock) && (
-              <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-400 flex items-start gap-2">
-                <span>Algumas quantidades foram ajustadas devido ao estoque disponível.</span>
-              </div>
-            )}
+            {!isEmpty &&
+              cart?.items.some((item) => item.quantity > item.max_quantity && item.in_stock) && (
+                <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-400 flex items-start gap-2">
+                  <span>Algumas quantidades foram ajustadas devido ao estoque disponível.</span>
+                </div>
+              )}
 
             <div className="mt-6 space-y-3">
-                {!isEmpty && (
-                  <button
-                    onClick={handleValidate}
-                    disabled={submitting || isEmpty || cart?.items.some((item) => !item.in_stock)}
-                    className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-900/20"
-                  >
-                    {submitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5" />
-                        Validar e ir para Checkout
-                      </>
-                    )}
-                  </button>
-                )}
+              {!isEmpty && (
+                <button
+                  onClick={handleValidate}
+                  disabled={submitting || isEmpty || cart?.items.some((item) => !item.in_stock)}
+                  className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-900/20"
+                >
+                  {submitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5" />
+                      Validar e ir para Checkout
+                    </>
+                  )}
+                </button>
+              )}
               <Link
                 href="/worldo/cosmetics/marketplace"
                 className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition font-medium py-3 rounded-xl hover:bg-slate-800/50"
@@ -533,8 +538,8 @@ export default function CartPage() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-800/50 text-[10px] text-slate-500 text-center font-medium">
-              {cart?.updated_at 
-                ? `Última atualização: ${new Date(cart.updated_at).toLocaleString('pt-BR')}` 
+              {cart?.updated_at
+                ? `Última atualização: ${new Date(cart.updated_at).toLocaleString('pt-BR')}`
                 : 'Seu carrinho aguarda itens!'}
             </div>
           </div>

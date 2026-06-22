@@ -24,10 +24,7 @@ export async function POST() {
     });
 
     if (!equippedItem) {
-      return NextResponse.json(
-        { error: 'Nenhum frame equipado no momento' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Nenhum frame equipado no momento' }, { status: 404 });
     }
 
     // Usar transação para garantir consistência
@@ -67,9 +64,6 @@ export async function POST() {
     });
   } catch (error) {
     console.error('Erro ao desequipar cosmético:', error);
-    return NextResponse.json(
-      { error: 'Erro interno ao desequipar cosmético' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno ao desequipar cosmético' }, { status: 500 });
   }
 }

@@ -13,10 +13,7 @@ export async function POST(request: NextRequest) {
     const { frameId } = await request.json();
 
     if (!frameId) {
-      return NextResponse.json(
-        { error: 'É necessário fornecer frameId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'É necessário fornecer frameId' }, { status: 400 });
     }
 
     const userId = session.user.id;
@@ -38,10 +35,9 @@ export async function POST(request: NextRequest) {
 
     // Verificar se o usuário possui pelo menos 1 item disponível
     if (!itemToEquip) {
-
       return NextResponse.json(
         { error: 'Você não possui unidade deste item disponível para equipar' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -91,9 +87,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Erro ao equipar cosmético:', error);
-    return NextResponse.json(
-      { error: 'Erro ao equipar cosmético' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro ao equipar cosmético' }, { status: 500 });
   }
 }

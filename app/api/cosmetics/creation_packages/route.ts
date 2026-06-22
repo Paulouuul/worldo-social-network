@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       } else {
         return NextResponse.json(
           { error: 'Raridade inválida. Valores permitidos: COMUM, RARO, EPICO, LENDARIO' },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }

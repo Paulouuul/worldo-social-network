@@ -22,7 +22,6 @@ export interface ElasticsearchListing {
   sellerAvatar?: string | null;
 }
 
-
 const elasticsearchUrl = process.env.ELASTICSEARCH_URL || 'http://127.0.0.1:9200';
 const username = process.env.ELASTICSEARCH_USERNAME || 'elastic';
 const password = process.env.ELASTICSEARCH_PASSWORD || 'StrongP@ssw0rd2024';
@@ -40,7 +39,7 @@ export const esClient = new Client({
   },
 });
 
-export const LISTINGS_INDEX= 'cosmetic_listings';
+export const LISTINGS_INDEX = 'cosmetic_listings';
 
 // Verificar conexão
 export async function checkElasticsearchConnection() {
@@ -177,7 +176,6 @@ export async function setupElasticsearchIndicesWithCustomAnalysis() {
 // Função utilitária para indexar documentos
 export async function indexListing(listing: ElasticsearchListing) {
   try {
-
     const document = {
       ...listing,
       frameRarity: listing.frameRarity,

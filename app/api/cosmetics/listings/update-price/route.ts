@@ -53,9 +53,9 @@ export async function PATCH(request: NextRequest) {
       console.log('[UPDATE PRICE] Atualizando preço do listing...');
       const updated = await tx.cosmetic_listing.update({
         where: { id: listingId },
-        data: { 
+        data: {
           priceCoins,
-          updatedAt: new Date() 
+          updatedAt: new Date(),
         },
       });
       console.log('[UPDATE PRICE] Listing atualizado:', updated.id);
@@ -94,9 +94,12 @@ export async function PATCH(request: NextRequest) {
       console.error('[UPDATE PRICE] Mensagem:', error.message);
       console.error('[UPDATE PRICE] Stack:', error.stack);
     }
-    return NextResponse.json({ 
-      error: 'Erro ao atualizar preço',
-      details: error instanceof Error ? error.message : 'Erro desconhecido'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Erro ao atualizar preço',
+        details: error instanceof Error ? error.message : 'Erro desconhecido',
+      },
+      { status: 500 },
+    );
   }
 }

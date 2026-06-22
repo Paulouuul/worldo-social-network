@@ -8,7 +8,6 @@ import { baseClient } from './prisma';
  */
 export async function syncToListing(listingId: string, tx?: any) {
   try {
-
     const client = tx || baseClient;
     const listing = await client.cosmetic_listing.findUnique({
       where: { id: listingId },

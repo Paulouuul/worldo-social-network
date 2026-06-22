@@ -76,6 +76,6 @@ export const useCartSummaryStore = create<CartSummaryStore>()(
     {
       name: 'cart-summary-storage',
       partialize: (state) => ({ summary: state.summary }),
-    }
-  )
+    },
+  ),
 );

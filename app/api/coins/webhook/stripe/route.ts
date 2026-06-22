@@ -94,7 +94,6 @@ export async function POST(request: NextRequest) {
           },
         });
       });
-
     } catch (dbError) {
       console.error('Falha crítica ao persistir dados do pagamento no banco:', dbError);
       // Retorna 500 para que o Stripe guarde o evento na fila e tente enviá-lo novamente mais tarde

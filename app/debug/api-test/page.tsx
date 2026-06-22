@@ -12,9 +12,7 @@ export default function ApiTestPage() {
     // 1. Buscar token
     const tokenRes = await fetch('/api/auth/token');
     const data = await tokenRes.json();
-    const token = data.token || "";
-
-
+    const token = data.token || '';
 
     // 2. Testar endpoint debug-token
     const debugRes = await fetch('http://localhost:8000/api/py/auth_test/test/auth/debug-token', {
