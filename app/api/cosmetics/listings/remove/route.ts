@@ -31,11 +31,7 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json(
         {
-          error: 'Campos obrigatórios faltando',
-          details: {
-            listingId: listingId || 'ausente',
-            quantity: quantity || 'ausente',
-          },
+          error: 'Campos inválidos',
         },
         { status: 400 },
       );
