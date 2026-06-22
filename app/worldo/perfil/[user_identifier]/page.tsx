@@ -4,6 +4,7 @@ import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
+import { RARITY } from '@/constants/cosmeticRarity';
 import {
   Pencil,
   MapPin,
@@ -110,7 +111,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 name={session?.user?.name}
                 frameUrl={user.equippedFrame?.imageUrl} // Ajuste 'imageUrl' para o nome exato da coluna da imagem da moldura no seu banco
                 className="w-28 h-28 md:w-36 md:h-36"
-                rarity={user.equippedFrame?.rarity}
+                rarity={user.equippedFrame?.rarity || RARITY.COMUM}
                 priority
               />
             </div>

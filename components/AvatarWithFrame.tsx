@@ -1,23 +1,24 @@
 import { ClientImage } from '@/components/ClientImage';
+import { RARITY, Rarity } from '@/constants/cosmeticRarity';
 interface AvatarWithFrameProps {
   avatarUrl?: string | null;
   name?: string;
   frameUrl?: string;
   size?: 'sm' | 'smsm' | 'md' | 'lg' | 'full';
-  rarity?: string;
+  rarity?: Rarity | string;
   glowClass?: string;
   className?: string;
   priority?: boolean;
 }
 
 // Cores de fundo por raridade
-const getInitialBgColor = (rarity?: string) => {
+const getInitialBgColor = (rarity?: Rarity | string) => {
   switch (rarity) {
-    case 'LENDARIO':
+    case RARITY.LENDARIO:
       return 'bg-gradient-to-br from-amber-500 to-orange-600';
-    case 'EPICO':
+    case RARITY.EPICO:
       return 'bg-gradient-to-br from-purple-600 to-pink-600';
-    case 'RARO':
+    case RARITY.RARO:
       return 'bg-gradient-to-br from-blue-600 to-cyan-600';
     default:
       return 'bg-gradient-to-br from-purple-600 to-indigo-600';
@@ -25,13 +26,13 @@ const getInitialBgColor = (rarity?: string) => {
 };
 
 // Efeito de brilho por raridade (se não tiver glowClass customizada)
-const getDefaultGlowClass = (rarity?: string) => {
+const getDefaultGlowClass = (rarity?: Rarity | string) => {
   switch (rarity) {
-    case 'LENDARIO':
+    case RARITY.LENDARIO:
       return 'drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]';
-    case 'EPICO':
+    case RARITY.EPICO:
       return 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]';
-    case 'RARO':
+    case RARITY.RARO:
       return 'drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]';
     default:
       return '';

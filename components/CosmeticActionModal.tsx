@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
-import { getRarityDesigns } from '@/constants/cosmeticRarity';
+import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
 import {
   Tag,
   Store,
@@ -40,7 +40,7 @@ interface GroupedItem {
     description: string;
     thumbnailUrl: string;
     imageUrl: string;
-    rarity: string;
+    rarity: Rarity;
     stock: number;
   };
 }
@@ -82,7 +82,7 @@ export function CosmeticActionModal({
   }, [item.isEquipped]);
 
   const rarityConfig = useMemo(() => {
-    return rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
+    return rarityDesigns[item.frame.rarity] || rarityDesigns.COMUM;
   }, [item]);
 
   const maxAvailable = useMemo(() => {
@@ -332,7 +332,7 @@ export function CosmeticActionModal({
               avatarUrl={avatarUrl}
               name={session?.user?.name || 'Usuário'}
               frameUrl={item.frame.imageUrl}
-              rarity={item.frame.rarity}
+              rarity={item.frame.rarity || RARITY.COMUM}
               priority
             />
           </div>

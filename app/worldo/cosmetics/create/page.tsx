@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
-import { getRarityDesigns } from '@/constants/cosmeticRarity';
+import { getRarityDesigns, RARITY, Rarity, VALID_RARITIES } from '@/constants/cosmeticRarity';
 import {
   Sparkles,
   FileText,
@@ -20,6 +20,22 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 
+interface FormData {
+  name: string;
+  description: string;
+  rarity: Rarity;
+  stock: number;
+}
+interface CreationPackage {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  quantity: number;
+  multiplier: number;
+  totalCost: number;
+  isActive: boolean;
+  sortOrder: number;
+}
 const BASE_COSTS: Record<string, number> = {
   COMUM: 50,
   RARO: 200,
@@ -47,14 +63,14 @@ export default function CreateCosmeticPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
-    rarity: 'COMUM',
+    rarity: RARITY.COMUM as Rarity,
     stock: 10,
   });
 
-  const [packages, setPackages] = useState<any[]>([]);
+  const [packages, setPackages] = useState<CreationPackage[]>([]);
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -111,10 +127,10 @@ export default function CreateCosmeticPage() {
 
   const activePackageColor = useMemo(() => {
     const colors: Record<string, string> = {
-      COMUM: 'from-emerald-950/40 to-slate-900/40 border-emerald-500/50 text-emerald-200',
-      RARO: 'from-blue-950/40 to-slate-900/40 border-blue-500/50 text-blue-200',
-      EPICO: 'from-purple-950/40 to-slate-900/40 border-purple-500/50 text-purple-200',
-      LENDARIO: 'from-amber-950/40 to-slate-900/40 border-amber-500/50 text-amber-200',
+      [RARITY.COMUM]: 'from-emerald-950/40 to-slate-900/40 border-emerald-500/50 text-emerald-200',
+      [RARITY.RARO]: 'from-blue-950/40 to-slate-900/40 border-blue-500/50 text-blue-200',
+      [RARITY.EPICO]: 'from-purple-950/40 to-slate-900/40 border-purple-500/50 text-purple-200',
+      [RARITY.LENDARIO]: 'from-amber-950/40 to-slate-900/40 border-amber-500/50 text-amber-200',
     };
     return colors[formData.rarity] || 'from-purple-950/40 to-slate-900/40 border-purple-500/50';
   }, [formData.rarity]);
@@ -399,15 +415,20 @@ export default function CreateCosmeticPage() {
                     <Layers className={`w-4 h-4 ${currentStyle.textClass}`} /> Nível de Raridade
                   </label>
                   <select
-                    value={formData.rarity}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, rarity: e.target.value }))}
-                    className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all cursor-pointer`}
-                  >
-                    <option value="COMUM">🟢 Comum</option>
-                    <option value="RARO">🔵 Raro</option>
-                    <option value="EPICO">🟣 Épico</option>
-                    <option value="LENDARIO">🟠 Lendário</option>
-                  </select>
+                  value={formData.rarity}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (VALID_RARITIES.includes(value as Rarity)) {
+                      setFormData((prev) => ({ ...prev, rarity: value as Rarity }));
+                    }
+                  }}
+                  className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all cursor-pointer`}
+                >
+                  <option value={RARITY.COMUM}>🟢 Comum</option>
+                  <option value={RARITY.RARO}>🔵 Raro</option>
+                  <option value={RARITY.EPICO}>🟣 Épico</option>
+                  <option value={RARITY.LENDARIO}>🟠 Lendário</option>
+                </select>
                 </div>
 
                 <div>

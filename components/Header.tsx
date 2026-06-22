@@ -9,6 +9,7 @@ import { LogoutButton } from '@/components/LogoutButton';
 import { CoinBalance } from '@/components/CoinBalance';
 import { CartBadge } from '@/components/CartBadge';
 import { AvatarWithFrame } from './AvatarWithFrame';
+import { RARITY } from '@/constants/cosmeticRarity';
 
 import { Home, User, Compass, Menu, X, Store, Package, Sparkles, ChevronDown } from 'lucide-react';
 
@@ -191,7 +192,7 @@ export default function Header() {
                     avatarUrl={session.user?.avatar}
                     name={session?.user?.name}
                     frameUrl={session.user?.equippedFrame?.imageUrl}
-                    rarity={session.user?.equippedFrame?.rarity || 'COMUM'}
+                    rarity={session.user?.equippedFrame?.rarity || RARITY.COMUM}
                     size="smsm"
                   />
                 </div>
@@ -258,7 +259,7 @@ export default function Header() {
                     avatarUrl={session.user?.avatar}
                     name={session?.user?.name}
                     frameUrl={session.user?.equippedFrame?.imageUrl}
-                    rarity={session.user?.equippedFrame?.rarity || 'COMUM'}
+                    rarity={session.user?.equippedFrame?.rarity || RARITY.COMUM}
                     size="sm"
                   />
                 </div>

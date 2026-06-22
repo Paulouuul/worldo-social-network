@@ -27,7 +27,7 @@ async function syncExistingListings() {
               select: {
                 name: true,
                 username: true,
-                avatar: true, // ← Adicionar avatar
+                avatar: true,
               },
             },
           },
@@ -66,18 +66,18 @@ async function syncExistingListings() {
             isActive: listing.isActive,
             createdAt: listing.createdAt,
             updatedAt: listing.updatedAt,
-            // Frame data (compatível com prisma-sync)
+            // Frame data
             frameName: listing.frame.name,
             frameRarity: listing.frame.rarity,
             frameDescription: listing.frame.description || '',
             frameImage: listing.frame.imageUrl,
-            frameImageUrl: listing.frame.imageUrl, // ← Adicionar
-            frameThumbnailUrl: listing.frame.thumbnailUrl, // ← Adicionar
+            frameImageUrl: listing.frame.imageUrl,
+            frameThumbnailUrl: listing.frame.thumbnailUrl,
             // Creator data
             creatorId: listing.frame.createdBy,
             creatorName: listing.frame.creator?.name,
             creatorUsername: listing.frame.creator?.username,
-            creatorAvatar: listing.frame.creator?.avatar, // ← Adicionar
+            creatorAvatar: listing.frame.creator?.avatar,
             // Seller data
             sellerName: listing.seller.name,
             sellerUsername: listing.seller.username,

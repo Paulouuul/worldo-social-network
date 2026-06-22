@@ -6,7 +6,7 @@ import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Search, Coins, User, Package, Sparkles, Store, X } from 'lucide-react';
-import { getRarityDesigns } from '@/constants/cosmeticRarity';
+import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
 
 interface MarketplaceListing {
   id: string;
@@ -19,7 +19,7 @@ interface MarketplaceListing {
     description: string;
     imageUrl: string;
     thumbnailUrl: string;
-    rarity: string;
+    rarity: Rarity;
     creator: { name: string; username: string; avatar: string | null };
   };
   seller: { publicId: string; name: string; username: string; avatar: string | null };
@@ -34,8 +34,10 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [rarityFilter, setRarityFilter] = useState('all');
+  const [rarityFilter, setRarityFilter] = useState<'all' | Rarity>('all');
   const [sort, setSort] = useState('newest');
+  const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
+
 
   if (status === 'unauthenticated') {
     redirect('/login');
@@ -126,10 +128,10 @@ export default function MarketplacePage() {
           </button>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
-          {['all', 'COMUM', 'RARO', 'EPICO', 'LENDARIO'].map((rarity) => (
+          {rarityOptions.map((rarity) => (
             <button
               key={rarity}
-              onClick={() => setRarityFilter(rarity)}
+              onClick={() => setRarityFilter(rarity as 'all' | Rarity)}
               className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-[transform,colors] whitespace-nowrap ${
                 rarityFilter === rarity
                   ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30 border-transparent'

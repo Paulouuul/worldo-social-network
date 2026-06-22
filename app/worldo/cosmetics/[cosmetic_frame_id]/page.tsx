@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
+import { RARITY, getRarityDesigns } from '@/constants/cosmeticRarity';
 import { Star, ShoppingBag, Users, Coins, User } from 'lucide-react';
 
 interface FrameData {

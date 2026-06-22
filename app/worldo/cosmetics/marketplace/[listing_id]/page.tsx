@@ -6,7 +6,7 @@ import { useParams, useRouter, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
-import { getRarityDesigns } from '@/constants/cosmeticRarity';
+import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { useCartSummaryStore } from '@/stores/cartSummaryStore';
 import {
@@ -39,7 +39,7 @@ interface ListingData {
     description: string;
     imageUrl: string;
     thumbnailUrl: string;
-    rarity: string;
+    rarity: Rarity;
     creator: {
       id: string;
       name: string;
@@ -49,7 +49,7 @@ interface ListingData {
       memberSince: string;
       equippedFrame: {
         imageUrl: string;
-        rarity: string;
+        rarity: Rarity;
       } | null;
     };
   };
@@ -62,7 +62,7 @@ interface ListingData {
     memberSince: string;
     equippedFrame: {
       imageUrl: string;
-      rarity: string;
+      rarity: Rarity;
     } | null;
   };
   sellerOtherListings: {
@@ -74,7 +74,7 @@ interface ListingData {
       name: string;
       thumbnailUrl: string;
       imageUrl: string;
-      rarity: string;
+      rarity: Rarity;
     };
   }[];
 }
@@ -96,7 +96,8 @@ export default function ListingDetailPage() {
   const { fetchSummary } = useCartSummaryStore();
 
   const listingId = params.listing_id as string;
-
+  const MAX_QUANTITY_PER_ITEM = 99;
+  
   if (status === 'unauthenticated') {
     redirect('/login');
   }
@@ -156,7 +157,7 @@ export default function ListingDetailPage() {
   }, [session, listingId, listing]);
 
   const handleIncrement = () => {
-    if (buyQuantity < availableQuantity) {
+    if (buyQuantity < availableQuantity && buyQuantity < MAX_QUANTITY_PER_ITEM) {
       setBuyQuantity(prev => prev + 1);
     }
   };

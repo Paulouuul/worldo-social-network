@@ -2,7 +2,6 @@
 import { esClient, LISTINGS_INDEX } from './elasticsearch';
 import { baseClient } from './prisma';
 
-
 // Se
 /**
  * Busca os dados completos no banco e envia para o Elasticsearch
@@ -46,7 +45,7 @@ export async function syncToListing(listingId: string, tx?: any) {
         updatedAt: listing.updatedAt,
         frameName: listing.frame.name,
         frameRarity: listing.frame.rarity,
-        frameDescription: listing.frame.description || '',
+        frameDescription: listing.frame.description ?? '',
         frameImageUrl: listing.frame.imageUrl,
         frameThumbnailUrl: listing.frame.thumbnailUrl,
         creatorId: listing.frame.createdBy,

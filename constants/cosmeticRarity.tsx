@@ -3,6 +3,17 @@ import { Sparkles, Orbit, Shield, Layers } from 'lucide-react';
 
 export type RarityLayoutVariant = 'bottom-10' | 'bottom-2' | 'static';
 
+export const RARITY = {
+  COMUM: 'COMUM',
+  RARO: 'RARO',
+  EPICO: 'EPICO',
+  LENDARIO: 'LENDARIO',
+} as const;
+
+export type Rarity = typeof RARITY[keyof typeof RARITY];
+
+export const VALID_RARITIES = Object.values(RARITY);
+
 export type RarityDesign = {
   cardClass: string;
   borderClass: string;

@@ -1,5 +1,27 @@
 // lib/elasticsearch.ts
 import { Client } from '@elastic/elasticsearch';
+import { Rarity } from '@/constants/cosmeticRarity';
+
+export interface ElasticsearchListing {
+  id: string;
+  frameId: string;
+  sellerId: string;
+  priceCoins: number;
+  quantity: number;
+  isActive: boolean;
+  createdAt: string;
+  frameName: string;
+  frameRarity: Rarity | string;
+  frameDescription?: string;
+  frameImage?: string;
+  creatorId: string;
+  creatorName: string;
+  creatorUsername: string;
+  sellerName: string;
+  sellerUsername: string;
+  sellerAvatar?: string | null;
+}
+
 
 const elasticsearchUrl = process.env.ELASTICSEARCH_URL || 'http://127.0.0.1:9200';
 const username = process.env.ELASTICSEARCH_USERNAME || 'elastic';
@@ -153,12 +175,17 @@ export async function setupElasticsearchIndicesWithCustomAnalysis() {
 }
 
 // Função utilitária para indexar documentos
-export async function indexListing(listing: any) {
+export async function indexListing(listing: ElasticsearchListing) {
   try {
+
+    const document = {
+      ...listing,
+      frameRarity: listing.frameRarity,
+    };
     const result = await esClient.index({
       index: LISTINGS_INDEX,
       id: listing.id,
-      document: listing,
+      document,
     });
     return result;
   } catch (error) {
@@ -196,7 +223,7 @@ export async function deleteListing(indexId: string) {
 }
 
 // Função utilitária para atualizar listing
-export async function updateListing(indexId: string, updates: any) {
+export async function updateListing(indexId: string, updates: Partial<ElasticsearchListing>) {
   try {
     const result = await esClient.update({
       index: LISTINGS_INDEX,

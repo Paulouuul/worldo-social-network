@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Rarity } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import 'dotenv/config';
@@ -59,10 +59,10 @@ async function main() {
   // 2. CUSTOS BASE PARA CRIAR MOLDURAS
   // ============================================
   const creationCosts = [
-    { rarity: 'COMUM', costCoins: 50, timeMinutes: 5 },
-    { rarity: 'RARO', costCoins: 200, timeMinutes: 15 },
-    { rarity: 'EPICO', costCoins: 500, timeMinutes: 30 },
-    { rarity: 'LENDARIO', costCoins: 1000, timeMinutes: 60 },
+    { rarity: Rarity.COMUM, costCoins: 50, timeMinutes: 5 },
+    { rarity: Rarity.RARO, costCoins: 200, timeMinutes: 15 },
+    { rarity: Rarity.EPICO, costCoins: 500, timeMinutes: 30 },
+    { rarity: Rarity.LENDARIO, costCoins: 1000, timeMinutes: 60 },
   ];
 
   for (const cost of creationCosts) {
@@ -88,7 +88,7 @@ async function main() {
     // PACOTES PARA COMUM (base: 50)
     {
       name: 'Pacote Básico',
-      rarity: 'COMUM',
+      rarity: Rarity.COMUM,
       quantity: 10,
       multiplier: 1,
       totalCost: 50,
@@ -96,7 +96,7 @@ async function main() {
     },
     {
       name: 'Pacote Comercial',
-      rarity: 'COMUM',
+      rarity: Rarity.COMUM,
       quantity: 50,
       multiplier: 1.5,
       totalCost: 75,
@@ -104,7 +104,7 @@ async function main() {
     },
     {
       name: 'Pacote Empresarial',
-      rarity: 'COMUM',
+      rarity: Rarity.COMUM,
       quantity: 100,
       multiplier: 2,
       totalCost: 100,
@@ -112,7 +112,7 @@ async function main() {
     },
     {
       name: 'Pacote Máster',
-      rarity: 'COMUM',
+      rarity: Rarity.COMUM,
       quantity: 500,
       multiplier: 5,
       totalCost: 250,
@@ -122,7 +122,7 @@ async function main() {
     // PACOTES PARA RARO (base: 200)
     {
       name: 'Pacote Básico',
-      rarity: 'RARO',
+      rarity: Rarity.RARO,
       quantity: 10,
       multiplier: 1,
       totalCost: 200,
@@ -130,7 +130,7 @@ async function main() {
     },
     {
       name: 'Pacote Comercial',
-      rarity: 'RARO',
+      rarity: Rarity.RARO,
       quantity: 50,
       multiplier: 1.5,
       totalCost: 300,
@@ -138,7 +138,7 @@ async function main() {
     },
     {
       name: 'Pacote Empresarial',
-      rarity: 'RARO',
+      rarity: Rarity.RARO,
       quantity: 100,
       multiplier: 2,
       totalCost: 400,
@@ -146,7 +146,7 @@ async function main() {
     },
     {
       name: 'Pacote Máster',
-      rarity: 'RARO',
+      rarity: Rarity.RARO,
       quantity: 500,
       multiplier: 5,
       totalCost: 1000,
@@ -156,7 +156,7 @@ async function main() {
     // PACOTES PARA EPICO (base: 500)
     {
       name: 'Pacote Básico',
-      rarity: 'EPICO',
+      rarity: Rarity.EPICO,
       quantity: 10,
       multiplier: 1,
       totalCost: 500,
@@ -164,7 +164,7 @@ async function main() {
     },
     {
       name: 'Pacote Comercial',
-      rarity: 'EPICO',
+      rarity: Rarity.EPICO,
       quantity: 50,
       multiplier: 1.5,
       totalCost: 750,
@@ -172,7 +172,7 @@ async function main() {
     },
     {
       name: 'Pacote Empresarial',
-      rarity: 'EPICO',
+      rarity: Rarity.EPICO,
       quantity: 100,
       multiplier: 2,
       totalCost: 1000,
@@ -180,7 +180,7 @@ async function main() {
     },
     {
       name: 'Pacote Máster',
-      rarity: 'EPICO',
+      rarity: Rarity.EPICO,
       quantity: 500,
       multiplier: 5,
       totalCost: 2500,
@@ -190,7 +190,7 @@ async function main() {
     // PACOTES PARA LENDARIO (base: 1000)
     {
       name: 'Pacote Básico',
-      rarity: 'LENDARIO',
+      rarity: Rarity.LENDARIO,
       quantity: 10,
       multiplier: 1,
       totalCost: 1000,
@@ -198,7 +198,7 @@ async function main() {
     },
     {
       name: 'Pacote Comercial',
-      rarity: 'LENDARIO',
+      rarity: Rarity.LENDARIO,
       quantity: 50,
       multiplier: 1.5,
       totalCost: 1500,
@@ -206,7 +206,7 @@ async function main() {
     },
     {
       name: 'Pacote Empresarial',
-      rarity: 'LENDARIO',
+      rarity: Rarity.LENDARIO,
       quantity: 100,
       multiplier: 2,
       totalCost: 2000,
@@ -214,7 +214,7 @@ async function main() {
     },
     {
       name: 'Pacote Máster',
-      rarity: 'LENDARIO',
+      rarity: Rarity.LENDARIO,
       quantity: 500,
       multiplier: 5,
       totalCost: 5000,
@@ -272,7 +272,7 @@ async function main() {
       description: 'Uma moldura elegante com detalhes dourados',
       imageUrl: '/frames/dourada.png',
       thumbnailUrl: '/frames/dourada-thumb.png',
-      rarity: 'RARO',
+      rarity: Rarity.RARO,
       stock: 10,
       createdBy: adminUser.id,
     },
@@ -281,7 +281,7 @@ async function main() {
       description: 'Efeito neon futurista',
       imageUrl: '/frames/neon.png',
       thumbnailUrl: '/frames/neon-thumb.png',
-      rarity: 'EPICO',
+      rarity: Rarity.EPICO,
       stock: 5,
       createdBy: adminUser.id,
     },
@@ -290,7 +290,7 @@ async function main() {
       description: 'Brilho mágico e misterioso',
       imageUrl: '/frames/mistica.png',
       thumbnailUrl: '/frames/mistica-thumb.png',
-      rarity: 'LENDARIO',
+      rarity: Rarity.LENDARIO,
       stock: 2,
       createdBy: adminUser.id,
     },

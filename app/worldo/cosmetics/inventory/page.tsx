@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getRarityDesigns } from '@/constants/cosmeticRarity';
+import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
 import { CosmeticActionModal } from '@/components/CosmeticActionModal';
 import { Package, Search, Plus, X, Loader2, Store, CheckCircle, Box } from 'lucide-react';
 
@@ -24,7 +24,7 @@ interface GroupedItem {
     description: string;
     thumbnailUrl: string;
     imageUrl: string;
-    rarity: string;
+    rarity: Rarity;
     stock: number;
   };
 }
@@ -50,6 +50,7 @@ export default function MyCosmeticsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [statsData, setStatsData] = useState({ all: 0, listed: 0, unlisted: 0 });
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+  const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
 
   // Estados do Modal
   const [selectedItem, setSelectedItem] = useState<GroupedItem | null>(null);
@@ -236,7 +237,7 @@ export default function MyCosmeticsPage() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-          {['all', 'COMUM', 'RARO', 'EPICO', 'LENDARIO'].map((rarity) => (
+          {rarityOptions.map((rarity) => (
             <button
               key={rarity}
               onClick={() => setRarityFilter(rarity)}

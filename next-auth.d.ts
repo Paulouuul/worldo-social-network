@@ -1,12 +1,13 @@
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { JWT as DefaultJWT } from 'next-auth/jwt';
+import { Rarity } from '@/constants/cosmeticRarity';
 
 // Interface para o Frame equipado
 interface EquippedFrame {
   id: string;
   name: string;
   imageUrl: string;
-  rarity: string;
+  rarity: Rarity;
 }
 
 declare module 'next-auth' {
