@@ -110,7 +110,7 @@ export default function CreateCosmeticPage() {
   }, [formData.rarity]);
 
   useEffect(() => {
-    fetch('/api/cosmetics/creation-costs')
+    fetch('/api/cosmetics/creation_costs')
       .then((res) => res.json())
       .then((data) => {
         // Se veio agrupado (quando não tem rarity)
