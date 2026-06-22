@@ -77,17 +77,23 @@ export function CosmeticActionModal({
 
   const [localIsEquipped, setLocalIsEquipped] = useState(item.isEquipped);
   const [hasEquipChanged, setHasEquipChanged] = useState(false);
+  const [localItem, setLocalItem] = useState(item);
+
   useEffect(() => {
     setLocalIsEquipped(item.isEquipped);
   }, [item.isEquipped]);
+
+  useEffect(() => {
+    setLocalItem(item);
+  }, [item]);
 
   const rarityConfig = useMemo(() => {
     return rarityDesigns[item.frame.rarity] || rarityDesigns.COMUM;
   }, [item]);
 
   const maxAvailable = useMemo(() => {
-    return localIsEquipped ? item.count - 1 : item.count;
-  }, [localIsEquipped, item.count]);
+    return localIsEquipped ? localItem.count - 1 : localItem.count;
+  }, [localIsEquipped, localItem.count]);
 
   // Limpa mensagens de sucesso sozinhas
   useEffect(() => {
@@ -100,6 +106,7 @@ export function CosmeticActionModal({
   // FUNÇÕES DE API
 
   // Equipar/Desequipar
+
   const handleEquip = async () => {
     if (localIsEquipped) {
       // Desequipar
@@ -183,8 +190,14 @@ export function CosmeticActionModal({
       const data = await res.json();
       if (res.ok) {
         setSuccessMessage('Anúncio publicado no mercado!');
+        const newCount = localItem.count - quantity;
+        setLocalItem((prev) => ({ ...prev, count: newCount }));
         onSuccess();
-        setTimeout(() => handleClose(), 1500);
+        if (quantity >= localItem.count) {
+          setTimeout(() => handleClose(), 1500);
+        } else {
+          setTimeout(() => setCurrentMode('equip'), 1500);
+        }
       } else {
         setErrorMessage(data.error || 'Erro na validação do anúncio.');
       }
@@ -209,6 +222,7 @@ export function CosmeticActionModal({
       });
       const data = await res.json();
       if (res.ok) {
+        setLocalItem((prev) => ({ ...prev, resalePrice: price }));
         setSuccessMessage('Preço atualizado com sucesso!');
         onSuccess();
         setTimeout(() => setCurrentMode('view'), 1000);
@@ -236,9 +250,11 @@ export function CosmeticActionModal({
       });
       const data = await res.json();
       if (res.ok) {
+        const newCount = localItem.count - quantity;
+        setLocalItem((prev) => ({ ...prev, count: newCount }));
         setSuccessMessage(`${quantity} unidade(s) retiradas do mercado!`);
         onSuccess();
-        if (quantity >= item.count) {
+        if (quantity >= localItem.count) {
           setTimeout(() => handleClose(), 1500);
         } else {
           setTimeout(() => setCurrentMode('view'), 1500);
@@ -354,7 +370,7 @@ export function CosmeticActionModal({
                   Quantidade no Cofre:
                 </span>
                 <span className="text-sm sm:text-base font-black text-slate-200 flex items-center gap-1.5">
-                  <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" /> {item.count}
+                  <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" /> {localItem.count}
                 </span>
               </div>
 
@@ -403,10 +419,14 @@ export function CosmeticActionModal({
               <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex flex-col gap-2 sm:gap-3 shadow-inner">
                 <div className="flex justify-between items-center border-b border-slate-800/50 pb-2">
                   <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Preço Unitário:
+                    Preço
+                    <span className="text-slate-600 mx-2">|</span>
+                    Quantidade:
                   </span>
                   <span className="text-sm font-black text-amber-500 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {item.resalePrice}
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {localItem.resalePrice}
+                    <span className="text-slate-600 mx-2">|</span>
+                    <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" /> <span className='text-slate-200'>{localItem.count}</span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-1">
@@ -415,7 +435,7 @@ export function CosmeticActionModal({
                   </span>
                   <span className="text-sm sm:text-base font-black text-emerald-400 flex items-center gap-1.5">
                     <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
-                    {(item.resalePrice || 0) * item.count}
+                    {(localItem.resalePrice || 0) * localItem.count}
                   </span>
                 </div>
               </div>
@@ -424,7 +444,7 @@ export function CosmeticActionModal({
                 <button
                   onClick={() => {
                     setCurrentMode('edit');
-                    setPrice(item.resalePrice || 100);
+                    setPrice(localItem.resalePrice || 100);
                     setErrorMessage('');
                     setSuccessMessage('');
                   }}
@@ -435,7 +455,7 @@ export function CosmeticActionModal({
                 <button
                   onClick={() => {
                     setCurrentMode('remove');
-                    setQuantity(item.count);
+                    setQuantity(localItem.count);
                     setErrorMessage('');
                     setSuccessMessage('');
                   }}
@@ -499,7 +519,7 @@ export function CosmeticActionModal({
                 <span className="text-slate-400 font-medium text-[10px] sm:text-xs">
                   Rendimento Total Previsto:
                 </span>
-                <span className="font-black text-purple-400 text-sm flex items-center gap-1.5">
+                <span className="font-black text-emerald-400 text-sm flex items-center gap-1.5">
                   <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
                   {new Intl.NumberFormat('pt-BR').format(quantity * price)}
                 </span>
@@ -553,7 +573,7 @@ export function CosmeticActionModal({
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
                 <button
                   type="submit"
-                  disabled={submitting || price === item.resalePrice}
+                  disabled={submitting || price === localItem.resalePrice}
                   className="flex-[1.5] bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-indigo-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Alteração'}
@@ -578,14 +598,16 @@ export function CosmeticActionModal({
             >
               <div>
                 <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Box className="w-3 h-3" /> Qtd. a Retirar para o Cofre
+                  <Box className="w-3 h-3 text-purple-400" /> Qtd. a Retirar para o Cofre
                 </label>
                 <input
                   type="number"
                   min="1"
-                  max={item.count}
+                  max={localItem.count}
                   value={quantity}
-                  onChange={(e) => setQuantity(Math.min(parseInt(e.target.value) || 1, item.count))}
+                  onChange={(e) =>
+                    setQuantity(Math.min(parseInt(e.target.value) || 1, localItem.count))
+                  }
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                   disabled={submitting}
                   required
