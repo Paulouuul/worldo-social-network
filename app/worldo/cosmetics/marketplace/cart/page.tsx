@@ -8,6 +8,7 @@ import { ClientImage } from '@/components/ClientImage';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { useCartSummaryStore } from '@/stores/cartSummaryStore';
+import { formatFullNumber, formatItemCount, formatPrice } from '@/lib/format-utils';
 import {
   ShoppingCart,
   Coins,
@@ -285,7 +286,8 @@ export default function CartPage() {
             Meu Carrinho
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            {cart?.unique_items_count || 0} item(ns) • {cart?.total_items || 0} unidades
+            {formatItemCount(cart?.unique_items_count || 0)} item(ns) •{' '}
+            {formatItemCount(cart?.total_items || 0)} unidades
           </p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
@@ -416,7 +418,7 @@ export default function CartPage() {
                         {/* Tag de Preço com estilo Marketplace (Glassmorphism + Neon) */}
                         <span className="flex items-center gap-1.5 text-sm sm:text-base font-black text-amber-400 bg-amber-950/90 border border-amber-500/40 px-3 py-1.5 rounded-lg shadow-[0_0_10px_rgba(245,158,11,0.2)] tracking-wider backdrop-blur-sm shrink-0 mt-2 sm:mt-0">
                           <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
-                          {item.price}
+                          {formatPrice(item.price)}
                         </span>
                       </div>
 
@@ -437,9 +439,7 @@ export default function CartPage() {
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                             disabled={
-                              item.quantity >= Math.min(item.max_quantity, 99) ||
-                              submitting ||
-                              isOutOfStock
+                              item.quantity >= item.max_quantity || submitting || isOutOfStock
                             }
                             aria-label="Aumentar quantidade"
                             className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 transition flex items-center justify-center text-slate-300 border border-slate-700 backdrop-blur-sm"
@@ -450,7 +450,7 @@ export default function CartPage() {
 
                         <div className="flex items-center gap-3">
                           <span className="hidden sm:inline-block text-xs font-medium text-slate-400 bg-slate-900/50 px-2 py-1 rounded-md border border-slate-800">
-                            Estoque: {item.max_quantity}
+                            Estoque: {formatFullNumber(item.max_quantity)}
                           </span>
                           <button
                             onClick={() => handleRemoveItem(item.id)}
@@ -482,17 +482,21 @@ export default function CartPage() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between py-2 border-b border-slate-800/50">
                 <span className="text-slate-400">Itens</span>
-                <span className="font-bold text-slate-200">{cart?.total_items || 0}</span>
+                <span className="font-bold text-slate-200">
+                  {formatItemCount(cart?.total_items || 0)}
+                </span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-800/50">
                 <span className="text-slate-400">Produtos únicos</span>
-                <span className="font-bold text-slate-200">{cart?.unique_items_count || 0}</span>
+                <span className="font-bold text-slate-200">
+                  {formatItemCount(cart?.unique_items_count || 0)}
+                </span>
               </div>
               <div className="flex justify-between py-3 text-lg">
                 <span className="text-slate-400 font-bold">Total</span>
                 <span className="font-black text-amber-400 flex items-center gap-1.5">
                   <Coins className="w-5 h-5" />
-                  {cart?.total_price || 0}
+                  {formatPrice(cart?.total_price || 0)}
                 </span>
               </div>
             </div>

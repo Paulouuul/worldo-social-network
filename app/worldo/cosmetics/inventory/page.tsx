@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation';
 import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
 import { CosmeticActionModal } from '@/components/CosmeticActionModal';
 import { Package, Search, Plus, X, Loader2, Store, CheckCircle, Box } from 'lucide-react';
+import { formatItemCount } from '@/lib/format-utils';
 
 interface GroupedItem {
   id: string;
@@ -261,7 +262,7 @@ export default function MyCosmeticsPage() {
           <Box className="w-4 h-4 shrink-0" />{' '}
           <span className="hidden min-[400px]:inline">Disponíveis</span>{' '}
           <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
-            {statsData.unlisted}
+            {formatItemCount(statsData.unlisted)}
           </span>
         </button>
         <button
@@ -271,7 +272,7 @@ export default function MyCosmeticsPage() {
           <Store className="w-4 h-4 shrink-0" />{' '}
           <span className="hidden min-[400px]:inline">No Mercado</span>{' '}
           <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
-            {statsData.listed}
+            {formatItemCount(statsData.listed)}
           </span>
         </button>
         <button
@@ -280,7 +281,7 @@ export default function MyCosmeticsPage() {
         >
           <Package className="w-4 h-4 shrink-0" /> Todos{' '}
           <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
-            {statsData.all}
+            {formatItemCount(statsData.all)}
           </span>
         </button>
       </div>
@@ -376,7 +377,7 @@ export default function MyCosmeticsPage() {
                       </div>
                     )}
                     <div className="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 font-black text-[10px] px-2 py-0.5 rounded-md shadow-md z-20">
-                      x{item.count}
+                      x{formatItemCount(item.count)}
                     </div>
                     {config.bgDecoration}
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.03]" />

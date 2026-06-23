@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Coins, Plus } from 'lucide-react';
 import { useCoinStore } from '@/stores/coinStore';
-
+import { formatFullNumber } from '@/lib/format-utils';
 interface CoinBalanceProps {
   onClick?: () => void;
 }
@@ -33,7 +33,7 @@ export function CoinBalance({ onClick }: CoinBalanceProps) {
   }
 
   // Formata o número (Ex: 1500 vira 1.500)
-  const formattedBalance = balance !== null ? new Intl.NumberFormat('pt-BR').format(balance) : '0';
+  const formattedBalance = formatFullNumber(balance ?? 0);
 
   return (
     <Link

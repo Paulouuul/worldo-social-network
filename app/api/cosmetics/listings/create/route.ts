@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-
     const MAX_PRICE = 1000000;
     const MAX_QUANTITY = 1000000;
     console.log('[LISTING] Iniciando criação de anúncio...');
@@ -23,7 +22,15 @@ export async function POST(request: NextRequest) {
 
     const { frameId, quantity, priceCoins } = body;
 
-    if (!frameId || !quantity || !priceCoins || quantity <= 0 || priceCoins <= 0 || priceCoins > MAX_PRICE || quantity > MAX_QUANTITY) {
+    if (
+      !frameId ||
+      !quantity ||
+      !priceCoins ||
+      quantity <= 0 ||
+      priceCoins <= 0 ||
+      priceCoins > MAX_PRICE ||
+      quantity > MAX_QUANTITY
+    ) {
       console.log('[LISTING] Campos inválidos:', { frameId, quantity, priceCoins });
       return NextResponse.json({ error: 'Campos inválidos' }, { status: 400 });
     }

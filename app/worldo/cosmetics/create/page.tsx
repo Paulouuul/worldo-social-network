@@ -8,6 +8,7 @@ import { ClientImage } from '@/components/ClientImage';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns, RARITY, Rarity, VALID_RARITIES } from '@/constants/cosmeticRarity';
+import { formatPrice } from '@/lib/format-utils';
 import {
   Sparkles,
   FileText,
@@ -624,7 +625,7 @@ export default function CreateCosmeticPage() {
                     {loadingCosts ? (
                       <Loader2 className="w-4 h-4 animate-spin inline" />
                     ) : (
-                      `${baseCosts[formData.rarity] || 0} moedas`
+                      `${formatPrice(baseCosts[formData.rarity] || 0)}`
                     )}
                   </span>
                 </div>
@@ -646,7 +647,7 @@ export default function CreateCosmeticPage() {
                     <span
                       className={`text-sm font-bold ${hasInsufficientCoins ? 'text-red-400' : 'text-slate-400'}`}
                     >
-                      {userCoins} moedas
+                      {formatPrice(userCoins)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -658,7 +659,7 @@ export default function CreateCosmeticPage() {
                     <span
                       className={`text-xl font-black text-transparent bg-clip-text bg-linear-to-r ${currentStyle.gradientText} transition-all duration-500`}
                     >
-                      {creationCost} moedas
+                      {formatPrice(creationCost)}
                     </span>
                   </div>
                 </div>

@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(request: NextRequest) {
   try {
-
     const MAX_PRICE = 1000000;
     console.log('[UPDATE PRICE] Iniciando atualização de preço...');
 

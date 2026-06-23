@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useCoinStore } from '@/stores/coinStore';
 import { redirect } from 'next/navigation';
+import { formatFullNumber } from '@/lib/format-utils';
 
 import {
   Coins,
@@ -193,7 +194,7 @@ export default function CoinsPage() {
                       Seu Saldo Atual
                     </p>
                     <p className="text-2xl md:text-3xl font-black text-white tracking-tight">
-                      {balance.toLocaleString()}
+                      {formatFullNumber(balance)}
                       <span className="text-sm font-medium text-slate-400 ml-1.5">moedas</span>
                     </p>
                   </div>
@@ -245,7 +246,7 @@ export default function CoinsPage() {
                 <div className="w-full bg-slate-950/40 rounded-xl p-4 border border-slate-800/40 space-y-2">
                   <div className="flex items-center justify-center gap-2.5">
                     <span className="text-3xl font-black text-white tracking-tight">
-                      {pkg.coins.toLocaleString()}
+                      {formatFullNumber(pkg.coins)}
                     </span>
                     <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">
                       Moedas
@@ -255,7 +256,7 @@ export default function CoinsPage() {
                   {pkg.bonusCoins > 0 && (
                     <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-500/20">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>+{pkg.bonusCoins.toLocaleString()} BÔNUS</span>
+                      <span>+{formatFullNumber(pkg.bonusCoins)} BÔNUS</span>
                     </div>
                   )}
                 </div>
@@ -370,7 +371,7 @@ export default function CoinsPage() {
                 <div className="flex justify-between items-center pb-3">
                   <span className="text-slate-400 font-medium">Moedas Inclusas:</span>
                   <span className="text-white font-bold flex items-center gap-1.5">
-                    {selectedPackage.coins.toLocaleString()}
+                    {formatFullNumber(selectedPackage.coins)}
                   </span>
                 </div>
                 {selectedPackage.bonusCoins > 0 && (

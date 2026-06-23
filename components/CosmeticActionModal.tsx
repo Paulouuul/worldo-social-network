@@ -5,6 +5,8 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
+import { formatFullNumber, formatPrice } from '@/lib/format-utils';
+
 import {
   Tag,
   Store,
@@ -371,7 +373,8 @@ export function CosmeticActionModal({
                   Quantidade no Cofre:
                 </span>
                 <span className="text-sm sm:text-base font-black text-slate-200 flex items-center gap-1.5">
-                  <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" /> {localItem.count}
+                  <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />{' '}
+                  {formatFullNumber(localItem.count)}
                 </span>
               </div>
 
@@ -425,9 +428,11 @@ export function CosmeticActionModal({
                     Quantidade:
                   </span>
                   <span className="text-sm font-black text-amber-500 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {localItem.resalePrice}
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
+                    {localItem.resalePrice ? formatFullNumber(localItem.resalePrice) : ''}
                     <span className="text-slate-600 mx-2">|</span>
-                    <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" /> <span className='text-slate-200'>{localItem.count}</span>
+                    <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />{' '}
+                    <span className="text-slate-200">{formatFullNumber(localItem.count)}</span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-1">
@@ -436,7 +441,7 @@ export function CosmeticActionModal({
                   </span>
                   <span className="text-sm sm:text-base font-black text-emerald-400 flex items-center gap-1.5">
                     <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
-                    {(localItem.resalePrice || 0) * localItem.count}
+                    {formatFullNumber((localItem.resalePrice || 0) * localItem.count)}
                   </span>
                 </div>
               </div>
@@ -494,7 +499,7 @@ export function CosmeticActionModal({
                     max={Math.min(maxAvailable, MAX_QUANTITY)}
                     value={quantity}
                     onChange={(e) =>
-                      setQuantity(Math.min(parseInt(e.target.value) || 1, maxAvailable))
+                      setQuantity(Math.min(parseInt(e.target.value) || 1, Math.min(maxAvailable, MAX_QUANTITY)))
                     }
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold"
                     disabled={submitting}
@@ -510,7 +515,11 @@ export function CosmeticActionModal({
                     min="1"
                     max={MAX_PRICE}
                     value={price}
-                    onChange={(e) => setPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      setPrice(Math.min(Math.max(1, value), MAX_PRICE));
+                      // ↑ Limita entre 1 e MAX_PRICE
+                    }}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-amber-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                     disabled={submitting}
                     required
@@ -522,8 +531,7 @@ export function CosmeticActionModal({
                   Rendimento Total Previsto:
                 </span>
                 <span className="font-black text-emerald-400 text-sm flex items-center gap-1.5">
-                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
-                  {new Intl.NumberFormat('pt-BR').format(quantity * price)}
+                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {formatPrice(quantity * price)}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
@@ -567,7 +575,11 @@ export function CosmeticActionModal({
                   min="1"
                   max={MAX_PRICE}
                   value={price}
-                  onChange={(e) => setPrice(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    setPrice(Math.min(Math.max(1, value), MAX_PRICE));
+                    // ↑ Limita entre 1 e MAX_PRICE
+                  }}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                   disabled={submitting}
                   required

@@ -9,6 +9,7 @@ import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { useCartSummaryStore } from '@/stores/cartSummaryStore';
+import { formatItemCount, formatFullNumber, formatPrice } from '@/lib/format-utils';
 import {
   Coins,
   User,
@@ -379,7 +380,7 @@ export default function ListingDetailPage() {
                 </p>
                 <div className="flex items-center gap-2.5">
                   <span className="text-4xl sm:text-5xl font-black text-amber-400 drop-shadow-md">
-                    {listing.priceCoins}
+                    {formatFullNumber(listing.priceCoins)}
                   </span>
                   <Coins className="w-7 h-7 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                 </div>
@@ -395,7 +396,7 @@ export default function ListingDetailPage() {
                     {loadingCart ? (
                       <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
                     ) : (
-                      <span>{listing.quantity} em estoque</span>
+                      <span>{formatFullNumber(listing.quantity)} em estoque</span>
                     )}
                   </p>
                   {cartQuantity > 0 && !listing.isOwnListing && (
@@ -493,7 +494,7 @@ export default function ListingDetailPage() {
                       <div className="w-full bg-slate-950/50 border border-slate-800/60 shadow-inner rounded-xl px-4 h-14 flex justify-between sm:justify-end items-center gap-3">
                         <span className="text-slate-500 font-medium text-sm sm:hidden">Total:</span>
                         <div className="flex items-center gap-2 text-2xl font-black text-amber-400">
-                          {listing.priceCoins * buyQuantity}
+                          {formatPrice(listing.priceCoins * buyQuantity)}
                           <Coins className="w-5 h-5 text-amber-500/80" />
                         </div>
                       </div>
@@ -575,10 +576,10 @@ export default function ListingDetailPage() {
 
                   <div className="w-full flex justify-between items-start z-20 mb-2 gap-2">
                     <span className="flex items-center gap-1 text-[10px] font-black text-amber-400 bg-amber-950/90 border border-amber-500/40 px-2 py-1 rounded-md shadow-[0_0_10px_rgba(245,158,11,0.2)] tracking-wider backdrop-blur-sm">
-                      <Coins className="w-3 h-3" /> {item.priceCoins}
+                      <Coins className="w-3 h-3" /> {formatPrice(item.priceCoins)}
                     </span>
                     <span className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 text-slate-300 font-black text-[10px] px-2 py-1 rounded-md shadow-lg shrink-0">
-                      📦 x{item.quantity}
+                      📦 x{formatItemCount(item.quantity)}
                     </span>
                   </div>
 
