@@ -104,7 +104,7 @@ export default function CartPage() {
       isInitialLoad.current = false;
     } catch (err) {
       console.error('Erro ao buscar carrinho:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao carregar carrinho');
+      setError('Erro ao carregar carrinho');
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -205,13 +205,7 @@ export default function CartPage() {
         await fetchCart(false);
         return;
       }
-
-      setSuccess('Carrinho validado com sucesso!');
-      await fetchSummary();
-
-      setTimeout(() => {
-        router.push('/worldo/cosmetics/checkout');
-      }, 1500);
+      router.push('/worldo/cosmetics/marketplace/checkout');
     } catch (err) {
       console.error('Erro ao validar carrinho:', err);
       setError(err instanceof Error ? err.message : 'Erro ao validar carrinho');
@@ -302,6 +296,7 @@ export default function CartPage() {
       {/* Alertas */}
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 mb-6 flex items-start gap-3 transition-opacity duration-300">
+          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="text-sm whitespace-pre-line">{error}</div>
         </div>
       )}
