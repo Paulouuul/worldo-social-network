@@ -80,6 +80,7 @@ export function CosmeticActionModal({
   const [localIsEquipped, setLocalIsEquipped] = useState(item.isEquipped);
   const [hasEquipChanged, setHasEquipChanged] = useState(false);
   const [localItem, setLocalItem] = useState(item);
+  const [platformFee, setPlatformFee] = useState<number | null>(null);
   const MAX_PRICE = 1000000;
   const MAX_QUANTITY = 1000000;
   useEffect(() => {
@@ -105,7 +106,20 @@ export function CosmeticActionModal({
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
-
+  useEffect(() => {
+    const fetchPlatformFee = async () => {
+      try {
+        const res = await fetch('/api/cosmetics/listings/platform_fee');
+        const data = await res.json();
+        if (res.ok) {
+          setPlatformFee(data.platform_fee);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar taxa:', error);
+      }
+    };
+    fetchPlatformFee();
+  }, []);
   // FUNÇÕES DE API
 
   // Equipar/Desequipar
@@ -435,14 +449,56 @@ export function CosmeticActionModal({
                     <span className="text-slate-200">{formatFullNumber(localItem.count)}</span>
                   </span>
                 </div>
-                <div className="flex justify-between items-center pt-1">
-                  <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Rendimento Previsto:
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-emerald-400 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
-                    {formatFullNumber((localItem.resalePrice || 0) * localItem.count)}
-                  </span>
+
+                {/* ✅ Detalhamento completo */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Subtotal</span>
+                    <span className="text-slate-200 font-medium flex items-center gap-1">
+                      <Coins className="w-3 h-3" />{' '}
+                      {formatPrice((localItem.resalePrice || 0) * localItem.count)}
+                    </span>
+                  </div>
+
+                  {platformFee !== null && platformFee > 0 && (
+                    <>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Taxa da plataforma ({platformFee}%)</span>
+                        <span className="text-rose-400 font-medium flex items-center gap-1">
+                          - <Coins className="w-3 h-3" />{' '}
+                          {formatPrice(
+                            Math.floor(
+                              (localItem.resalePrice || 0) * localItem.count * (platformFee / 100),
+                            ),
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm border-t border-slate-700/50 pt-2">
+                        <span className="text-slate-300 font-semibold">Rendimento Previsto</span>
+                        <span className="text-emerald-400 font-bold flex items-center gap-1">
+                          <Coins className="w-4 h-4" />
+                          {formatPrice(
+                            (localItem.resalePrice || 0) * localItem.count -
+                              Math.floor(
+                                (localItem.resalePrice || 0) *
+                                  localItem.count *
+                                  (platformFee / 100),
+                              ),
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {(!platformFee || platformFee === 0) && (
+                    <div className="flex justify-between text-sm border-t border-slate-700/50 pt-2">
+                      <span className="text-slate-300 font-semibold">Rendimento Previsto</span>
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <Coins className="w-4 h-4" />
+                        {formatPrice((localItem.resalePrice || 0) * localItem.count)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -499,7 +555,12 @@ export function CosmeticActionModal({
                     max={Math.min(maxAvailable, MAX_QUANTITY)}
                     value={quantity}
                     onChange={(e) =>
-                      setQuantity(Math.min(parseInt(e.target.value) || 1, Math.min(maxAvailable, MAX_QUANTITY)))
+                      setQuantity(
+                        Math.min(
+                          parseInt(e.target.value) || 1,
+                          Math.min(maxAvailable, MAX_QUANTITY),
+                        ),
+                      )
                     }
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold"
                     disabled={submitting}
@@ -526,13 +587,37 @@ export function CosmeticActionModal({
                   />
                 </div>
               </div>
-              <div className="bg-purple-500/5 border border-purple-500/10 rounded-xl p-3 sm:p-3.5 flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-medium text-[10px] sm:text-xs">
-                  Rendimento Total Previsto:
-                </span>
-                <span className="font-black text-emerald-400 text-sm flex items-center gap-1.5">
-                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {formatPrice(quantity * price)}
-                </span>
+              <div className="space-y-2">
+                {/* Resumo da venda */}
+                <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-3 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Subtotal</span>
+                    <span className="text-slate-200 font-medium flex items-center gap-1">
+                      <Coins className="w-3 h-3" /> {formatPrice(quantity * price)}
+                    </span>
+                  </div>
+
+                  {platformFee !== null && platformFee > 0 && (
+                    <>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Taxa da plataforma ({platformFee}%)</span>
+                        <span className="text-rose-400 font-medium flex items-center gap-1">
+                          - <Coins className="w-3 h-3" />{' '}
+                          {formatPrice(Math.floor(quantity * price * (platformFee / 100)))}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm border-t border-slate-700/50 pt-2">
+                        <span className="text-slate-300 font-semibold">Você receberá</span>
+                        <span className="text-emerald-400 font-bold flex items-center gap-1">
+                          <Coins className="w-4 h-4" />
+                          {formatPrice(
+                            quantity * price - Math.floor(quantity * price * (platformFee / 100)),
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
                 <button
