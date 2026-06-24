@@ -1,7 +1,7 @@
 // lib/format-utils.ts
 
 /**
-* Formata números grandes para exibição compacta
+ * Formata números grandes para exibição compacta
  * @example
  * formatItemCount(1000) → "1.0K"
  * formatItemCount(2500) → "2.5K"
@@ -21,7 +21,7 @@ export function formatItemCount(count: number): string {
     // Se for < 10, mostra com 1 decimal (ex: 1.5M)
     return value.toFixed(1) + 'M';
   }
-  
+
   if (count >= 1_000) {
     const value = count / 1_000;
     // Se for >= 10, mostra sem decimal (ex: 10K)
@@ -31,7 +31,7 @@ export function formatItemCount(count: number): string {
     // Se for < 10, mostra com 1 decimal (ex: 1.5K)
     return value.toFixed(1) + 'K';
   }
-  
+
   return count.toString();
 }
 
