@@ -111,6 +111,14 @@ model cosmetic_creation_package {
   @@index([rarity, isActive])
 }
 
+model platform_fee {
+  id         String   @id @default(cuid())
+  feeValue   Float    
+  isActive   Boolean  @default(true)
+   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 
 enum PaymentStatus {
   PENDING
@@ -313,7 +321,7 @@ model cosmetic_purchase {
   frameId        String
   buyerId        String
   sellerId       String
-  quantity       Int      @default(1)  // ← NOVO: Quantas unidades comprou
+  quantity       Int      @default(1)  // ← Quantas unidades comprou
   pricePaid      Int
   platformFee    Int
   sellerEarnings Int
@@ -328,6 +336,8 @@ model cosmetic_purchase {
   
 
 }
+
+
 
 model cosmetic_listing {
   id           String   @id @default(cuid())
