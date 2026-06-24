@@ -18,7 +18,6 @@ export async function backendApiCall(endpoint: string, options: FetchOptions = {
     ...headers,
     ...((options.headers as Record<string, string>) || {}),
   };
-  console.log(`chamei backend api client ${BACKEND_API}${endpoint}`);
   const response = await fetch(`${BACKEND_API}${endpoint}`, {
     ...options,
     headers: mergedHeaders,
