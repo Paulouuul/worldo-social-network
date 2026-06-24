@@ -201,12 +201,7 @@ export default function CartPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.errors && data.errors.length > 0) {
-          const errorMessages = data.errors.map((e: any) => e.message).join('\n');
-          setError(`❌ ${errorMessages}`);
-        } else {
-          setError(data.detail || data.message || 'Erro ao validar carrinho');
-        }
+        setError(data.error || data.message || 'Erro ao validar carrinho');
         await fetchCart(false);
         return;
       }
