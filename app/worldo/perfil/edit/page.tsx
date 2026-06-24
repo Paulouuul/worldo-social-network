@@ -138,7 +138,7 @@ export default function EditProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     if (!session?.user.publicId) {
-      router.push('login');
+      router.replace('login');
     }
     e.preventDefault();
     setLoading(true);
@@ -235,7 +235,7 @@ export default function EditProfilePage() {
     if (session?.user?.publicId) {
       router.push(`/worldo/perfil/${session.user?.publicId}`);
     } else {
-      router.push('/login');
+      router.replace('/login');
     }
   };
 

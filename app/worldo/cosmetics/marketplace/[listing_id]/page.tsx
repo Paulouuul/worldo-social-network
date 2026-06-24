@@ -168,7 +168,7 @@ export default function ListingDetailPage() {
 
   const handleAddToCart = async () => {
     if (!session) {
-      router.push('/login');
+      router.replace('/login');
       return;
     }
 

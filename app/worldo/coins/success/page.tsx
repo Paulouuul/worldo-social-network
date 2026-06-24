@@ -33,7 +33,7 @@ function SuccessPageContent() {
   // Efeito 2: Monitora o countdown e dispara a navegação de forma isolada e segura
   useEffect(() => {
     if (countdown === 0) {
-      router.push('/worldo/coins');
+      router.replace('/worldo/coins');
     }
   }, [countdown, router]);
 

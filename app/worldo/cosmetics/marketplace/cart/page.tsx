@@ -97,7 +97,7 @@ export default function CartPage() {
         if (!hasRedirected.current) {
           hasRedirected.current = true;
           setRedirecting(true);
-          router.push('/worldo');
+          router.replace('/worldo');
           return;
         }
       }
