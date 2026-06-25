@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       select: { coins: true },
     });
 
-    if ((Number(user?.coins || 0) )< selectedPackage.totalCost) {
+    if (Number(user?.coins || 0) < selectedPackage.totalCost) {
       return NextResponse.json(
         {
           error: `Moedas insuficientes. Você precisa de ${selectedPackage.totalCost} moedas.`,

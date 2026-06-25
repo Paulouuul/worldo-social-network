@@ -9,7 +9,7 @@ export async function GET() {
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
     });
-    
+
     const serializedPackages = packages.map((pkg) => ({
       ...pkg,
       coins: Number(pkg.coins),

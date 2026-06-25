@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
     }
 
-    const coinsToCredit = BigInt(coins)
+    const coinsToCredit = BigInt(coins);
     if (coinsToCredit <= 0n) {
       return NextResponse.json({ error: 'Invalid coins amount' }, { status: 400 });
     }

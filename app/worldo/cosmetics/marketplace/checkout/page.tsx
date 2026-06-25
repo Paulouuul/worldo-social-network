@@ -64,10 +64,10 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  
+
   const { balance: userBalance, fetchBalance } = useCoinStore();
   const { fetchSummary } = useCartSummaryStore();
-  
+
   const isInitialLoad = useRef(true);
   const hasRedirected = useRef(false);
 

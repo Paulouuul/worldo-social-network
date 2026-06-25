@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-
       if (listing.priceCoins !== item.price) {
         validationErrors.push(
           `Preço do item "${listing.frame.name}" alterado. Esperado: ${listing.priceCoins}, Recebido: ${item.price}`,
@@ -112,7 +111,6 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-
 
     const realTotal = validatedItems.reduce(
       (sum, item) => sum + item.listing.priceCoins * item.quantity,
