@@ -15,7 +15,7 @@ export async function GET() {
       select: { coins: true },
     });
 
-    return NextResponse.json({ balance: user?.coins || 0 });
+    return NextResponse.json({ balance: Number(user?.coins || 0) });
   } catch (error) {
     console.error('Erro ao buscar saldo:', error);
     return NextResponse.json({ error: 'Erro ao buscar saldo' }, { status: 500 });

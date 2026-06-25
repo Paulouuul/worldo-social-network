@@ -55,11 +55,11 @@ model users {
   updatedAt     DateTime   @updatedAt
   deletedAt     DateTime?
   accounts      accounts[]
-  coins          Int       @default(0)
+  coins          BigInt       @default(0)
   posts         post[]
   comments      comment[]
   likes         like[]
-  frame_items     user_frame_item[]     // Itens que possui
+  frame_items     user_frame_item[]
   following     follow[]   @relation("follower")
   followers     follow[]   @relation("following")
   created_chats chat[] @relation("chat_creator") 
@@ -233,7 +233,7 @@ model coin_package {
   name          String
   coins         Int
   priceReal     Float
-  bonusCoins    Int      @default(0)
+  bonusCoins    Int     @default(0)
   isActive      Boolean  @default(true)
   stripePriceId String?
   sortOrder     Int      @default(0)
@@ -246,7 +246,7 @@ model coin_purchase {
   id              String        @id @default(cuid())
   userId          String
   packageId       String
-  amountCoins     Int
+  amountCoins     BigInt
   priceReal       Float
   stripeSessionId String?
   stripePaymentIntentId String?
@@ -264,8 +264,8 @@ model coin_purchase {
 model coin_transaction {
   id              String   @id @default(cuid())
   userId          String
-  amount          Int      // positivo = ganhou, negativo = gastou
-  balance         Int      // saldo após transação
+  amount          BigInt      // positivo = ganhou, negativo = gastou
+  balance         BigInt      // saldo após transação
   type            String   // purchase, spend, earn, refund, bonus
   description     String
   stripePaymentId String?
@@ -322,9 +322,9 @@ model cosmetic_purchase {
   buyerId        String
   sellerId       String
   quantity       Int      @default(1)  // ← Quantas unidades comprou
-  pricePaid      Int
+  pricePaid      BigInt
   platformFee    Int
-  sellerEarnings Int
+  sellerEarnings BigInt
   purchasedAt    DateTime @default(now())
   items user_frame_item[]
   createdAt DateTime @default(now())
@@ -344,7 +344,7 @@ model cosmetic_listing {
   frameId      String
   sellerId     String
   quantity     Int      @default(1)   // Quantidade disponível para venda
-  priceCoins   Int                    // Preço por unidade
+  priceCoins   Int              // Preço por unidade
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

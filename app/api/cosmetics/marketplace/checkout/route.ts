@@ -18,7 +18,6 @@ interface CheckoutRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Autenticação
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -26,7 +25,6 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
 
-    // 2. Validação do body
     const body: CheckoutRequest = await request.json();
     const { items, total_price } = body;
 
@@ -34,7 +32,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Nenhum item para comprar' }, { status: 400 });
     }
 
-    // 3. Busca todos os listings em uma única query
     const listingIds = items.map((item) => item.listing_id);
     const listings = await prisma.cosmetic_listing.findMany({
       where: {
@@ -63,7 +60,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 4. Validação dos itens
     const validationErrors: string[] = [];
     const validatedItems: {
       listing: any;
@@ -78,6 +74,7 @@ export async function POST(request: NextRequest) {
         validationErrors.push(`Anúncio não encontrado: ${item.listing_id}`);
         continue;
       }
+
 
       if (listing.priceCoins !== item.price) {
         validationErrors.push(
@@ -116,7 +113,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Calcula o total real
+
     const realTotal = validatedItems.reduce(
       (sum, item) => sum + item.listing.priceCoins * item.quantity,
       0,
@@ -134,7 +131,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Verifica saldo do usuário
     const user = await prisma.users.findUnique({
       where: { id: userId },
       select: { coins: true, name: true },
@@ -144,25 +140,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    if (user.coins < realTotal) {
+    const userCoinsNumber = Number(user.coins);
+    if (userCoinsNumber < realTotal) {
       return NextResponse.json(
         {
           error: 'Saldo insuficiente',
           error_type: 'insufficient_balance',
-          balance: user.coins,
+          balance: userCoinsNumber,
           needed: realTotal,
-          missing: realTotal - user.coins,
+          missing: realTotal - userCoinsNumber,
         },
         { status: 400 },
       );
     }
+
     const activeFee = await prisma.platform_fee.findFirst({
       where: { isActive: true },
     });
-    // 7. Processa a compra em transação
+
     try {
       const result = await prisma.$transaction(async (tx) => {
-        // 7.1 Debitar moedas do comprador
         const updatedBuyer = await tx.users.update({
           where: { id: userId },
           data: { coins: { decrement: realTotal } },
@@ -176,7 +173,6 @@ export async function POST(request: NextRequest) {
         for (const validated of validatedItems) {
           const { listing, quantity } = validated;
 
-          // 7.2 Buscar itens disponíveis do vendedor
           const sellerItems = await tx.user_frame_item.findMany({
             where: {
               frameId: listing.frameId,
@@ -192,7 +188,6 @@ export async function POST(request: NextRequest) {
             throw new Error(`Itens insuficientes do vendedor para ${listing.frame.name}`);
           }
 
-          // 7.3 Criar compra
           const itemTotal = listing.priceCoins * quantity;
           const itemPlatformFee = Math.floor(itemTotal * (feePercentage / 100));
           const itemSellerEarnings = itemTotal - itemPlatformFee;
@@ -209,7 +204,6 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          // 7.4 Transferir itens para o comprador
           await tx.user_frame_item.updateMany({
             where: {
               id: { in: sellerItems.map((item) => item.id) },
@@ -225,7 +219,6 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          // 7.5 Atualizar estoque do listing
           await tx.cosmetic_listing.update({
             where: { id: listing.id },
             data: {
@@ -240,7 +233,6 @@ export async function POST(request: NextRequest) {
             console.warn('[CHECKOUT] Erro ao sincronizar com ElasticSearch:', esError);
           }
 
-          // 7.6 Atualizar estatísticas da moldura
           await tx.cosmetic_frame.update({
             where: { id: listing.frameId },
             data: {
@@ -249,24 +241,21 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          // 7.7 Creditar moedas para o vendedor
           await tx.users.update({
             where: { id: listing.sellerId },
             data: { coins: { increment: itemSellerEarnings } },
           });
 
-          // 7.8 Buscar saldo atual do vendedor para registrar
           const sellerAfterBalance = await tx.users.findUnique({
             where: { id: listing.sellerId },
             select: { coins: true },
           });
 
-          // 7.9 Registrar transação do vendedor
           await tx.coin_transaction.create({
             data: {
               userId: listing.sellerId,
               amount: itemSellerEarnings,
-              balance: sellerAfterBalance?.coins || 0,
+              balance: Number(sellerAfterBalance?.coins || 0),
               type: 'earn',
               description: `Venda de ${quantity}x ${listing.frame.name} para ${updatedBuyer.name}`,
               metadata: {
@@ -281,12 +270,11 @@ export async function POST(request: NextRequest) {
           purchases.push(purchase);
         }
 
-        // 7.10 Registrar transação do comprador
         await tx.coin_transaction.create({
           data: {
             userId: userId,
             amount: -realTotal,
-            balance: updatedBuyer.coins,
+            balance: Number(updatedBuyer.coins),
             type: 'spend',
             description: `Compra de ${validatedItems.length} itens no marketplace`,
             metadata: {
@@ -301,8 +289,6 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // 7.11 Sincronizar listings com Redis (atualizar estoque)
-        // 7.11 Sincronizar listings com Redis
         try {
           await backendApiCall('/cosmetics/marketplace/cart/sync', {
             method: 'DELETE',
@@ -311,7 +297,6 @@ export async function POST(request: NextRequest) {
           console.warn('[CHECKOUT] Erro ao sincronizar:', syncError);
         }
 
-        // 7.12 Limpar carrinho do Redis
         try {
           const clearResponse = await backendApiCall('/cosmetics/marketplace/cart/clear', {
             method: 'DELETE',
@@ -329,11 +314,10 @@ export async function POST(request: NextRequest) {
           total: realTotal,
           platformFee,
           totalSellerEarnings,
-          newBalance: updatedBuyer.coins,
+          newBalance: Number(updatedBuyer.coins),
         };
       });
 
-      // 8. Retorna sucesso
       return NextResponse.json(
         {
           success: true,

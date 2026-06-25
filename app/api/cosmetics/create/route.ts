@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       select: { coins: true },
     });
 
-    if ((user?.coins || 0) < selectedPackage.totalCost) {
+    if ((Number(user?.coins || 0) )< selectedPackage.totalCost) {
       return NextResponse.json(
         {
           error: `Moedas insuficientes. Você precisa de ${selectedPackage.totalCost} moedas.`,
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
         data: { coins: { decrement: selectedPackage.totalCost } },
       });
 
-      if (updatedUser.coins < 0) {
+      if (Number(updatedUser.coins) < 0) {
         throw new Error('INSUFFICIENT_FUNDS');
       }
 
@@ -239,10 +239,17 @@ export async function POST(request: NextRequest) {
       return frame;
     });
 
+    const serializedFrame = {
+      ...result,
+      stock: Number(result.stock),
+      soldCount: Number(result.soldCount || 0),
+      totalSales: Number(result.totalSales || 0),
+    };
+
     return NextResponse.json(
       {
         success: true,
-        frame: result,
+        frame: serializedFrame,
         message: `Moldura criada! ${selectedPackage.quantity} unidade(s) do pacote ${selectedPackage.name} adicionadas ao seu inventário.`,
       },
       { status: 201 },

@@ -1,9 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-// Configura o Next.js para fazer o cache desta rota por até 1 hora (3600 segundos)
-// Sempre que você mudar um pacote no banco, o painel atualizará em até 1 hora,
-// ou você pode forçar a limpeza do cache sob demanda usando revalidatePath()
 export const revalidate = 3600;
 
 export async function GET() {
@@ -12,9 +9,14 @@ export async function GET() {
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
     });
+    
+    const serializedPackages = packages.map((pkg) => ({
+      ...pkg,
+      coins: Number(pkg.coins),
+      bonusCoins: Number(pkg.bonusCoins),
+    }));
 
-    // Adiciona cabeçalhos HTTP para que o navegador/CDN também ajudem no cache
-    return NextResponse.json(packages, {
+    return NextResponse.json(serializedPackages, {
       status: 200,
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=60',

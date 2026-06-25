@@ -9,12 +9,12 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
 
-    // 1. Validação de Autenticação (Precisa do ID e do Email para o Stripe)
+    // 1. Validação de Autenticação
     if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: 'Não autorizado ou e-mail ausente' }, { status: 401 });
     }
 
-    // Validação de entrada básica (Fail Fast)
+    // Validação de entrada
     const body = await request.json().catch(() => ({}));
     const { packageId } = body;
 
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'O ID do pacote é obrigatório' }, { status: 400 });
     }
 
-    // 2. Buscar o pacote no banco de dados
+    // 2. Buscar o pacote
     const coinPackage = await prisma.coin_package.findUnique({
       where: { id: packageId },
     });
@@ -31,22 +31,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Pacote não encontrado' }, { status: 404 });
     }
 
-    // Calcular o total de moedas que serão entregues no webhook posterior
-    const totalCoins = coinPackage.coins + coinPackage.bonusCoins;
+    // 🔥 CORREÇÃO 1: Converter BigInt para Number
+    const coinsNumber = Number(coinPackage.coins);
+    const bonusCoinsNumber = Number(coinPackage.bonusCoins);
+    const totalCoins = coinsNumber + bonusCoinsNumber;
 
-    // 3. Criar sessão de checkout no Stripe
+    // 🔥 CORREÇÃO 2: Garantir precisão do preço
+    const priceInReais = Number(coinPackage.priceReal);
+    const priceInCents = Math.round(priceInReais * 100);
+
+    // Validação de segurança
+    if (priceInCents < 100) {
+      return NextResponse.json({ error: 'Preço mínimo é R$1,00' }, { status: 400 });
+    }
+
+    // 3. Criar sessão no Stripe
     const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      customer_email: session.user.email, // Pré-preenche o e-mail no formulário do Stripe
+      customer_email: session.user.email,
       line_items: [
         {
           price_data: {
             currency: 'brl',
             product_data: {
               name: coinPackage.name,
-              description: `${coinPackage.coins} moedas${coinPackage.bonusCoins > 0 ? ` + ${coinPackage.bonusCoins} bônus` : ''}`,
+              description: `${coinsNumber} moedas${bonusCoinsNumber > 0 ? ` + ${bonusCoinsNumber} bônus` : ''}`,
             },
-            unit_amount: Math.round(coinPackage.priceReal * 100), // Converte centavos corretamente
+            unit_amount: priceInCents,
           },
           quantity: 1,
         },

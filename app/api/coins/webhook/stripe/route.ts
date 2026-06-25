@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
     }
 
-    const coinsToCredit = parseInt(coins);
-    if (isNaN(coinsToCredit) || coinsToCredit <= 0) {
+    const coinsToCredit = BigInt(coins)
+    if (coinsToCredit <= 0n) {
       return NextResponse.json({ error: 'Invalid coins amount' }, { status: 400 });
     }
 
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
             amount: coinsToCredit,
             balance: updatedUser.coins, // Saldo preciso gerado no passo B
             type: 'purchase',
-            description: `Compra de ${coinsToCredit} moedas`,
+            description: `Compra de ${coinsToCredit.toString()} moedas`,
             stripePaymentId: session.id,
             purchaseId: coinPurchase.id,
           },
