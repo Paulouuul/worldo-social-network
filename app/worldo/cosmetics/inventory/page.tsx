@@ -33,7 +33,7 @@ interface GroupedItem {
 type FilterType = 'all' | 'listed' | 'unlisted';
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
 
-const rarityDesigns = getRarityDesigns('bottom-10');
+const rarityDesigns = getRarityDesigns('bottom-2');
 
 export default function MyCosmeticsPage() {
   const { data: session, status } = useSession();
@@ -410,14 +410,12 @@ export default function MyCosmeticsPage() {
         </div>
 
         {/* Container do Badge - Agora forçado para baixo da imagem através do fluxo do flex-col */}
-          <div className="relative w-full flex justify-center z-20 mt-6 h-6">
-            <div className="transform scale-90 sm:scale-100 origin-center">
-              {config.badge}
-            </div>
-          </div>
+           <div className="relative w-full flex justify-center z-20 mt-1 mb-2 h-6">
+                  {config.badge}
+                </div>
 
         {/* 3. Footer do Card: Nome do Item */}
-        <div className="mt-auto w-full z-10 pt-1.5 border-t border-slate-800/40 flex flex-col items-center">
+        <div className="w-full z-10 pt-1.5 border-t border-slate-800/40 flex flex-col items-center">
           <span
             className={`block text-[10px] sm:text-xs text-center px-1 truncate w-full drop-shadow-md ${config.textClass}`}
           >

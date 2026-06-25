@@ -36,9 +36,9 @@ export const getRarityDesigns = (variant: RarityLayoutVariant): Record<string, R
   // Classes base das badges que mudam dependendo da variante
   const getPositionClass = () => {
     if (variant === 'bottom-10')
-      return 'absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center whitespace-nowrap z-20';
+      return 'flex items-center justify-center whitespace-nowrap z-20 mt-10';
     if (variant === 'bottom-2')
-      return 'absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center whitespace-nowrap z-20';
+      return 'flex items-center justify-center whitespace-nowrap z-20 mt-2';
     return 'flex items-center justify-center whitespace-nowrap z-20';
   };
 
