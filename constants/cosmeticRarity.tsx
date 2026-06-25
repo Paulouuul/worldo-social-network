@@ -57,8 +57,7 @@ export const getRarityDesigns = (variant: RarityLayoutVariant): Record<string, R
       cardClass:
         'border-amber-500/40 bg-gradient-to-b from-amber-950/40 via-slate-950 to-slate-950 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)] hover:border-amber-400/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]',
       borderClass: 'border-amber-400/70 shadow-[0_0_15px_rgba(245,158,11,0.25)]',
-      textClass:
-        'text-amber-400 font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
+      textClass: 'text-amber-400 font-black tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
       bgAlpha: 'from-amber-900/20 via-transparent to-transparent',
       focusRing: 'focus:border-amber-500 focus:ring-amber-500/30',
       glow: 'drop-shadow-[0_10px_20px_rgba(245,158,11,0.4)]',
