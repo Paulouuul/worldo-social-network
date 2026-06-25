@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
       id: hit._id,
       frameId: hit._source.frameId,
       sellerId: hit._source.sellerId,
-      priceCoins: hit._source.priceCoins,
+      priceCoins: Number(hit._source.priceCoins),
       quantity: hit._source.quantity,
       isActive: hit._source.isActive,
       createdAt: hit._source.createdAt,
