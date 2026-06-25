@@ -205,7 +205,7 @@ export default function MarketplacePage() {
                     </span>
                   ) : (
                     <span className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 text-slate-200 font-black text-[10px] px-2 py-1 rounded-md shadow-lg shrink-0">
-                      📦 x{formatItemCount(listing.quantity)}
+                      x{formatItemCount(listing.quantity)}
                     </span>
                   )}
                 </div>
