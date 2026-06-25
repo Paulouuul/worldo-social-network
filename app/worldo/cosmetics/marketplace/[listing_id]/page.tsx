@@ -576,10 +576,10 @@ export default function ListingDetailPage() {
 
                   <div className="w-full flex justify-between items-start z-20 mb-2 gap-2">
                     <span className="flex items-center gap-1 text-[10px] font-black text-amber-400 bg-amber-950/90 border border-amber-500/40 px-2 py-1 rounded-md shadow-[0_0_10px_rgba(245,158,11,0.2)] tracking-wider backdrop-blur-sm">
-                      <Coins className="w-3 h-3" /> {formatPrice(item.priceCoins)}
+                      <Coins className="w-3 h-3" /> {formatItemCount(item.priceCoins)}
                     </span>
                     <span className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 text-slate-300 font-black text-[10px] px-2 py-1 rounded-md shadow-lg shrink-0">
-                      📦 x{formatItemCount(item.quantity)}
+                      x{formatItemCount(item.quantity)}
                     </span>
                   </div>
 
