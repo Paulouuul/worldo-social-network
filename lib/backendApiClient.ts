@@ -1,8 +1,30 @@
 // lib/backendApiClient.ts
 import { tokenManager } from './backendTokenManager';
 
-const BACKEND_API = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/';
+const BACKEND_API = process.env.BACKEND_URL || 'http://localhost:8000/';
+const PROXY_API = '/api/back/';
 type FetchOptions = Parameters<typeof fetch>[1];
+
+export async function backendApiDirectCall(endpoint: string, token:string, options: FetchOptions = {}) {
+  const isFormData = options.body instanceof FormData;
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const mergedHeaders = {
+    ...headers,
+    ...((options.headers as Record<string, string>) || {}),
+  };
+  const response = await fetch(`${BACKEND_API}${endpoint}`, {
+    ...options,
+    headers: mergedHeaders,
+  });
+
+  return response;
+}
 
 export async function backendApiCall(endpoint: string, options: FetchOptions = {}) {
   const token = await tokenManager.getToken();
@@ -18,7 +40,7 @@ export async function backendApiCall(endpoint: string, options: FetchOptions = {
     ...headers,
     ...((options.headers as Record<string, string>) || {}),
   };
-  const response = await fetch(`${BACKEND_API}${endpoint}`, {
+  const response = await fetch(`${PROXY_API}${endpoint}`, {
     ...options,
     headers: mergedHeaders,
   });
