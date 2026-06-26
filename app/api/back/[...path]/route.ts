@@ -1,8 +1,7 @@
 // app/api/back/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { backendApiDirectCall } from '@/lib/backendApiClient';
+import { backendApiServerCall } from '@/lib/backendApiClient';
 import { serverTokenManager } from '@/lib/serverBackendTokenManager'
-import { auth } from '@/auth';
 
 // Tipos para evitar erros
 type CacheType = 'default' | 'force-cache' | 'no-cache' | 'no-store' | 'only-if-cached' | 'reload';
@@ -53,12 +52,6 @@ async function handler(
   context: { params: Promise<{ path?: string[] }> }
 ): Promise<NextResponse> {
   try {
-
-    const session = await auth();
-    
-        if (!session?.user) {
-          return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
 
     const resolvedParams = await context.params;
     const authHeader = request.headers.get('authorization');
@@ -157,7 +150,7 @@ async function handler(
     }
 
     // Fazer a chamada para o backend através do SEU cliente estruturado
-    const response: Response = await backendApiDirectCall(endpoint, options, token);
+    const response: Response = await backendApiServerCall(endpoint, options, token);
 
     // Processar resposta bruta (suporta JSON, Textos planos ou Binários vazios)
     const responseData: string = await response.text();

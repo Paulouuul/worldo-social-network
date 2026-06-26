@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { serverTokenManager } from '@/lib/serverBackendTokenManager'
-import { backendApiDirectCall } from '@/lib/backendApiClient';
+import { backendApiServerCall } from '@/lib/backendApiClient';
 import { syncToListing } from '@/lib/prisma-sync';
 
 interface CheckoutItem {
@@ -289,7 +289,7 @@ export async function POST(request: NextRequest) {
         });
         const token = await serverTokenManager.getToken();
         try {
-          await backendApiDirectCall('/cosmetics/marketplace/cart/sync', {
+          await backendApiServerCall('/cosmetics/marketplace/cart/sync', {
             method: 'DELETE', 
           }, token);
         } catch (syncError) {
@@ -297,7 +297,7 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-          const clearResponse = await backendApiDirectCall('/cosmetics/marketplace/cart/clear', {
+          const clearResponse = await backendApiServerCall('/cosmetics/marketplace/cart/clear', {
             method: 'DELETE',
           }, token);
 
