@@ -2,8 +2,7 @@
 
 ## Resumo
 
-Projeto de uma rede social completa utilizando
-NextJs, Prisma, React e PostgreSql
+Projeto de uma rede social com marketplace de cosméticos criados pelos usuários
 
 ## Funcionalidades já implementadas
 
@@ -19,6 +18,23 @@ NextJs, Prisma, React e PostgreSql
 ## Integração com [Backend](https://github.com/Paulouuul/worldo-backend-module)
 
 Este repositório interage com um módulo separado que contém um [backend](https://github.com/Paulouuul/worldo-backend-module) dedicado a algumas funções específicas da aplicação.
+
+## Tecnologias
+
+- Next.js
+- Typescript
+- NextAuth
+- OAuth Google/Github
+- Resend (Envio de emails)
+- Prisma
+- PostgreSql
+- Docker
+- ElasticSearch
+- Stripe
+- Redis
+- Cloudlfare R2
+- Jwt
+
 ## Imagens
 
 ### Página de Login
