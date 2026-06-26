@@ -88,7 +88,7 @@ export default function CartPage() {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.detail || data.error || 'Erro ao buscar carrinho');
+      if (!res.ok) throw new Error(data.detail || 'Erro ao buscar carrinho');
 
       setCart(data.data);
 
@@ -127,8 +127,9 @@ export default function CartPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.max_quantity) setError(`Quantidade máxima disponível: ${data.max_quantity}`);
-        else throw new Error(data.detail || data.error || 'Erro ao atualizar quantidade');
+        const errorDetail = data.detail || {};
+        if (errorDetail.max_quantity) setError(`Quantidade máxima disponível: ${errorDetail.max_quantity}`);
+        else throw new Error(errorDetail.error || 'Erro ao atualizar quantidade');
         return;
       }
 
@@ -150,7 +151,7 @@ export default function CartPage() {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.detail || data.error || 'Erro ao remover item');
+      if (!res.ok) throw new Error(data.detail || 'Erro ao remover item');
 
       await fetchCart(false);
       await fetchSummary();
@@ -173,7 +174,7 @@ export default function CartPage() {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.detail || data.error || 'Erro ao limpar carrinho');
+      if (!res.ok) throw new Error(data.detail || 'Erro ao limpar carrinho');
 
       await fetchCart(false);
       await fetchSummary();
@@ -201,7 +202,8 @@ export default function CartPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || data.message || 'Erro ao validar carrinho');
+        const errorDetail = data.detail || {};
+        setError(errorDetail.error || errorDetail.message || 'Erro ao validar carrinho');
         await fetchCart(false);
         return;
       }

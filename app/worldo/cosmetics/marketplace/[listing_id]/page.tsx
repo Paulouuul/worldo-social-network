@@ -211,7 +211,7 @@ export default function ListingDetailPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || data.error || 'Erro ao adicionar ao carrinho');
+        setError(data.detail || 'Erro ao adicionar ao carrinho');
         return;
       }
       await fetchSummary();

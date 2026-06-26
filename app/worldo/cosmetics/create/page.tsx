@@ -336,7 +336,7 @@ export default function CreateCosmeticPage() {
         const data = await res.json();
 
         if (!res.ok) {
-          setError(data.error || data.detail || 'Erro ao criar moldura');
+          setError(data.detail || 'Erro ao criar moldura');
           window.scrollTo({ top: 0, behavior: 'smooth' });
           setLoading(false);
           return;

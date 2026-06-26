@@ -166,7 +166,7 @@ export default function EditProfilePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Erro ao atualizar perfil');
+        setError(data.detail || 'Erro ao atualizar perfil');
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
         // REVERSÃO NA UI: Como a API deu erro e descartou o upload (ou não removeu),

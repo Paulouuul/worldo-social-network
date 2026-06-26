@@ -49,7 +49,7 @@ export const useCartSummaryStore = create<CartSummaryStore>()(
               lastUpdated: new Date().toISOString(),
             });
           } else {
-            console.error('Erro ao buscar resumo do carrinho:', data.error);
+            console.error('Erro ao buscar resumo do carrinho:', data.detail);
             set({ isLoading: false });
           }
         } catch (error) {

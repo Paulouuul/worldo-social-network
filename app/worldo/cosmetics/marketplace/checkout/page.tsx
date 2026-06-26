@@ -90,7 +90,7 @@ export default function CheckoutPage() {
         const cartData = await cartRes.json();
 
         if (!cartRes.ok) {
-          throw new Error(cartData.detail || cartData.error || 'Erro ao buscar carrinho');
+          throw new Error(cartData.detail || 'Erro ao buscar carrinho');
         }
 
         // Redirecionamento silencioso caso o carrinho esteja vazio
