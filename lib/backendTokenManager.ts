@@ -35,7 +35,7 @@ class BackendTokenManager {
 
     this.generatePromise = (async () => {
       try {
-        const res = await fetch('/api/auth/token');
+        const res = await fetch('/api/auth/back/token');
 
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
