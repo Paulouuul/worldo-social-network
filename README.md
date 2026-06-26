@@ -18,7 +18,7 @@ NextJs, Prisma, React e PostgreSql
 
 ## Integração com [Backend](https://github.com/Paulouuul/worldo-backend-module)
 
-Este repositório interage com um módulo separado que contém um backend dedicado a algumas funções específicas da aplicação.
+Este repositório interage com um módulo separado que contém um [backend](https://github.com/Paulouuul/worldo-backend-module) dedicado a algumas funções específicas da aplicação.
 ## Imagens
 
 ### Página de Login
