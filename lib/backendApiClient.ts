@@ -1,13 +1,12 @@
-// lib/backendApiClient.ts
-import { tokenManager } from './backendTokenManager';
+
+import { clientTokenManager } from './clientBackendTokenManager';
 
 const BACKEND_API = process.env.BACKEND_URL || 'http://localhost:8000/';
 const PROXY_API = '/api/back/';
 type FetchOptions = Parameters<typeof fetch>[1];
 
-export async function backendApiDirectCall(endpoint: string, token:string, options: FetchOptions = {}) {
+export async function backendApiDirectCall(endpoint: string, options: FetchOptions = {}, token:string) {
   const isFormData = options.body instanceof FormData;
-
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
   };
@@ -27,7 +26,7 @@ export async function backendApiDirectCall(endpoint: string, token:string, optio
 }
 
 export async function backendApiCall(endpoint: string, options: FetchOptions = {}) {
-  const token = await tokenManager.getToken();
+  const token = await clientTokenManager.getToken();
   const isFormData = options.body instanceof FormData;
 
   const headers: Record<string, string> = {

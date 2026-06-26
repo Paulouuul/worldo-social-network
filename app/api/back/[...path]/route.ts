@@ -1,8 +1,8 @@
 // app/api/back/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { backendApiDirectCall } from '@/lib/backendApiClient';
+import { serverTokenManager } from '@/lib/serverBackendTokenManager'
 import { auth } from '@/auth';
-import { generateJwtToken } from '@/lib/backend-jwt-token-generator';
 
 // Tipos para evitar erros
 type CacheType = 'default' | 'force-cache' | 'no-cache' | 'no-store' | 'only-if-cached' | 'reload';
@@ -65,7 +65,7 @@ async function handler(
     var token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
     if (!token) {
-      token = await generateJwtToken(session);
+      token = await serverTokenManager.getToken();
     }
     
 
@@ -157,7 +157,7 @@ async function handler(
     }
 
     // Fazer a chamada para o backend através do SEU cliente estruturado
-    const response: Response = await backendApiDirectCall(endpoint, token, options);
+    const response: Response = await backendApiDirectCall(endpoint, options, token);
 
     // Processar resposta bruta (suporta JSON, Textos planos ou Binários vazios)
     const responseData: string = await response.text();

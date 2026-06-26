@@ -2,7 +2,8 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { backendApiCall } from '@/lib/backendApiClient';
+import { serverTokenManager } from '@/lib/serverBackendTokenManager'
+import { backendApiDirectCall } from '@/lib/backendApiClient';
 import { syncToListing } from '@/lib/prisma-sync';
 
 interface CheckoutItem {
@@ -286,19 +287,19 @@ export async function POST(request: NextRequest) {
             },
           },
         });
-
+        const token = await serverTokenManager.getToken();
         try {
-          await backendApiCall('/cosmetics/marketplace/cart/sync', {
-            method: 'DELETE',
-          });
+          await backendApiDirectCall('/cosmetics/marketplace/cart/sync', {
+            method: 'DELETE', 
+          }, token);
         } catch (syncError) {
           console.warn('[CHECKOUT] Erro ao sincronizar:', syncError);
         }
 
         try {
-          const clearResponse = await backendApiCall('/cosmetics/marketplace/cart/clear', {
+          const clearResponse = await backendApiDirectCall('/cosmetics/marketplace/cart/clear', {
             method: 'DELETE',
-          });
+          }, token);
 
           if (!clearResponse.ok) {
             console.warn('[CHECKOUT] Não foi possível limpar carrinho');

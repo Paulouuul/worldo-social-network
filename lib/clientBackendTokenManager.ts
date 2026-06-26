@@ -1,5 +1,5 @@
 // lib/backendTokenManager.ts
-class BackendTokenManager {
+class clientBackendTokenManager {
   private token: string | null = null;
   private expiryTime: number = 0;
   private isGenerating: boolean = false;
@@ -98,4 +98,4 @@ class BackendTokenManager {
   }
 }
 
-export const tokenManager = new BackendTokenManager();
+export const clientTokenManager = new clientBackendTokenManager();
