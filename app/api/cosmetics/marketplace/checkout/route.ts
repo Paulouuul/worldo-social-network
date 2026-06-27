@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
         });
 
         const purchases = [];
-        const feePercentage = activeFee?.feeValue ?? 5.0;
+        const feePercentage = activeFee?.feeValue ?? 5;
         const platformFee = Math.floor(realTotal * (feePercentage / 100));
         const totalSellerEarnings = realTotal - platformFee;
 
