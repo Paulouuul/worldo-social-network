@@ -16,11 +16,7 @@ import {
   Sparkles,
   Flame,
   TrendingUp,
-  Package,
-  Gem,
-  Rocket,
-  Star,
-  Crown,
+  Package
 } from 'lucide-react';
 
 interface CoinPackage {
@@ -129,16 +125,34 @@ export default function CoinsPage() {
   };
 
   const getPackageIcon = (index: number) => {
-    const icons = [
-      <Coins className="w-12 h-12 text-amber-400" />,
-      <Zap className="w-12 h-12 text-blue-400" />,
-      <Star className="w-12 h-12 text-red-300" />,
-      <Gem className="w-12 h-12 text-purple-400" />,
-      <Crown className="w-12 h-12 text-yellow-500" />,
-      <Rocket className="w-12 h-12 text-cyan-300" />,
-    ];
-    return icons[index % icons.length];
-  };
+  // Cores especiais para os primeiros pacotes
+  const specialColors = [
+    'text-amber-400',  // 0 - Amarelo (padrão)
+    'text-blue-400',   // 1 - Azul
+    'text-red-400',    // 2 - Vermelho
+    'text-purple-400', // 3 - Roxo
+    'text-emerald-400',// 4 - Verde
+  ];
+
+  // Se for um dos primeiros, usa cor especial
+  if (index < specialColors.length) {
+    return <Coins className={`w-12 h-12 ${specialColors[index]}`} />;
+  }
+
+  // Para os demais, progressão infinita
+  const hue = (index * 37) % 360;
+  const saturation = 75 + (index % 15);
+  const lightness = 55 + (index % 10);
+  
+  return (
+    <Coins 
+      className="w-12 h-12 transition-colors duration-300" 
+      style={{ 
+        color: `hsl(${hue}, ${saturation}%, ${lightness}%)` 
+      }}
+    />
+  );
+};
 
   if (status === 'loading') {
     return (

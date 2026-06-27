@@ -57,12 +57,12 @@ async function main() {
   // 1. PACOTES DE MOEDAS (COMPRA COM DINHEIRO REAL)
   // ============================================
   const coinPackages = [
-    { name: '100 Moedas', coins: 100, priceReal: 5.0, bonusCoins: 0, sortOrder: 1 },
-    { name: '500 Moedas', coins: 500, priceReal: 20.0, bonusCoins: 50, sortOrder: 2 },
-    { name: '1000 Moedas', coins: 1000, priceReal: 35.0, bonusCoins: 150, sortOrder: 3 },
-    { name: '5000 Moedas', coins: 5000, priceReal: 150.0, bonusCoins: 1000, sortOrder: 4 },
-    { name: '10000 Moedas', coins: 10000, priceReal: 250.0, bonusCoins: 2000, sortOrder: 5 },
-    { name: '25000 Moedas', coins: 25000, priceReal: 600.0, bonusCoins: 6000, sortOrder: 6 },
+    { name: '100 Moedas', coins: 100, priceReal: 5.0, bonusCoins: 0 },
+    { name: '500 Moedas', coins: 500, priceReal: 20.0, bonusCoins: 50 },
+    { name: '1000 Moedas', coins: 1000, priceReal: 35.0, bonusCoins: 150 },
+    { name: '5000 Moedas', coins: 5000, priceReal: 150.0, bonusCoins: 1000 },
+    { name: '10000 Moedas', coins: 10000, priceReal: 250.0, bonusCoins: 2000 },
+    { name: '25000 Moedas', coins: 25000, priceReal: 600.0, bonusCoins: 6000 },
   ];
 
   for (const pkg of coinPackages) {

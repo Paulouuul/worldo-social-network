@@ -227,7 +227,6 @@ model coin_package {
   bonusCoins    Int     @default(0)
   isActive      Boolean  @default(true)
   stripePriceId String?
-  sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
   purchases coin_purchase[]
   transactions coin_transaction[]

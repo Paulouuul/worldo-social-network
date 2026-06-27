@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const packages = await prisma.coin_package.findMany({
       where: { isActive: true },
-      orderBy: { sortOrder: 'asc' },
+      orderBy: { coins: 'asc' },
     });
 
     const serializedPackages = packages.map((pkg) => ({
