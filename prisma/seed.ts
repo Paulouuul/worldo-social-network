@@ -57,13 +57,13 @@ async function main() {
   // 1. PACOTES DE MOEDAS (COMPRA COM DINHEIRO REAL)
   // ============================================
   const coinPackages = [
-    { name: '100 Moedas', coins: 100, priceReal: 5.0, bonusCoins: 0 },
-    { name: '500 Moedas', coins: 500, priceReal: 20.0, bonusCoins: 50 },
-    { name: '1000 Moedas', coins: 1000, priceReal: 35.0, bonusCoins: 150 },
-    { name: '5000 Moedas', coins: 5000, priceReal: 150.0, bonusCoins: 1000 },
-    { name: '10000 Moedas', coins: 10000, priceReal: 250.0, bonusCoins: 2000 },
-    { name: '25000 Moedas', coins: 25000, priceReal: 600.0, bonusCoins: 6000 },
-  ];
+  { "name": "100 Moedas", "coins": 100, "priceReal": 12.0, "bonusCoins": 10 },
+  { "name": "250 Moedas", "coins": 250, "priceReal": 30.0, "bonusCoins": 30 },
+  { "name": "500 Moedas", "coins": 500, "priceReal": 60.0, "bonusCoins": 75 },
+  { "name": "1000 Moedas", "coins": 1000, "priceReal": 120.0, "bonusCoins": 200 },
+  { "name": "2500 Moedas", "coins": 2500, "priceReal": 300.0, "bonusCoins": 500 },
+  { "name": "5000 Moedas", "coins": 5000, "priceReal": 600.0, "bonusCoins": 1250 }
+];
 
   for (const pkg of coinPackages) {
     const existing = await prisma.coin_package.findFirst({
@@ -90,25 +90,25 @@ async function main() {
       name: 'Pacote Básico',
       rarity: Rarity.COMUM,
       quantity: 10,
-      totalCost: 50,
+      totalCost: 25,
     },
     {
       name: 'Pacote Comercial',
       rarity: Rarity.COMUM,
       quantity: 50,
-      totalCost: 75,
+      totalCost: 40,
     },
     {
       name: 'Pacote Empresarial',
       rarity: Rarity.COMUM,
       quantity: 100,
-      totalCost: 100,
+      totalCost: 50,
     },
     {
       name: 'Pacote Máster',
       rarity: Rarity.COMUM,
       quantity: 500,
-      totalCost: 250,
+      totalCost: 125,
     },
 
     // PACOTES PARA RARO (base: 200)
@@ -116,25 +116,25 @@ async function main() {
       name: 'Pacote Básico',
       rarity: Rarity.RARO,
       quantity: 10,
-      totalCost: 200,
+      totalCost: 100,
     },
     {
       name: 'Pacote Comercial',
       rarity: Rarity.RARO,
       quantity: 50,
-      totalCost: 300,
+      totalCost: 150,
     },
     {
       name: 'Pacote Empresarial',
       rarity: Rarity.RARO,
       quantity: 100,
-      totalCost: 400,
+      totalCost: 200,
     },
     {
       name: 'Pacote Máster',
       rarity: Rarity.RARO,
       quantity: 500,
-      totalCost: 1000,
+      totalCost: 500,
     },
 
     // PACOTES PARA EPICO (base: 500)
@@ -142,25 +142,25 @@ async function main() {
       name: 'Pacote Básico',
       rarity: Rarity.EPICO,
       quantity: 10,
-      totalCost: 500,
+      totalCost: 250,
     },
     {
       name: 'Pacote Comercial',
       rarity: Rarity.EPICO,
       quantity: 50,
-      totalCost: 750,
+      totalCost: 375,
     },
     {
       name: 'Pacote Empresarial',
       rarity: Rarity.EPICO,
       quantity: 100,
-      totalCost: 1000,
+      totalCost: 500,
     },
     {
       name: 'Pacote Máster',
       rarity: Rarity.EPICO,
       quantity: 500,
-      totalCost: 2500,
+      totalCost: 1250,
     },
 
     // PACOTES PARA LENDARIO (base: 1000)
@@ -168,26 +168,25 @@ async function main() {
       name: 'Pacote Básico',
       rarity: Rarity.LENDARIO,
       quantity: 10,
-      totalCost: 1000,
+      totalCost: 500,
     },
     {
       name: 'Pacote Comercial',
       rarity: Rarity.LENDARIO,
       quantity: 50,
-      totalCost: 1500,
+      totalCost: 750,
     },
     {
       name: 'Pacote Empresarial',
       rarity: Rarity.LENDARIO,
       quantity: 100,
-      totalCost: 2000,
-      sortOrder: 3,
+      totalCost: 1000,
     },
     {
       name: 'Pacote Máster',
       rarity: Rarity.LENDARIO,
       quantity: 500,
-      totalCost: 5000,
+      totalCost: 2500,
     },
   ];
 
