@@ -17,7 +17,67 @@ Projeto de uma rede social com marketplace de cosméticos criados pelos usuário
 
 ## Integração com [Backend](https://github.com/Paulouuul/worldo-backend-module)
 
-Este repositório interage com um módulo separado que contém um [backend](https://github.com/Paulouuul/worldo-backend-module) dedicado a algumas funções específicas da aplicação.
+Este repositório interage com um módulo separado que contém um backend dedicado a algumas funções específicas da aplicação.
+
+**Repositório do Backend:** [worldo-backend-module](https://github.com/Paulouuul/worldo-backend-module)
+
+
+
+## Requisitos
+
+- Node v22.22.3
+- Banco de dados PostgreSql com uma database criada préviamente
+- Banco de dados ElasticSearch
+- Cloudflare R2 com 2 buckets: privado / público
+- Ambiente Stripe configurado
+- Aplicação OAuth Google e Github
+- Resend para envio de emails
+
+## Como executar
+
+### 1. Criação de containers Docker (PostgreSql e ElasticSearch)
+
+```bash
+docker compose up
+```
+
+### 2. Instalação de depedências
+
+```bash
+npm install
+```
+
+### 3. Configuração de ambiente
+
+- Crie o arquivo .env conforme o .env.example
+- Configure os valores de acordo com o seu ambiente de desenvolvimento
+
+### 4. Configuração de banco de dados (Prisma)
+
+```bash
+npx prisma migrate dev --name db-init
+npx prisma migrate deploy
+npx prisma generate
+```
+
+### 5. Popular o banco de dados com dados essenciais (Prisma Seed)
+
+```bash
+npx prisma db seed
+```
+
+### 6. Build da aplicação
+
+```bash
+npm run build
+```
+
+### 7. Inicializando a aplicação
+
+```bash
+npm start
+```
+
 
 ## Tecnologias
 
