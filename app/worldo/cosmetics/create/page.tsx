@@ -19,7 +19,6 @@ import {
   Coins,
   X,
   Image as ImageIcon,
-  Loader2,
 } from 'lucide-react';
 
 interface FormData {
@@ -34,9 +33,9 @@ interface CreationPackage {
   rarity: Rarity;
   quantity: number;
   multiplier: number;
+  pricePerUnit: number;
   totalCost: number;
   isActive: boolean;
-  sortOrder: number;
 }
 
 function LoadingSpinner() {
@@ -79,8 +78,6 @@ export default function CreateCosmeticPage() {
 
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
   const rarityDesigns = getRarityDesigns('static');
-  const [baseCosts, setBaseCosts] = useState<Record<string, number>>({});
-  const [loadingCosts, setLoadingCosts] = useState(true);
   const currentStyle = useMemo(
     () => rarityDesigns[formData.rarity] || rarityDesigns.COMUM,
     [formData.rarity, rarityDesigns],
@@ -96,7 +93,7 @@ export default function CreateCosmeticPage() {
   useEffect(() => {
     if (!formData.rarity) return;
 
-    fetch(`/api/cosmetics/creation_packages?rarity=${formData.rarity}`)
+    fetch(`/api/cosmetics/creation/packages?rarity=${formData.rarity}`)
       .then((res) => res.json())
       .then((data) => {
         setPackages(data);
@@ -110,38 +107,35 @@ export default function CreateCosmeticPage() {
       .catch((err) => console.error('Erro ao buscar pacotes:', err));
   }, [formData.rarity]);
 
-  useEffect(() => {
-    fetch('/api/cosmetics/creation_costs')
-      .then((res) => res.json())
-      .then((data) => {
-        // Se veio agrupado (quando não tem rarity)
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-          const map: Record<string, number> = {};
-          for (const rarity in data) {
-            const costs = data[rarity];
-            if (Array.isArray(costs)) {
-              costs.forEach((cost: any) => {
-                map[cost.rarity] = cost.costCoins;
-              });
-            }
-          }
-          setBaseCosts(map);
-        }
-        // Se veio array (quando tem filtro)
-        else if (Array.isArray(data)) {
-          const map: Record<string, number> = {};
-          data.forEach((cost: any) => {
-            map[cost.rarity] = cost.costCoins;
-          });
-          setBaseCosts(map);
-        }
-        setLoadingCosts(false);
-      })
-      .catch((err) => {
-        console.error('Erro ao buscar custos base:', err);
-        setLoadingCosts(false);
-      });
-  }, []);
+  // useEffect(() => {
+
+  //   if (!selectedPackageId) {
+  //     setLoadingCosts(false);
+  //     return;
+  //   }
+  //   setLoadingCosts(true);
+  //   fetch(`/api/cosmetics/creation_costs?packageId=${selectedPackageId}`)
+  //   .then((res) => {
+  //     if (!res.ok) throw new Error('Erro ao buscar custo do pacote');
+  //     return res.json();
+  //   })
+  //   .then((data) => {
+  //     // A nova API retorna: { package: { ... } }
+  //     if (data?.package) {
+  //       const pkg = data.package;
+  //       // Atualiza o custo base da raridade com o preço por unidade
+  //       setBaseCosts((prev) => ({
+  //         ...prev,
+  //         [pkg.rarity]: pkg.pricePerUnit || Math.round(pkg.totalCost / pkg.quantity),
+  //       }));
+  //     }
+  //     setLoadingCosts(false);
+  //   })
+  //   .catch((err) => {
+  //     console.error('Erro ao buscar custo base:', err);
+  //     setLoadingCosts(false);
+  //   });
+  // }, [selectedPackageId]);
 
   const currentPackage = useMemo(() => {
     return packages.find((pkg) => pkg.id === selectedPackageId) || null;
@@ -622,11 +616,7 @@ export default function CreateCosmeticPage() {
                     <Coins className="w-4 h-4 text-slate-500" /> Custo Base ({formData.rarity})
                   </span>
                   <span className="font-semibold text-slate-200">
-                    {loadingCosts ? (
-                      <Loader2 className="w-4 h-4 animate-spin inline" />
-                    ) : (
-                      `${formatPrice(baseCosts[formData.rarity] || 0)}`
-                    )}
+                      {formatPrice(currentPackage?.pricePerUnit|| 0)} (Unidade)
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm text-slate-400">
