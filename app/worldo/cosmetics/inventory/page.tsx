@@ -259,8 +259,7 @@ export default function MyCosmeticsPage() {
           onClick={() => setActiveFilter('unlisted')}
           className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'unlisted' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}
         >
-          <Box className="w-4 h-4 shrink-0" />{' '}
-          Disponíveis{' '}
+          <Box className="w-4 h-4 shrink-0" /> Disponíveis{' '}
           <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
             {formatItemCount(statsData.unlisted)}
           </span>
@@ -269,8 +268,7 @@ export default function MyCosmeticsPage() {
           onClick={() => setActiveFilter('listed')}
           className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-[transform,border-color,background-color,box-shadow] ${activeFilter === 'listed' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}`}
         >
-          <Store className="w-4 h-4 shrink-0" />{' '}
-          No Mercado{' '}
+          <Store className="w-4 h-4 shrink-0" /> No Mercado{' '}
           <span className="bg-slate-950/40 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs">
             {formatItemCount(statsData.listed)}
           </span>
@@ -353,79 +351,81 @@ export default function MyCosmeticsPage() {
         {items.length > 0 && (
           <>
             <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
-  {items.map((item) => {
-    const config =
-      rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
-    
-    return (
-      <button
-        key={`${item.frameId}-${item.isListed}`}
-        onClick={() => handleOpenItem(item)}
-        // Mantemos a estrutura flex-col e justify-between para isolar Topo, Meio e Rodapé
-        className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 h-48 sm:h-52 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-1.5 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${
-          item.isListed ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]' : ''
-        }`}
-      >
-        {/* Efeitos de fundo da Raridade */}
-        {config.bgDecoration}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05]" />
+              {items.map((item) => {
+                const config =
+                  rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
 
-        {/* 1. Header do Card: Tags e Quantidade */}
-        <div className="w-full flex justify-between items-start z-20 mb-1 gap-1 min-h-6">
-          <div className="flex flex-col gap-1">
-            {item.isListed && (
-              <span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase shrink-0">
-                <Store className="w-2.5 h-2.5" /> 
-                Venda
-              </span>
-            )}
-            {item.isEquipped && (
-              <span className="flex items-center gap-1 text-[8px] font-black text-blue-300 bg-blue-950/90 border border-blue-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(59,130,246,0.2)] tracking-wider uppercase shrink-0">
-                <CheckCircle className="w-2.5 h-2.5" /> 
-                Equipado
-              </span>
-            )}
-          </div>
+                return (
+                  <button
+                    key={`${item.frameId}-${item.isListed}`}
+                    onClick={() => handleOpenItem(item)}
+                    // Mantemos a estrutura flex-col e justify-between para isolar Topo, Meio e Rodapé
+                    className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 h-48 sm:h-52 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-1.5 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${
+                      item.isListed
+                        ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]'
+                        : ''
+                    }`}
+                  >
+                    {/* Efeitos de fundo da Raridade */}
+                    {config.bgDecoration}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05]" />
 
-          <span className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 text-slate-200 font-black text-[10px] px-1.5 py-1 rounded-md shadow-lg shrink-0">
-            x{formatItemCount(item.count)}
-          </span>
-        </div>
+                    {/* 1. Header do Card: Tags e Quantidade */}
+                    <div className="w-full flex justify-between items-start z-20 mb-1 gap-1 min-h-6">
+                      <div className="flex flex-col gap-1">
+                        {item.isListed && (
+                          <span className="flex items-center gap-1 text-[8px] font-black text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] tracking-wider uppercase shrink-0">
+                            <Store className="w-2.5 h-2.5" />
+                            Venda
+                          </span>
+                        )}
+                        {item.isEquipped && (
+                          <span className="flex items-center gap-1 text-[8px] font-black text-blue-300 bg-blue-950/90 border border-blue-500/40 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(59,130,246,0.2)] tracking-wider uppercase shrink-0">
+                            <CheckCircle className="w-2.5 h-2.5" />
+                            Equipado
+                          </span>
+                        )}
+                      </div>
 
-        {/* 2. Bloco Central: Agrupa Imagem + Badge de forma isolada */}
-        <div className="flex flex-col items-center justify-center flex-1 w-full my-1">
-          {/* Container da Imagem */}
-          <div
-            className={`relative w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-105 shadow-xl shrink-0 ${config.borderClass}`}
-          >
-            <ClientImage
-              src={item.frame.thumbnailUrl}
-              alt={item.frame.name}
-              fill
-              className="object-cover drop-shadow-2xl"
-              sizes="(max-width: 640px) 72px, 88px"
-              unoptimized
-            />
-          </div>
-        </div>
+                      <span className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 text-slate-200 font-black text-[10px] px-1.5 py-1 rounded-md shadow-lg shrink-0">
+                        x{formatItemCount(item.count)}
+                      </span>
+                    </div>
 
-        {/* Container do Badge - Agora forçado para baixo da imagem através do fluxo do flex-col */}
-           <div className="relative w-full flex justify-center z-20 mt-1 mb-2 h-6">
-                  {config.badge}
-                </div>
+                    {/* 2. Bloco Central: Agrupa Imagem + Badge de forma isolada */}
+                    <div className="flex flex-col items-center justify-center flex-1 w-full my-1">
+                      {/* Container da Imagem */}
+                      <div
+                        className={`relative w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-105 shadow-xl shrink-0 ${config.borderClass}`}
+                      >
+                        <ClientImage
+                          src={item.frame.thumbnailUrl}
+                          alt={item.frame.name}
+                          fill
+                          className="object-cover drop-shadow-2xl"
+                          sizes="(max-width: 640px) 72px, 88px"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
 
-        {/* 3. Footer do Card: Nome do Item */}
-        <div className="w-full z-10 pt-1.5 border-t border-slate-800/40 flex flex-col items-center">
-          <span
-            className={`block text-[10px] sm:text-xs text-center px-1 truncate w-full drop-shadow-md ${config.textClass}`}
-          >
-            {item.frame.name}
-          </span>
-        </div>
-      </button>
-    );
-  })}
-</div>
+                    {/* Container do Badge - Agora forçado para baixo da imagem através do fluxo do flex-col */}
+                    <div className="relative w-full flex justify-center z-20 mt-1 mb-2 h-6">
+                      {config.badge}
+                    </div>
+
+                    {/* 3. Footer do Card: Nome do Item */}
+                    <div className="w-full z-10 pt-1.5 border-t border-slate-800/40 flex flex-col items-center">
+                      <span
+                        className={`block text-[10px] sm:text-xs text-center px-1 truncate w-full drop-shadow-md ${config.textClass}`}
+                      >
+                        {item.frame.name}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
             {loadingMore && (
               <div className="flex justify-center py-8">

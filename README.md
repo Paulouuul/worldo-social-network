@@ -21,8 +21,6 @@ Este repositório interage com um módulo separado que contém um backend dedica
 
 **Repositório do Backend:** [worldo-backend-module](https://github.com/Paulouuul/worldo-backend-module)
 
-
-
 ## Requisitos
 
 - Node v22.22.3
@@ -77,7 +75,6 @@ npm run build
 ```bash
 npm start
 ```
-
 
 ## Tecnologias
 

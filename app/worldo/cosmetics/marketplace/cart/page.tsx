@@ -127,7 +127,8 @@ export default function CartPage() {
 
       if (!res.ok) {
         const errorDetail = data.detail || {};
-        if (errorDetail.max_quantity) setError(`Quantidade máxima disponível: ${errorDetail.max_quantity}`);
+        if (errorDetail.max_quantity)
+          setError(`Quantidade máxima disponível: ${errorDetail.max_quantity}`);
         else throw new Error(errorDetail.error || 'Erro ao atualizar quantidade');
         return;
       }
@@ -526,7 +527,7 @@ export default function CartPage() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-800/50 text-[10px] text-slate-500 text-center font-medium">
-            <Link
+              <Link
                 href="/worldo/cosmetics/marketplace"
                 className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition font-medium py-3 rounded-xl hover:bg-slate-800/50"
               >

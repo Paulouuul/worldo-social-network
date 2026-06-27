@@ -1,7 +1,7 @@
 // app/api/back/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { backendApiServerCall } from '@/lib/backendApiClient';
-import { serverTokenManager } from '@/lib/serverBackendTokenManager'
+import { serverTokenManager } from '@/lib/serverBackendTokenManager';
 
 // Tipos para evitar erros
 type CacheType = 'default' | 'force-cache' | 'no-cache' | 'no-store' | 'only-if-cached' | 'reload';
@@ -49,10 +49,9 @@ const METHODS_WITH_BODY: readonly string[] = ['POST', 'PUT', 'PATCH', 'DELETE'] 
 // No Next.js 15+, 'params' é uma Promise.
 async function handler(
   request: NextRequest,
-  context: { params: Promise<{ path?: string[] }> }
+  context: { params: Promise<{ path?: string[] }> },
 ): Promise<NextResponse> {
   try {
-
     const resolvedParams = await context.params;
     const authHeader = request.headers.get('authorization');
     var token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -60,11 +59,10 @@ async function handler(
     if (!token) {
       token = await serverTokenManager.getToken();
     }
-    
 
     const pathArray: string[] = resolvedParams.path || [];
     const path: string = pathArray.join('/');
-    
+
     const method: string = request.method;
 
     // Construir URL completa com query params
@@ -87,32 +85,22 @@ async function handler(
           const body: unknown = await request.json();
           options.body = JSON.stringify(body);
           requestHeaders['Content-Type'] = 'application/json';
-        } catch {
-
-        }
-      }
-
-      else if (incomingContentType.includes('multipart/form-data')) {
+        } catch {}
+      } else if (incomingContentType.includes('multipart/form-data')) {
         const formData: FormData = await request.formData();
         options.body = formData;
         // Não definir Content-Type manual aqui, o fetch nativo gerará o boundary correto
-      }
-
-      else if (incomingContentType.includes('application/x-www-form-urlencoded')) {
+      } else if (incomingContentType.includes('application/x-www-form-urlencoded')) {
         const body: string = await request.text();
         options.body = body;
         requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
-      }
-
-      else if (incomingContentType) {
+      } else if (incomingContentType) {
         const body: string = await request.text();
         if (body) {
           options.body = body;
           requestHeaders['Content-Type'] = incomingContentType;
         }
-      }
-
-      else {
+      } else {
         const body: string = await request.text();
         if (body) {
           options.body = body;
@@ -121,7 +109,7 @@ async function handler(
     }
 
     // Forward de cabeçalhos úteis do sistema
-  
+
     for (const header of FORWARD_HEADERS) {
       const value: string | null = request.headers.get(header);
       if (value) {
@@ -182,7 +170,7 @@ async function handler(
           error: 'Gateway Timeout',
           message: 'O servidor demorou muito para responder',
         },
-        { status: 504 }
+        { status: 504 },
       );
     }
 
@@ -191,7 +179,7 @@ async function handler(
         error: 'Internal Server Error',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

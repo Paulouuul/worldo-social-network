@@ -458,7 +458,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-800/50 text-[10px] text-slate-500 text-center font-medium">
-            <Link
+              <Link
                 href="/worldo/cosmetics/marketplace/cart"
                 className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition font-medium py-3 rounded-xl hover:bg-slate-800/50"
               >

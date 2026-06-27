@@ -616,7 +616,7 @@ export default function CreateCosmeticPage() {
                     <Coins className="w-4 h-4 text-slate-500" /> Custo Base ({formData.rarity})
                   </span>
                   <span className="font-semibold text-slate-200">
-                      {formatPrice(currentPackage?.pricePerUnit|| 0)} (Unidade)
+                    {formatPrice(currentPackage?.pricePerUnit || 0)} (Unidade)
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm text-slate-400">

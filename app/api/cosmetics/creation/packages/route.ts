@@ -34,9 +34,12 @@ export async function GET(request: NextRequest) {
       });
 
       if (!packageData) {
-        return NextResponse.json({ 
-          error: 'Pacote não encontrado ou inativo' 
-        }, { status: 404 });
+        return NextResponse.json(
+          {
+            error: 'Pacote não encontrado ou inativo',
+          },
+          { status: 404 },
+        );
       }
 
       // 2. Buscar TODOS os pacotes da mesma raridade para calcular o baseCost
@@ -102,7 +105,7 @@ export async function GET(request: NextRequest) {
 
     // CALCULAR O BASE COST POR RARIDADE (menor totalCost)
     const baseCosts: Record<string, number> = {};
-    
+
     packages.forEach((pkg) => {
       if (!baseCosts[pkg.rarity]) {
         baseCosts[pkg.rarity] = pkg.totalCost;
@@ -114,11 +117,11 @@ export async function GET(request: NextRequest) {
       const baseCost = baseCosts[pkg.rarity] || pkg.totalCost;
       const multiplier = Number((pkg.totalCost / baseCost).toFixed(2));
       const pricePerUnit = Math.round((pkg.totalCost / pkg.quantity) * 100) / 100;
-      
+
       return {
         ...pkg,
         multiplier,
-        pricePerUnit
+        pricePerUnit,
       };
     });
 
@@ -139,7 +142,6 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(packagesWithMultiplier);
-
   } catch (error) {
     console.error('Erro ao buscar pacotes:', error);
     return NextResponse.json({ error: 'Erro interno ao buscar pacotes' }, { status: 500 });

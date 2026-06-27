@@ -31,7 +31,7 @@ async function main() {
   // 0. PLATFORM FEE (TAXA DA PLATAFORMA)
   // ============================================
   console.log('\n📌 Configurando plataform fee...');
-  
+
   const existingFee = await prisma.platform_fee.findFirst({
     where: { isActive: true },
   });
@@ -52,18 +52,17 @@ async function main() {
     console.log(`Platform fee criada: ${feeData.feeValue}%`);
   }
 
-
   // ============================================
   // 1. PACOTES DE MOEDAS (COMPRA COM DINHEIRO REAL)
   // ============================================
   const coinPackages = [
-  { "name": "100 Moedas", "coins": 100, "priceReal": 12.0, "bonusCoins": 10 },
-  { "name": "250 Moedas", "coins": 250, "priceReal": 30.0, "bonusCoins": 30 },
-  { "name": "500 Moedas", "coins": 500, "priceReal": 60.0, "bonusCoins": 75 },
-  { "name": "1000 Moedas", "coins": 1000, "priceReal": 120.0, "bonusCoins": 200 },
-  { "name": "2500 Moedas", "coins": 2500, "priceReal": 300.0, "bonusCoins": 500 },
-  { "name": "5000 Moedas", "coins": 5000, "priceReal": 600.0, "bonusCoins": 1250 }
-];
+    { name: '100 Moedas', coins: 100, priceReal: 12.0, bonusCoins: 10 },
+    { name: '250 Moedas', coins: 250, priceReal: 30.0, bonusCoins: 30 },
+    { name: '500 Moedas', coins: 500, priceReal: 60.0, bonusCoins: 75 },
+    { name: '1000 Moedas', coins: 1000, priceReal: 120.0, bonusCoins: 200 },
+    { name: '2500 Moedas', coins: 2500, priceReal: 300.0, bonusCoins: 500 },
+    { name: '5000 Moedas', coins: 5000, priceReal: 600.0, bonusCoins: 1250 },
+  ];
 
   for (const pkg of coinPackages) {
     const existing = await prisma.coin_package.findFirst({

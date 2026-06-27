@@ -30,7 +30,7 @@ class serverBackendTokenManager {
     this.generatePromise = (async () => {
       try {
         const session = await auth();
-        
+
         if (!session?.user) {
           throw new Error('Usuário não autenticado');
         }
