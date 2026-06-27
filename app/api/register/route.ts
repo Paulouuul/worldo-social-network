@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       await resend.emails.send({
         from: `${resend_email}`,
         to: email.toLowerCase(),
-        subject: 'Verifique seu email - Marketplace Social',
+        subject: 'Verifique seu email - Worldo',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #333;">Bem-vindo ao WORDO! 🎉</h1>
