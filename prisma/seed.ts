@@ -28,6 +28,32 @@ async function main() {
   console.log('Starting seed...');
 
   // ============================================
+  // 0. PLATFORM FEE (TAXA DA PLATAFORMA)
+  // ============================================
+  console.log('\n📌 Configurando plataform fee...');
+  
+  const existingFee = await prisma.platform_fee.findFirst({
+    where: { isActive: true },
+  });
+
+  const feeData = {
+    feeValue: 5, // 5% de taxa
+    isActive: true,
+  };
+
+  if (existingFee) {
+    await prisma.platform_fee.update({
+      where: { id: existingFee.id },
+      data: feeData,
+    });
+    console.log(`Platform fee atualizada: ${feeData.feeValue}%`);
+  } else {
+    await prisma.platform_fee.create({ data: feeData });
+    console.log(`Platform fee criada: ${feeData.feeValue}%`);
+  }
+
+
+  // ============================================
   // 1. PACOTES DE MOEDAS (COMPRA COM DINHEIRO REAL)
   // ============================================
   const coinPackages = [
@@ -59,10 +85,10 @@ async function main() {
   // 2. CUSTOS BASE PARA CRIAR MOLDURAS
   // ============================================
   const creationCosts = [
-    { rarity: Rarity.COMUM, costCoins: 50, timeMinutes: 5 },
-    { rarity: Rarity.RARO, costCoins: 200, timeMinutes: 15 },
-    { rarity: Rarity.EPICO, costCoins: 500, timeMinutes: 30 },
-    { rarity: Rarity.LENDARIO, costCoins: 1000, timeMinutes: 60 },
+    { rarity: Rarity.COMUM, costCoins: 50 },
+    { rarity: Rarity.RARO, costCoins: 200 },
+    { rarity: Rarity.EPICO, costCoins: 500 },
+    { rarity: Rarity.LENDARIO, costCoins: 1000 },
   ];
 
   for (const cost of creationCosts) {
@@ -241,75 +267,6 @@ async function main() {
     console.log(
       `Pacote de criação: ${pkg.rarity} - ${pkg.name} (${pkg.quantity} unidades por ${pkg.totalCost} moedas)`,
     );
-  }
-
-  // ============================================
-  // 4. MOLDURAS DE EXEMPLO (Cosméticos)
-  // ============================================
-
-  // Primeiro, crie um usuário admin/vendedor padrão se não existir
-  let adminUser = await prisma.users.findFirst({
-    where: { email: 'admin@exemplo.com' },
-  });
-
-  if (!adminUser) {
-    adminUser = await prisma.users.create({
-      data: {
-        email: 'admin@exemplo.com',
-        name: 'Admin',
-        username: 'admin',
-        publicId: 'admin-public-id',
-        password: '$2a$10$...', // hash de "senha123" (opcional)
-        coins: 10000, // Dar moedas para o admin poder criar
-      },
-    });
-    console.log('Usuário admin criado');
-  }
-
-  const exampleFrames = [
-    {
-      name: 'Moldura Dourada',
-      description: 'Uma moldura elegante com detalhes dourados',
-      imageUrl: '/frames/dourada.png',
-      thumbnailUrl: '/frames/dourada-thumb.png',
-      rarity: Rarity.RARO,
-      stock: 10,
-      createdBy: adminUser.id,
-    },
-    {
-      name: 'Moldura Neon',
-      description: 'Efeito neon futurista',
-      imageUrl: '/frames/neon.png',
-      thumbnailUrl: '/frames/neon-thumb.png',
-      rarity: Rarity.EPICO,
-      stock: 5,
-      createdBy: adminUser.id,
-    },
-    {
-      name: 'Moldura Mística',
-      description: 'Brilho mágico e misterioso',
-      imageUrl: '/frames/mistica.png',
-      thumbnailUrl: '/frames/mistica-thumb.png',
-      rarity: Rarity.LENDARIO,
-      stock: 2,
-      createdBy: adminUser.id,
-    },
-  ];
-
-  for (const frame of exampleFrames) {
-    const existing = await prisma.cosmetic_frame.findFirst({
-      where: { name: frame.name },
-    });
-
-    if (existing) {
-      await prisma.cosmetic_frame.update({
-        where: { id: existing.id },
-        data: frame,
-      });
-    } else {
-      await prisma.cosmetic_frame.create({ data: frame });
-    }
-    console.log(`Moldura: ${frame.name} (${frame.rarity})`);
   }
 
   console.log('Seed completed!');
