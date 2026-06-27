@@ -92,7 +92,6 @@ model cosmetic_creation_cost {
   id           String   @id @default(cuid())
   rarity       Rarity   @unique
   costCoins    Int
-  timeMinutes  Int
 }
 
 model cosmetic_creation_package {
@@ -113,7 +112,7 @@ model cosmetic_creation_package {
 
 model platform_fee {
   id         String   @id @default(cuid())
-  feeValue   Float    
+  feeValue   Int    
   isActive   Boolean  @default(true)
    createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
