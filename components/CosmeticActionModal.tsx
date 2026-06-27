@@ -26,6 +26,13 @@ import {
 // TIPAGENS
 // ==========================================
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
+const SUGGESTED_PRICE_BY_RARITY = {
+  COMUM: 5,
+  RARO: 20,
+  EPICO: 50,
+  LENDARIO: 100,
+};
+
 
 interface GroupedItem {
   id: string;
@@ -71,7 +78,8 @@ export function CosmeticActionModal({
 
   const [currentMode, setCurrentMode] = useState<NonNullable<ModalMode>>(mode);
   const [quantity, setQuantity] = useState(mode === 'sell' ? 1 : item.count);
-  const [price, setPrice] = useState(item.resalePrice || (item.frame.stock > 0 ? 100 : 50));
+  const suggestedPrice = SUGGESTED_PRICE_BY_RARITY[item.frame.rarity] || 5;
+  const [price, setPrice] = useState(item.resalePrice || suggestedPrice);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -418,7 +426,7 @@ export function CosmeticActionModal({
                   onClick={() => {
                     setCurrentMode('sell');
                     setQuantity(1);
-                    setPrice(item.resalePrice || 100);
+                    setPrice(item.resalePrice || suggestedPrice);
                     setErrorMessage('');
                     setSuccessMessage('');
                   }}
