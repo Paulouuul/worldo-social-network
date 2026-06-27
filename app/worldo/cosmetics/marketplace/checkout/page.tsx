@@ -49,7 +49,6 @@ interface CartData {
   total_price: number;
   unique_items_count: number;
   items: CartItem[];
-  updated_at: string;
 }
 
 const rarityDesigns = getRarityDesigns('static');
@@ -456,20 +455,16 @@ export default function CheckoutPage() {
                   </>
                 )}
               </button>
+            </div>
 
-              <Link
+            <div className="mt-6 pt-4 border-t border-slate-800/50 text-[10px] text-slate-500 text-center font-medium">
+            <Link
                 href="/worldo/cosmetics/marketplace/cart"
                 className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition font-medium py-3 rounded-xl hover:bg-slate-800/50"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Voltar ao carrinho
               </Link>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-slate-800/50 text-[10px] text-slate-500 text-center font-medium">
-              {cart.updated_at
-                ? `Última atualização: ${new Date(cart.updated_at).toLocaleString('pt-BR')}`
-                : 'Revise os itens antes de finalizar'}
             </div>
           </div>
         </div>
