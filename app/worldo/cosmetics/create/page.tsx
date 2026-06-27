@@ -322,7 +322,7 @@ export default function CreateCosmeticPage() {
       }
 
       try {
-        const res = await backendApiCall('/cosmetics/create', {
+        const res = await backendApiCall('/cosmetics/creation/create', {
           method: 'POST',
           body: submitData,
         });
