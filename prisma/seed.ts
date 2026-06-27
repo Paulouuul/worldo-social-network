@@ -82,35 +82,9 @@ async function main() {
   }
 
   // ============================================
-  // 2. CUSTOS BASE PARA CRIAR MOLDURAS
+  // 3. PACOTES DE CRIAÇÃO
   // ============================================
-  const creationCosts = [
-    { rarity: Rarity.COMUM, costCoins: 50 },
-    { rarity: Rarity.RARO, costCoins: 200 },
-    { rarity: Rarity.EPICO, costCoins: 500 },
-    { rarity: Rarity.LENDARIO, costCoins: 1000 },
-  ];
-
-  for (const cost of creationCosts) {
-    const existing = await prisma.cosmetic_creation_cost.findFirst({
-      where: { rarity: cost.rarity },
-    });
-
-    if (existing) {
-      await prisma.cosmetic_creation_cost.update({
-        where: { id: existing.id },
-        data: cost,
-      });
-    } else {
-      await prisma.cosmetic_creation_cost.create({ data: cost });
-    }
-    console.log(`Custo base: ${cost.rarity} - ${cost.costCoins} moedas`);
-  }
-
-  // ============================================
-  // 3. PACOTES DE CRIAÇÃO (COM MULTIPLICADOR)
-  // ============================================
-  const creationPackages = [
+  const cosmeticCreationPackages = [
     // PACOTES PARA COMUM (base: 50)
     {
       name: 'Pacote Básico',
@@ -217,7 +191,7 @@ async function main() {
     },
   ];
 
-  for (const pkg of creationPackages) {
+  for (const pkg of cosmeticCreationPackages) {
     const existing = await prisma.cosmetic_creation_package.findFirst({
       where: {
         rarity: pkg.rarity,

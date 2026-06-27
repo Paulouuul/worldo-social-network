@@ -23,13 +23,6 @@ async function test() {
       console.log(`   - ${frame.name} (${frame.rarity})`);
     });
 
-    // 4. Listar custos de criação
-    const costs = await prisma.cosmetic_creation_cost.findMany();
-    console.log(`Custos de criação: ${costs.length}`);
-    costs.forEach((cost) => {
-      console.log(`   - ${cost.rarity}: ${cost.costCoins} moedas`);
-    });
-
     console.log('\nTodos os testes passaram! Banco está funcionando perfeitamente.');
   } catch (error) {
     console.error('Erro ao conectar:', error);

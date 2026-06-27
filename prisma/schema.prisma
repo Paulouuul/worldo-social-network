@@ -88,12 +88,6 @@ model verification_tokens {
   @@unique([identifier, token])
 }
 
-model cosmetic_creation_cost {
-  id           String   @id @default(cuid())
-  rarity       Rarity   @unique
-  costCoins    Int
-}
-
 model cosmetic_creation_package {
   id         String   @id @default(cuid())
   name       String
