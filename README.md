@@ -47,12 +47,12 @@ docker compose up
 npm install
 ```
 
-### 3. Configuração de ambiente
+### 3. Configuração de variáveis de ambiente
 
 - Crie o arquivo .env conforme o .env.example
 - Configure os valores de acordo com o seu ambiente de desenvolvimento
 
-### 4. Configuração de banco de dados (Prisma)
+### 4. Configuração de database (Prisma)
 
 ```bash
 npx prisma migrate dev --name db-init
@@ -60,7 +60,7 @@ npx prisma migrate deploy
 npx prisma generate
 ```
 
-### 5. Popular o banco de dados com dados essenciais (Prisma Seed)
+### 5. Popular o database com dados essenciais (Prisma Seed)
 
 ```bash
 npx prisma db seed
