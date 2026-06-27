@@ -2,7 +2,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { serverTokenManager } from '@/lib/serverBackendTokenManager'
+import { serverTokenManager } from '@/lib/serverBackendTokenManager';
 import { backendApiServerCall } from '@/lib/backendApiClient';
 import { syncToListing } from '@/lib/prisma-sync';
 
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 
         const purchases = [];
         const feePercentage = activeFee?.feeValue ?? 5;
-        const platformFee = Math.floor(realTotal * (feePercentage / 100));
+        const platformFee = Math.max(1, Math.floor(realTotal * (feePercentage / 100)));
         const totalSellerEarnings = realTotal - platformFee;
 
         for (const validated of validatedItems) {
@@ -289,17 +289,25 @@ export async function POST(request: NextRequest) {
         });
         const token = await serverTokenManager.getToken();
         try {
-          await backendApiServerCall('/cosmetics/marketplace/cart/sync', {
-            method: 'DELETE', 
-          }, token);
+          await backendApiServerCall(
+            '/cosmetics/marketplace/cart/sync',
+            {
+              method: 'DELETE',
+            },
+            token,
+          );
         } catch (syncError) {
           console.warn('[CHECKOUT] Erro ao sincronizar:', syncError);
         }
 
         try {
-          const clearResponse = await backendApiServerCall('/cosmetics/marketplace/cart/clear', {
-            method: 'DELETE',
-          }, token);
+          const clearResponse = await backendApiServerCall(
+            '/cosmetics/marketplace/cart/clear',
+            {
+              method: 'DELETE',
+            },
+            token,
+          );
 
           if (!clearResponse.ok) {
             console.warn('[CHECKOUT] Não foi possível limpar carrinho');

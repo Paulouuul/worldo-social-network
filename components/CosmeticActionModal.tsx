@@ -33,7 +33,6 @@ const SUGGESTED_PRICE_BY_RARITY = {
   LENDARIO: 100,
 };
 
-
 interface GroupedItem {
   id: string;
   frameId: string;
@@ -458,7 +457,7 @@ export function CosmeticActionModal({
                   </span>
                 </div>
 
-                {/* ✅ Detalhamento completo */}
+                {/* Detalhamento completo */}
                 <div className="space-y-2 pt-1">
                   <div className="flex justify-between text-xs">
                     <span className="text-slate-400">Subtotal</span>
@@ -471,12 +470,27 @@ export function CosmeticActionModal({
                   {platformFee !== null && platformFee > 0 && (
                     <>
                       <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Taxa da plataforma ({platformFee}%)</span>
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Taxa da plataforma ({platformFee}%)
+                          <span className="group relative cursor-help">
+                            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-700 text-[10px] text-slate-300 font-bold">
+                              ?
+                            </span>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 border border-slate-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                              Taxa mínima de <strong>1 moeda</strong>
+                            </span>
+                          </span>
+                        </span>
                         <span className="text-rose-400 font-medium flex items-center gap-1">
                           - <Coins className="w-3 h-3" />{' '}
                           {formatPrice(
-                            Math.floor(
-                              (localItem.resalePrice || 0) * localItem.count * (platformFee / 100),
+                            Math.max(
+                              1,
+                              Math.floor(
+                                (localItem.resalePrice || 0) *
+                                  localItem.count *
+                                  (platformFee / 100),
+                              ),
                             ),
                           )}
                         </span>
@@ -487,10 +501,13 @@ export function CosmeticActionModal({
                           <Coins className="w-4 h-4" />
                           {formatPrice(
                             (localItem.resalePrice || 0) * localItem.count -
-                              Math.floor(
-                                (localItem.resalePrice || 0) *
-                                  localItem.count *
-                                  (platformFee / 100),
+                              Math.max(
+                                1,
+                                Math.floor(
+                                  (localItem.resalePrice || 0) *
+                                    localItem.count *
+                                    (platformFee / 100),
+                                ),
                               ),
                           )}
                         </span>
@@ -514,7 +531,7 @@ export function CosmeticActionModal({
                 <button
                   onClick={() => {
                     setCurrentMode('edit');
-                    setPrice(localItem.resalePrice || 100);
+                    setPrice(localItem.resalePrice || suggestedPrice);
                     setErrorMessage('');
                     setSuccessMessage('');
                   }}
@@ -608,10 +625,22 @@ export function CosmeticActionModal({
                   {platformFee !== null && platformFee > 0 && (
                     <>
                       <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Taxa da plataforma ({platformFee}%)</span>
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Taxa da plataforma ({platformFee}%)
+                          <span className="group relative cursor-help">
+                            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-700 text-[10px] text-slate-300 font-bold">
+                              ?
+                            </span>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 border border-slate-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                              Taxa mínima de <strong>1 moeda</strong>
+                            </span>
+                          </span>
+                        </span>
                         <span className="text-rose-400 font-medium flex items-center gap-1">
                           - <Coins className="w-3 h-3" />{' '}
-                          {formatPrice(Math.floor(quantity * price * (platformFee / 100)))}
+                          {formatPrice(
+                            Math.max(1, Math.floor(quantity * price * (platformFee / 100))),
+                          )}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm border-t border-slate-700/50 pt-2">
@@ -619,7 +648,8 @@ export function CosmeticActionModal({
                         <span className="text-emerald-400 font-bold flex items-center gap-1">
                           <Coins className="w-4 h-4" />
                           {formatPrice(
-                            quantity * price - Math.floor(quantity * price * (platformFee / 100)),
+                            quantity * price -
+                              Math.max(1, Math.floor(quantity * price * (platformFee / 100))),
                           )}
                         </span>
                       </div>
