@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     
-    // VALIDAÇÃO DE EMAIL (sem limite de caracteres)
+    // VALIDAÇÃO DE EMAIL
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
