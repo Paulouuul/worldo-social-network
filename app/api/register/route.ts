@@ -7,6 +7,16 @@ import crypto from 'crypto';
 const resend = new Resend(process.env.RESEND_API_KEY);
 const resend_email = process.env.RESEND_EMAIL;
 
+
+// CONSTANTES DE VALIDAÇÃO
+
+const MAX_NAME_LENGTH = 50;
+const MIN_NAME_LENGTH = 3;
+const MAX_USERNAME_LENGTH = 30;
+const MIN_USERNAME_LENGTH = 3;
+const MIN_PASSWORD_LENGTH = 6;
+
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -20,38 +30,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    
+    // VALIDAÇÃO DE EMAIL (sem limite de caracteres)
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
+    
+    // VALIDAÇÃO DE USERNAME
+    
     const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
     if (!usernameRegex.test(username)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Username deve ter 3-30 caracteres e conter apenas letras, números e underline',
+          error: `Username deve ter ${MIN_USERNAME_LENGTH}-${MAX_USERNAME_LENGTH} caracteres e conter apenas letras, números e underline`,
         },
         { status: 400 },
       );
     }
 
-    if (name.length < 2 || name.length > 100) {
+    
+    // VALIDAÇÃO DE NOME
+    
+    const trimmedName = name.trim();
+    if (trimmedName.length < MIN_NAME_LENGTH) {
       return NextResponse.json(
-        { success: false, error: 'Nome deve ter entre 2 e 100 caracteres' },
+        { success: false, error: `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres` },
+        { status: 400 },
+      );
+    }
+    if (trimmedName.length > MAX_NAME_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres` },
         { status: 400 },
       );
     }
 
-    // Validação de Senha Forte
+    
+    // VALIDAÇÃO DE SENHA
+    
     const validatePassword = (pass: string) => {
       const errors = [];
-      if (pass.length < 6) errors.push('pelo menos 6 caracteres');
-      if (pass.length > 50) errors.push('no máximo 50 caracteres');
+      if (pass.length < MIN_PASSWORD_LENGTH) {
+        errors.push(`pelo menos ${MIN_PASSWORD_LENGTH} caracteres`);
+      }
       if (!/[A-Z]/.test(pass)) errors.push('pelo menos 1 letra maiúscula');
       if (!/[a-z]/.test(pass)) errors.push('pelo menos 1 letra minúscula');
       if (!/[0-9]/.test(pass)) errors.push('pelo menos 1 número');
-      if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) errors.push('pelo menos 1 caractere especial');
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) {
+        errors.push('pelo menos 1 caractere especial (!@#$%^&*)');
+      }
       return errors;
     };
 
@@ -88,10 +119,10 @@ export async function POST(request: NextRequest) {
     await prisma.$transaction(async (tx) => {
       await tx.users.create({
         data: {
-          email: email.toLowerCase(), // Normalizar e-mail em lowercase ajuda no login posterior
+          email: email.toLowerCase(),
           password: hashedPassword,
-          name: name.trim(),
-          username: username.toLowerCase().trim(), // Normalizar username evita duplicados por caixa alta/baixa
+          name: trimmedName,
+          username: username.toLowerCase().trim(),
           publicId: userPublicId,
           emailVerified: null,
         },
@@ -106,7 +137,7 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // 4. Envio do E-mail fora da transação do banco (Evita travar conexões)
+    // Envio do E-mail fora da transação do banco (Evita travar conexões)
     const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-email?token=${verificationToken}`;
 
     try {

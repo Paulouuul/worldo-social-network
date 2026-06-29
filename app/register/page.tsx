@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { useSession } from 'next-auth/react';
-import { Sparkles, User, AtSign, Mail, Lock, UserPlus, ArrowLeft } from 'lucide-react';
+import { Sparkles, User, AtSign, Mail, Lock, UserPlus, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,73 +19,110 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   useSession();
 
-  const validatePassword = (pass: string) => {
+  // ═══════════════════════════════════════════════════════
+  // CONSTANTES DE VALIDAÇÃO
+  // ═══════════════════════════════════════════════════════
+  const MAX_NAME_LENGTH = 50;
+  const MIN_NAME_LENGTH = 3;
+  const MAX_USERNAME_LENGTH = 30;
+  const MIN_USERNAME_LENGTH = 3;
+  const MIN_PASSWORD_LENGTH = 6;
+
+  // ═══════════════════════════════════════════════════════
+  // ESTADOS DE ERRO POR CAMPO
+  // ═══════════════════════════════════════════════════════
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    username: '',
+    name: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  // ═══════════════════════════════════════════════════════
+  // FUNÇÕES DE VALIDAÇÃO
+  // ═══════════════════════════════════════════════════════
+  const validateEmail = (value: string) => {
+    if (!value) return 'Email é obrigatório';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) return 'Email inválido';
+    return '';
+  };
+
+  const validateUsername = (value: string) => {
+    if (!value) return 'Username é obrigatório';
+    const trimmed = value.trim();
+    if (trimmed.length < MIN_USERNAME_LENGTH) return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_USERNAME_LENGTH) return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
+      return 'Username deve conter apenas letras, números e underscore';
+    }
+    return '';
+  };
+
+  const validateName = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Nome é obrigatório';
+    if (trimmed.length < MIN_NAME_LENGTH) return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_NAME_LENGTH) return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    return '';
+  };
+
+  const validatePassword = (value: string) => {
     const errors = [];
-
-    if (pass.length < 6) {
-      errors.push('pelo menos 6 caracteres');
+    
+    if (!value) return 'Senha é obrigatória';
+    if (value.length < MIN_PASSWORD_LENGTH) {
+      return `Senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`;
     }
-    if (pass.length > 50) {
-      errors.push('no máximo 50 caracteres');
+    
+    if (!/[A-Z]/.test(value)) errors.push('1 letra maiúscula');
+    if (!/[a-z]/.test(value)) errors.push('1 letra minúscula');
+    if (!/[0-9]/.test(value)) errors.push('1 número');
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) errors.push('1 caractere especial (!@#$%^&*)');
+    
+    if (errors.length > 0) {
+      return `Senha precisa de: ${errors.join(', ')}`;
     }
-    if (!/[A-Z]/.test(pass)) {
-      errors.push('pelo menos 1 letra maiúscula');
-    }
-    if (!/[a-z]/.test(pass)) {
-      errors.push('pelo menos 1 letra minúscula');
-    }
-    if (!/[0-9]/.test(pass)) {
-      errors.push('pelo menos 1 número');
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) {
-      errors.push('pelo menos 1 caractere especial (!@#$%^&*)');
-    }
-
-    return errors;
+    return '';
   };
 
-  const validateUsername = (username: string) => {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
-    if (!usernameRegex.test(username)) {
-      return 'Nome de usuário deve ter 3-30 caracteres e conter apenas letras, números e underline';
-    }
-    return null;
+  const validateConfirmPassword = (value: string) => {
+    if (!value) return 'Confirmação de senha é obrigatória';
+    if (value !== password) return 'As senhas não coincidem';
+    return '';
   };
+
+  // Verifica se todos os campos obrigatórios estão preenchidos
+  const isFormFilled = email && username && name && password && confirmPassword;
+
+  // Verifica se há erros em algum campo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
+    // ═══════════════════════════════════════════════════════
+    // VALIDAÇÃO DE TODOS OS CAMPOS ANTES DE ENVIAR
+    // ═══════════════════════════════════════════════════════
+    const emailError = validateEmail(email);
     const usernameError = validateUsername(username);
-    if (usernameError) {
-      setError(usernameError);
-      return;
-    }
+    const nameError = validateName(name);
+    const passwordError = validatePassword(password);
+    const confirmPasswordError = validateConfirmPassword(confirmPassword);
 
-    const passwordErrors = validatePassword(password);
-    if (passwordErrors.length > 0) {
-      setError(`Senha fraca: ${passwordErrors.join(', ')}`);
-      return;
-    }
+    setFieldErrors({
+      email: emailError,
+      username: usernameError,
+      name: nameError,
+      password: passwordError,
+      confirmPassword: confirmPasswordError,
+    });
 
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem');
-      return;
-    }
-
-    const validateEmail = (email: string) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    };
-
-    if (!validateEmail(email)) {
-      setError('Email inválido');
-      return;
-    }
-
-    if (name && (name.length < 2 || name.length > 100)) {
-      setError('Nome deve ter entre 2 e 100 caracteres');
+    if (emailError || usernameError || nameError || passwordError || confirmPasswordError) {
+      setError('Corrija os campos destacados antes de registrar');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -141,6 +178,7 @@ export default function RegisterPage() {
         {/* Alertas de Erro */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs border border-red-500/20 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
             <span className="leading-relaxed">{error}</span>
           </div>
         )}
@@ -154,85 +192,183 @@ export default function RegisterPage() {
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username */}
           <div>
             <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
               <AtSign className="w-3.5 h-3.5 text-purple-400" /> Nome de usuário *
+              <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                {username.length}/{MAX_USERNAME_LENGTH}
+              </span>
             </label>
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase())}
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+              onChange={(e) => {
+                const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                setUsername(value);
+                setFieldErrors({ ...fieldErrors, username: validateUsername(value) });
+              }}
+              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                fieldErrors.username
+                  ? 'border-red-500/50 focus:ring-red-500/50'
+                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+              }`}
               required
               placeholder="usuario_123"
+              maxLength={MAX_USERNAME_LENGTH}
             />
+            {fieldErrors.username && (
+              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {fieldErrors.username}
+              </p>
+            )}
             <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-              Apenas letras, números e underline. De 3 a 30 caracteres.
+              Apenas letras, números e underline. De {MIN_USERNAME_LENGTH} a {MAX_USERNAME_LENGTH} caracteres.
             </p>
           </div>
 
+          {/* Nome de Exibição */}
           <div>
             <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-              <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição
+              <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição *
+              <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                {name.length}/{MAX_NAME_LENGTH}
+              </span>
             </label>
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+              onChange={(e) => {
+                const value = e.target.value;
+                setName(value);
+                setFieldErrors({ ...fieldErrors, name: validateName(value) });
+              }}
+              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                fieldErrors.name
+                  ? 'border-red-500/50 focus:ring-red-500/50'
+                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+              }`}
               required
               placeholder="Seu nome real ou apelido"
+              maxLength={MAX_NAME_LENGTH}
             />
+            {fieldErrors.name && (
+              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {fieldErrors.name}
+              </p>
+            )}
+            <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+              De {MIN_NAME_LENGTH} a {MAX_NAME_LENGTH} caracteres.
+            </p>
           </div>
 
+          {/* Email */}
           <div>
             <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-              <Mail className="w-3.5 h-3.5 text-purple-400" /> Endereço de Email
+              <Mail className="w-3.5 h-3.5 text-purple-400" /> Endereço de Email *
             </label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+              onChange={(e) => {
+                const value = e.target.value;
+                setEmail(value);
+                setFieldErrors({ ...fieldErrors, email: validateEmail(value) });
+              }}
+              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                fieldErrors.email
+                  ? 'border-red-500/50 focus:ring-red-500/50'
+                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+              }`}
               required
               placeholder="seu@email.com"
             />
+            {fieldErrors.email && (
+              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {fieldErrors.email}
+              </p>
+            )}
           </div>
 
+          {/* Senha e Confirmação */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Senha */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <Lock className="w-3.5 h-3.5 text-purple-400" /> Senha
+                <Lock className="w-3.5 h-3.5 text-purple-400" /> Senha *
               </label>
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setPassword(value);
+                  setFieldErrors({ ...fieldErrors, password: validatePassword(value) });
+                  // Revalidar confirmação se já tiver valor
+                  if (confirmPassword) {
+                    setFieldErrors(prev => ({ 
+                      ...prev, 
+                      confirmPassword: validateConfirmPassword(confirmPassword) 
+                    }));
+                  }
+                }}
+                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  fieldErrors.password
+                    ? 'border-red-500/50 focus:ring-red-500/50'
+                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+                }`}
                 required
                 placeholder="Mín. 6 dígitos"
               />
+              {fieldErrors.password && (
+                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {fieldErrors.password}
+                </p>
+              )}
+              <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+                Mín. {MIN_PASSWORD_LENGTH} caracteres. Letras maiúsculas, minúsculas, números e especial.
+              </p>
             </div>
 
+            {/* Confirmar Senha */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <Lock className="w-3.5 h-3.5 text-purple-400" /> Confirmar
+                <Lock className="w-3.5 h-3.5 text-purple-400" /> Confirmar *
               </label>
               <input
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setConfirmPassword(value);
+                  setFieldErrors({ ...fieldErrors, confirmPassword: validateConfirmPassword(value) });
+                }}
+                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  fieldErrors.confirmPassword
+                    ? 'border-red-500/50 focus:ring-red-500/50'
+                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+                }`}
                 required
                 placeholder="Repita a senha"
               />
+              {fieldErrors.confirmPassword && (
+                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {fieldErrors.confirmPassword}
+                </p>
+              )}
             </div>
           </div>
 
+          {/* Botão de Submit */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide pt-2"
+            disabled={loading || !isFormFilled}
+            className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
           >
             {loading ? (
               <>
