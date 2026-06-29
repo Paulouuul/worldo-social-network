@@ -91,6 +91,7 @@ export function CosmeticActionModal({
   const [platformFee, setPlatformFee] = useState<number | null>(null);
   const MAX_PRICE = 1000000;
   const MAX_QUANTITY = 1000000;
+  
   useEffect(() => {
     setLocalIsEquipped(item.isEquipped);
   }, [item.isEquipped]);
@@ -114,6 +115,7 @@ export function CosmeticActionModal({
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+  
   useEffect(() => {
     const fetchPlatformFee = async () => {
       try {
@@ -128,10 +130,10 @@ export function CosmeticActionModal({
     };
     fetchPlatformFee();
   }, []);
+
   // FUNÇÕES DE API
 
   // Equipar/Desequipar
-
   const handleEquip = async () => {
     if (localIsEquipped) {
       // Desequipar
@@ -186,12 +188,14 @@ export function CosmeticActionModal({
       }
     }
   };
+  
   const handleClose = async () => {
     if (hasEquipChanged) {
       await update();
     }
     onClose();
   };
+  
   const handleSell = async (e: React.FormEvent) => {
     e.preventDefault();
     if (quantity > maxAvailable) {
@@ -378,11 +382,12 @@ export function CosmeticActionModal({
             />
           </div>
 
-          <div className="text-center mb-4">
-            <h3 className={`font-bold text-lg ${rarityConfig.textClass}`}>{item.frame.name}</h3>
-            <p
-              className={`text-xs font-semibold tracking-wider uppercase ${rarityConfig.textClass}`}
-            >
+          {/* AJUSTE FEITO AQUI: Adicionado break-words, px-2, leading-tight, e text-base para acomodar strings de até 50 chars */}
+          <div className="text-center mb-4 px-2">
+            <h3 className={`font-bold text-base sm:text-lg wrap-break-word leading-tight ${rarityConfig.textClass}`}>
+              {item.frame.name}
+            </h3>
+            <p className={`text-xs font-semibold tracking-wider uppercase mt-1 ${rarityConfig.textClass}`}>
               {item.frame.rarity}
             </p>
           </div>
@@ -473,7 +478,7 @@ export function CosmeticActionModal({
                       <div className="flex justify-between text-xs">
                         <span className="text-slate-400 flex items-center gap-1">
                           Taxa da plataforma ({platformFee}%)
-                          <PlatformFeeTooltipIcon/>
+                          <PlatformFeeTooltipIcon />
                         </span>
                         <span className="text-rose-400 font-medium flex items-center gap-1">
                           - <Coins className="w-3 h-3" />{' '}
@@ -598,7 +603,6 @@ export function CosmeticActionModal({
                     onChange={(e) => {
                       const value = parseInt(e.target.value) || 0;
                       setPrice(Math.min(Math.max(1, value), MAX_PRICE));
-                      // ↑ Limita entre 1 e MAX_PRICE
                     }}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-amber-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                     disabled={submitting}
@@ -621,7 +625,7 @@ export function CosmeticActionModal({
                       <div className="flex justify-between text-xs">
                         <span className="text-slate-400 flex items-center gap-1">
                           Taxa da plataforma ({platformFee}%)
-                          <PlatformFeeTooltipIcon/>
+                          <PlatformFeeTooltipIcon />
                         </span>
                         <span className="text-rose-400 font-medium flex items-center gap-1">
                           - <Coins className="w-3 h-3" />{' '}
@@ -688,7 +692,6 @@ export function CosmeticActionModal({
                   onChange={(e) => {
                     const value = parseInt(e.target.value) || 0;
                     setPrice(Math.min(Math.max(1, value), MAX_PRICE));
-                    // ↑ Limita entre 1 e MAX_PRICE
                   }}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                   disabled={submitting}

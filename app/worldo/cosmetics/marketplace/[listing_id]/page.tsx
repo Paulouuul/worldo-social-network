@@ -265,12 +265,12 @@ export default function ListingDetailPage() {
       <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mb-6 uppercase tracking-wider">
         <Link
           href="/worldo/cosmetics/marketplace"
-          className="hover:text-purple-400 transition flex items-center gap-1"
+          className="hover:text-purple-400 transition flex items-center gap-1 shrink-0"
         >
           <Store className="w-3.5 h-3.5" /> Marketplace
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 opacity-50" />
-        <span className={`${config.textClass} truncate max-w-50 sm:max-w-md`}>
+        <ChevronRight className="w-3.5 h-3.5 opacity-50 shrink-0" />
+        <span className={`${config.textClass} truncate`} title={listing.frame.name}>
           {listing.frame.name}
         </span>
       </div>
@@ -308,23 +308,27 @@ export default function ListingDetailPage() {
 
         {/* Lado Direito: Informações do Anúncio */}
         <div className="lg:col-span-3 flex flex-col gap-8">
-          {/* Header do Item */}
+          {/* Header do Item - Ajustado para nomes/descrições longos */}
           <div className="pb-6 border-b border-slate-800/60">
             <h1
-              className={`text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-sm ${config.textClass}`}
+              className={`text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tight drop-shadow-sm wrap-break-word ${config.textClass}`}
             >
               {listing.frame.name}
             </h1>
-            <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl font-medium">
-              {listing.frame.description}
-            </p>
+            
+            {/* Scroll Container para a descrição de até 500 caracteres */}
+            <div className="max-h-48 overflow-y-auto pr-4 custom-scrollbar">
+              <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl font-medium wrap-break-word whitespace-pre-wrap">
+                {listing.frame.description}
+              </p>
+            </div>
           </div>
 
           {/* Cards de Perfil (Vendedor & Criador) */}
           {!listing.isOwnListing && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
-                href={`/worldo/seller/${listing.seller.id}`}
+                href={`/worldo/cosmetics/seller/${listing.seller.id}`}
                 className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-emerald-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all relative overflow-hidden"
               >
                 <AvatarWithFrame
@@ -342,7 +346,7 @@ export default function ListingDetailPage() {
                     {listing.seller.name}
                   </p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 transition-colors z-10 group-hover:translate-x-1" />
+                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 transition-colors z-10 group-hover:translate-x-1 shrink-0" />
               </Link>
 
               <Link
@@ -364,7 +368,7 @@ export default function ListingDetailPage() {
                     {listing.frame.creator.name}
                   </p>
                 </div>
-                <User className="w-4 h-4 text-slate-600 group-hover:text-purple-400 transition-colors" />
+                <User className="w-4 h-4 text-slate-600 group-hover:text-purple-400 transition-colors shrink-0" />
               </Link>
             </div>
           )}
@@ -553,7 +557,7 @@ export default function ListingDetailPage() {
             </h2>
 
             <Link
-              href={`/worldo/seller/${listing.seller.id}`}
+              href={`/worldo/cosmetics/seller/${listing.seller.id}`}
               className="inline-flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-105"
             >
               Ver Catálogo Completo <ChevronRight className="w-4 h-4" />
@@ -603,6 +607,7 @@ export default function ListingDetailPage() {
                   <div className="mt-auto w-full z-10 pt-3 border-t border-slate-800/40">
                     <span
                       className={`block text-xs sm:text-sm text-center px-1 truncate font-bold drop-shadow-md ${itemConfig.textClass}`}
+                      title={item.frame.name}
                     >
                       {item.frame.name}
                     </span>
