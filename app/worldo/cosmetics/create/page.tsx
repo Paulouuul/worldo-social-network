@@ -112,8 +112,17 @@ export default function CreateCosmeticPage() {
     }
     return '';
   };
-  
+
+  // Verifica se há erros em algum campo
   const hasErrors = errors.name !== '' || errors.description !== '';
+
+  // Verifica se os campos obrigatórios estão preenchidos e válidos
+  const isFormValid = 
+    formData.name.trim().length >= 3 && 
+    formData.name.trim().length <= MAX_NAME_LENGTH &&
+    imageFile !== null &&
+    selectedPackageId !== '' &&
+    !hasErrors; // ← ADICIONADO: verifica se não há erros
 
   // Busca o saldo atualizado quando a sessão estiver autenticada
   useEffect(() => {
@@ -421,13 +430,14 @@ export default function CreateCosmeticPage() {
         <div className="p-8">
           {error && (
             <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-500/20 flex items-center gap-2">
-              {error}
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
           {success && (
             <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl mb-6 text-sm border border-emerald-500/20 flex items-center gap-2">
-              {success}
+              <span>{success}</span>
             </div>
           )}
 
@@ -711,17 +721,15 @@ export default function CreateCosmeticPage() {
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={loading || hasInsufficientCoins || hasErrors}
+                  disabled={loading || !isFormValid || hasInsufficientCoins}
                   className={`${
-                    hasInsufficientCoins || hasErrors
+                     hasInsufficientCoins
                       ? 'bg-red-950/40 text-red-500 border border-red-500/20 cursor-not-allowed opacity-70'
                       : `bg-linear-to-r ${currentStyle.buttonSubmit} text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`
                   } font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex-1 text-center tracking-wide select-none`}
                 >
                   {loading
                     ? 'FORJANDO ATIVO...'
-                    : hasErrors
-                      ? 'CORRIGIR CAMPOS'
                       : hasInsufficientCoins
                         ? 'SALDO INSUFICIENTE'
                         : 'CONFIRMAR CRIAÇÃO'}
