@@ -19,6 +19,7 @@ import {
   Coins,
   X,
   Image as ImageIcon,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface FormData {
@@ -83,6 +84,37 @@ export default function CreateCosmeticPage() {
     [formData.rarity, rarityDesigns],
   );
 
+  const MAX_NAME_LENGTH = 50;
+  const MAX_DESCRIPTION_LENGTH = 500;
+  const [errors, setErrors] = useState({
+    name: '',
+    description: '',
+  });
+
+  const validateName = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return 'Nome é obrigatório';
+    }
+    if (trimmed.length < 3) {
+      return 'Nome deve ter pelo menos 3 caracteres';
+    }
+    if (trimmed.length > MAX_NAME_LENGTH) {
+      return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    }
+    return '';
+  };
+
+  const validateDescription = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed.length > MAX_DESCRIPTION_LENGTH) {
+      return `Descrição deve ter no máximo ${MAX_DESCRIPTION_LENGTH} caracteres`;
+    }
+    return '';
+  };
+  
+  const hasErrors = errors.name !== '' || errors.description !== '';
+
   // Busca o saldo atualizado quando a sessão estiver autenticada
   useEffect(() => {
     if (status === 'authenticated') {
@@ -106,36 +138,6 @@ export default function CreateCosmeticPage() {
       })
       .catch((err) => console.error('Erro ao buscar pacotes:', err));
   }, [formData.rarity]);
-
-  // useEffect(() => {
-
-  //   if (!selectedPackageId) {
-  //     setLoadingCosts(false);
-  //     return;
-  //   }
-  //   setLoadingCosts(true);
-  //   fetch(`/api/cosmetics/creation_costs?packageId=${selectedPackageId}`)
-  //   .then((res) => {
-  //     if (!res.ok) throw new Error('Erro ao buscar custo do pacote');
-  //     return res.json();
-  //   })
-  //   .then((data) => {
-  //     // A nova API retorna: { package: { ... } }
-  //     if (data?.package) {
-  //       const pkg = data.package;
-  //       // Atualiza o custo base da raridade com o preço por unidade
-  //       setBaseCosts((prev) => ({
-  //         ...prev,
-  //         [pkg.rarity]: pkg.pricePerUnit || Math.round(pkg.totalCost / pkg.quantity),
-  //       }));
-  //     }
-  //     setLoadingCosts(false);
-  //   })
-  //   .catch((err) => {
-  //     console.error('Erro ao buscar custo base:', err);
-  //     setLoadingCosts(false);
-  //   });
-  // }, [selectedPackageId]);
 
   const currentPackage = useMemo(() => {
     return packages.find((pkg) => pkg.id === selectedPackageId) || null;
@@ -283,7 +285,22 @@ export default function CreateCosmeticPage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (loading) return;
+      
+      const nameError = validateName(formData.name);
+      if (nameError) {
+        setError(nameError);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
 
+      // Validação da descrição
+      const descError = validateDescription(formData.description);
+      if (descError) {
+        setError(descError);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      
       setLoading(true);
       setError('');
       setSuccess('');
@@ -416,33 +433,69 @@ export default function CreateCosmeticPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-7">
+              {/* Nome da Moldura */}
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                   <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Nome da Moldura
+                  <span className="text-xs text-slate-500 font-normal ml-auto">
+                    {formData.name.length}/{MAX_NAME_LENGTH}
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                  className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all`}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData((prev) => ({ ...prev, name: value }));
+                    setErrors((prev) => ({ ...prev, name: validateName(value) }));
+                  }}
+                  className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
+                    errors.name 
+                      ? 'border-red-500/50 focus:ring-red-500/50' 
+                      : 'border-slate-800 focus:ring-1'
+                  } ${currentStyle.focusRing}`}
                   required
                   placeholder="Ex: Singularidade Estelar"
+                  maxLength={MAX_NAME_LENGTH}
                 />
+                {errors.name && (
+                  <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
+              {/* Descrição do Artefato */}
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                   <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Descrição do Artefato
+                  <span className="text-xs text-slate-500 font-normal ml-auto">
+                    {formData.description.length}/{MAX_DESCRIPTION_LENGTH}
+                  </span>
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, description: e.target.value }))
-                  }
-                  className={`w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none ${currentStyle.focusRing} focus:ring-1 transition-all resize-none`}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData((prev) => ({ ...prev, description: value }));
+                    setErrors((prev) => ({ ...prev, description: validateDescription(value) }));
+                  }}
+                  className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all resize-none ${
+                    errors.description 
+                      ? 'border-red-500/50 focus:ring-red-500/50' 
+                      : 'border-slate-800 focus:ring-1'
+                  } ${currentStyle.focusRing}`}
                   rows={3}
                   placeholder="Descreva a história ou efeitos visuais desta moldura..."
+                  maxLength={MAX_DESCRIPTION_LENGTH}
                 />
+                {errors.description && (
+                  <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    {errors.description}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -656,21 +709,22 @@ export default function CreateCosmeticPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {/* Botão de Submit com Estilo Condicional */}
                 <button
                   type="submit"
-                  disabled={loading || hasInsufficientCoins}
+                  disabled={loading || hasInsufficientCoins || hasErrors}
                   className={`${
-                    hasInsufficientCoins
+                    hasInsufficientCoins || hasErrors
                       ? 'bg-red-950/40 text-red-500 border border-red-500/20 cursor-not-allowed opacity-70'
                       : `bg-linear-to-r ${currentStyle.buttonSubmit} text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`
                   } font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex-1 text-center tracking-wide select-none`}
                 >
                   {loading
                     ? 'FORJANDO ATIVO...'
-                    : hasInsufficientCoins
-                      ? 'SALDO INSUFICIENTE'
-                      : 'CONFIRMAR CRIAÇÃO'}
+                    : hasErrors
+                      ? 'CORRIGIR CAMPOS'
+                      : hasInsufficientCoins
+                        ? 'SALDO INSUFICIENTE'
+                        : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link
                   href="/worldo/cosmetics/marketplace"
