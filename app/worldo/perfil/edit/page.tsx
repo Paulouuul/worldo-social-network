@@ -18,6 +18,7 @@ import {
   Save,
   X,
   Image as ImageIcon,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function EditProfilePage() {
@@ -26,6 +27,15 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // CONSTANTES DE VALIDAÇÃO
+  const MAX_NAME_LENGTH = 50;
+  const MIN_NAME_LENGTH = 3;
+  const MAX_USERNAME_LENGTH = 30;
+  const MIN_USERNAME_LENGTH = 3;
+  const MAX_BIO_LENGTH = 500;
+  const MAX_LOCATION_LENGTH = 100;
+  const MAX_WEBSITE_LENGTH = 200;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,6 +46,58 @@ export default function EditProfilePage() {
     avatar: '',
     coverImage: '',
   });
+
+  // ESTADOS DE ERRO POR CAMPO
+  const [fieldErrors, setFieldErrors] = useState({
+    name: '',
+    username: '',
+    bio: '',
+    location: '',
+    website: '',
+  });
+
+  // FUNÇÕES DE VALIDAÇÃO
+  const validateName = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Nome é obrigatório';
+    if (trimmed.length < MIN_NAME_LENGTH) return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_NAME_LENGTH) return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    return '';
+  };
+
+  const validateUsername = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Username é obrigatório';
+    if (trimmed.length < MIN_USERNAME_LENGTH) return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_USERNAME_LENGTH) return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
+      return 'Username deve conter apenas letras, números e underscore';
+    }
+    return '';
+  };
+
+  const validateBio = (value: string) => {
+    if (value.length > MAX_BIO_LENGTH) return `Bio deve ter no máximo ${MAX_BIO_LENGTH} caracteres`;
+    return '';
+  };
+
+  const validateLocation = (value: string) => {
+    if (value.length > MAX_LOCATION_LENGTH) return `Localização deve ter no máximo ${MAX_LOCATION_LENGTH} caracteres`;
+    return '';
+  };
+
+  const validateWebsite = (value: string) => {
+    if (value.length > MAX_WEBSITE_LENGTH) return `Website deve ter no máximo ${MAX_WEBSITE_LENGTH} caracteres`;
+    if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+      return 'Website deve começar com http:// ou https://';
+    }
+    return '';
+  };
+
+  // Verifica se todos os campos obrigatórios estão preenchidos
+  const isFormFilled = formData.name && formData.username;
+
+  // Verifica se há erros em algum campo (apenas para validação, não afeta o botão)
 
   // Estados para o Avatar
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -66,6 +128,7 @@ export default function EditProfilePage() {
       setCoverPreview(session.user.coverImage || '');
     }
   }, [session]);
+
   if (status === 'unauthenticated') {
     redirect('/login');
   }
@@ -141,6 +204,28 @@ export default function EditProfilePage() {
       router.replace('login');
     }
     e.preventDefault();
+    
+    // VALIDAÇÃO ANTES DE ENVIAR
+    const nameError = validateName(formData.name);
+    const usernameError = validateUsername(formData.username);
+    const bioError = validateBio(formData.bio);
+    const locationError = validateLocation(formData.location);
+    const websiteError = validateWebsite(formData.website);
+
+    setFieldErrors({
+      name: nameError,
+      username: usernameError,
+      bio: bioError,
+      location: locationError,
+      website: websiteError,
+    });
+
+    if (nameError || usernameError || bioError || locationError || websiteError) {
+      setError('Corrija os campos destacados antes de salvar');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -158,6 +243,7 @@ export default function EditProfilePage() {
 
       if (coverFile) submitData.append('cover', coverFile);
       if (removeCover) submitData.append('removeCover', 'true');
+      
       const res = await backendApiCall('/profile/update', {
         method: 'PUT',
         body: submitData,
@@ -169,8 +255,7 @@ export default function EditProfilePage() {
         setError(data.detail || 'Erro ao atualizar perfil');
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // REVERSÃO NA UI: Como a API deu erro e descartou o upload (ou não removeu),
-        // voltamos os previews para o que está salvo atualmente no formData original estável.
+        // REVERSÃO NA UI
         if (avatarFile || removeAvatar) {
           if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
           setAvatarFile(null);
@@ -199,7 +284,7 @@ export default function EditProfilePage() {
           avatar: data.user?.avatar ?? formData.avatar,
           coverImage: data.user?.coverImage ?? formData.coverImage,
         };
-        // Atualiza a colagem estável do formData local com os novos dados validados vindos da API
+        
         setFormData(updatedUser);
 
         await update({
@@ -217,7 +302,6 @@ export default function EditProfilePage() {
       }
     } catch (_err) {
       setError('Erro ao conectar com o servidor');
-      // Em caso de queda total de rede, também resetamos para o estado estável anterior
       if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
       if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
       setAvatarFile(null);
@@ -263,6 +347,7 @@ export default function EditProfilePage() {
         {/* Alertas */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-6 text-xs border border-red-500/20 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
             <span className="leading-relaxed">{error}</span>
           </div>
         )}
@@ -393,39 +478,72 @@ export default function EditProfilePage() {
 
           {/* Grid de Inputs de Texto */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Username */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <AtSign className="w-3.5 h-3.5 text-purple-400" /> Usuário de Acesso
+                <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                  {formData.username.length}/{MAX_USERNAME_LENGTH}
+                </span>
               </label>
               <input
                 type="text"
                 value={formData.username}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-                  })
-                }
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+                onChange={(e) => {
+                  const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                  setFormData({ ...formData, username: value });
+                  setFieldErrors({ ...fieldErrors, username: validateUsername(value) });
+                }}
+                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  fieldErrors.username
+                    ? 'border-red-500/50 focus:ring-red-500/50'
+                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+                }`}
                 required
                 disabled={loading}
                 placeholder="usuario_123"
+                maxLength={MAX_USERNAME_LENGTH}
               />
+              {fieldErrors.username && (
+                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {fieldErrors.username}
+                </p>
+              )}
             </div>
 
+            {/* Name */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição
+                <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                  {formData.name.length}/{MAX_NAME_LENGTH}
+                </span>
               </label>
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, name: value });
+                  setFieldErrors({ ...fieldErrors, name: validateName(value) });
+                }}
+                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  fieldErrors.name
+                    ? 'border-red-500/50 focus:ring-red-500/50'
+                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+                }`}
                 required
                 disabled={loading}
                 placeholder="Seu nome"
+                maxLength={MAX_NAME_LENGTH}
               />
+              {fieldErrors.name && (
+                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {fieldErrors.name}
+                </p>
+              )}
             </div>
           </div>
 
@@ -433,49 +551,101 @@ export default function EditProfilePage() {
           <div>
             <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
               <FileText className="w-3.5 h-3.5 text-purple-400" /> Biografia da Entidade
+              <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                {formData.bio.length}/{MAX_BIO_LENGTH}
+              </span>
             </label>
             <textarea
               value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm resize-none"
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData({ ...formData, bio: value });
+                setFieldErrors({ ...fieldErrors, bio: validateBio(value) });
+              }}
+              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm resize-none ${
+                fieldErrors.bio
+                  ? 'border-red-500/50 focus:ring-red-500/50'
+                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+              }`}
               disabled={loading}
               rows={3}
               placeholder="Fale um pouco sobre sua trajetória na rede..."
-              maxLength={160}
+              maxLength={MAX_BIO_LENGTH}
             />
-            <div className="flex justify-end text-[10px] text-slate-500 mt-1 uppercase font-medium tracking-wider">
-              {formData.bio.length} / 160 Caracteres
-            </div>
+            {fieldErrors.bio && (
+              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {fieldErrors.bio}
+              </p>
+            )}
           </div>
 
           {/* Localização e Website */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Location */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <MapPin className="w-3.5 h-3.5 text-purple-400" /> Coordenadas / Localização
+                <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                  {formData.location.length}/{MAX_LOCATION_LENGTH}
+                </span>
               </label>
               <input
                 type="text"
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, location: value });
+                  setFieldErrors({ ...fieldErrors, location: validateLocation(value) });
+                }}
+                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  fieldErrors.location
+                    ? 'border-red-500/50 focus:ring-red-500/50'
+                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+                }`}
                 disabled={loading}
                 placeholder="Cidade, Estado ou Planeta"
+                maxLength={MAX_LOCATION_LENGTH}
               />
+              {fieldErrors.location && (
+                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {fieldErrors.location}
+                </p>
+              )}
             </div>
 
+            {/* Website */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <Link2 className="w-3.5 h-3.5 text-purple-400" /> Link de Hipertexto
+                <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                  {formData.website.length}/{MAX_WEBSITE_LENGTH}
+                </span>
               </label>
               <input
                 type="url"
                 value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, website: value });
+                  setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
+                }}
+                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  fieldErrors.website
+                    ? 'border-red-500/50 focus:ring-red-500/50'
+                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+                }`}
                 disabled={loading}
                 placeholder="https://seusite.com"
+                maxLength={MAX_WEBSITE_LENGTH}
               />
+              {fieldErrors.website && (
+                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {fieldErrors.website}
+                </p>
+              )}
             </div>
           </div>
 
@@ -483,8 +653,8 @@ export default function EditProfilePage() {
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-800/60">
             <button
               type="submit"
-              disabled={loading}
-              className="flex-1 order-2 sm:order-1 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
+              disabled={loading || !isFormFilled}
+              className="flex-1 order-2 sm:order-1 font-semibold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 tracking-wide bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
