@@ -27,19 +27,19 @@ async function generateUniqueUsername(email: string): Promise<string> {
     .replace(/^_|_$/g, '');
 
   const uuid = crypto.randomUUID().substring(0, 8);
-  
+
   // Calcula o espaço disponível para o baseName
   // "user_" = 5 caracteres + "_" = 1 + uuid (8) = 14 caracteres fixos
   const FIXED_LENGTH = 5 + 1 + 8; // "user_" + "_" + uuid = 14
   const MAX_USERNAME_LENGTH = 30;
   const MAX_BASE_NAME_LENGTH = MAX_USERNAME_LENGTH - FIXED_LENGTH; // 30 - 14 = 16
-  
+
   // Trunca o baseName se necessário
   let truncatedBase = baseName;
   if (truncatedBase.length > MAX_BASE_NAME_LENGTH) {
     truncatedBase = truncatedBase.substring(0, MAX_BASE_NAME_LENGTH);
   }
-  
+
   let username = `user_${truncatedBase}_${uuid}`;
 
   // Fallback seguro: se ainda assim ultrapassar (caso raro), usa apenas user_uuid
@@ -50,17 +50,17 @@ async function generateUniqueUsername(email: string): Promise<string> {
   // Verifica duplicata (recursivo com limite para evitar loop infinito)
   let attempts = 0;
   const MAX_ATTEMPTS = 5;
-  
+
   while (attempts < MAX_ATTEMPTS) {
     const existing = await prisma.users.findUnique({
       where: { username },
       select: { id: true },
     });
-    
+
     if (!existing) {
       return username;
     }
-    
+
     // Gera novo UUID e tenta novamente
     const newUuid = crypto.randomUUID().substring(0, 8);
     username = `user_${truncatedBase}_${newUuid}`;
@@ -69,14 +69,14 @@ async function generateUniqueUsername(email: string): Promise<string> {
     }
     attempts++;
   }
-  
+
   // Fallback final com timestamp
   const timestamp = Date.now().toString(36).substring(0, 6);
   username = `user_${timestamp}`;
   if (username.length > MAX_USERNAME_LENGTH) {
     username = `u_${timestamp}`;
   }
-  
+
   return username;
 }
 
