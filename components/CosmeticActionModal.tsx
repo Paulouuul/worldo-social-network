@@ -23,9 +23,9 @@ import {
   Circle,
 } from 'lucide-react';
 
-// ==========================================
+
 // TIPAGENS
-// ==========================================
+
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
 const SUGGESTED_PRICE_BY_RARITY = {
   COMUM: 5,
@@ -64,9 +64,9 @@ interface CosmeticActionModalProps {
 
 const rarityDesigns = getRarityDesigns('bottom-10');
 
-// ==========================================
+
 // COMPONENTE PRINCIPAL
-// ==========================================
+
 export function CosmeticActionModal({
   item,
   mode,
@@ -91,7 +91,7 @@ export function CosmeticActionModal({
   const [platformFee, setPlatformFee] = useState<number | null>(null);
   const MAX_PRICE = 1000000;
   const MAX_QUANTITY = 1000000;
-  
+
   useEffect(() => {
     setLocalIsEquipped(item.isEquipped);
   }, [item.isEquipped]);
@@ -115,7 +115,7 @@ export function CosmeticActionModal({
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
-  
+
   useEffect(() => {
     const fetchPlatformFee = async () => {
       try {
@@ -188,14 +188,14 @@ export function CosmeticActionModal({
       }
     }
   };
-  
+
   const handleClose = async () => {
     if (hasEquipChanged) {
       await update();
     }
     onClose();
   };
-  
+
   const handleSell = async (e: React.FormEvent) => {
     e.preventDefault();
     if (quantity > maxAvailable) {
@@ -382,12 +382,16 @@ export function CosmeticActionModal({
             />
           </div>
 
-          {/* AJUSTE FEITO AQUI: Adicionado break-words, px-2, leading-tight, e text-base para acomodar strings de até 50 chars */}
+          
           <div className="text-center mb-4 px-2">
-            <h3 className={`font-bold text-base sm:text-lg wrap-break-word leading-tight ${rarityConfig.textClass}`}>
+            <h3
+              className={`font-bold text-base sm:text-lg wrap-break-word leading-tight ${rarityConfig.textClass}`}
+            >
               {item.frame.name}
             </h3>
-            <p className={`text-xs font-semibold tracking-wider uppercase mt-1 ${rarityConfig.textClass}`}>
+            <p
+              className={`text-xs font-semibold tracking-wider uppercase mt-1 ${rarityConfig.textClass}`}
+            >
               {item.frame.rarity}
             </p>
           </div>
