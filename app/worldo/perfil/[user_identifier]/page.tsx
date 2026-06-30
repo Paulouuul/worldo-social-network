@@ -138,7 +138,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-xs sm:text-sm text-slate-400 font-medium">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <UserIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 shrink-0" />
-                  <span className="text-slate-300 truncate max-w-32 sm:max-w-50 md:max-w-75">
+                  <span className="text-slate-300 break-all">
                     @{user.username}
                   </span>
                 </div>
@@ -199,9 +199,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {/* Localização, Website e Data de Criação */}
             <div className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3 pt-1 sm:pt-2 text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wide">
               {user.location && (
-                <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950/30 border border-slate-800/40 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg max-w-full">
-                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400 shrink-0" />
-                  <span className="truncate max-w-28 sm:max-w-37.5 md:max-w-62.5">{user.location}</span>
+                <div className="flex items-start gap-1.5 sm:gap-2 bg-slate-950/30 border border-slate-800/40 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg max-w-full">
+                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-400 wrap-break-word whitespace-pre-wrap">
+                    {user.location}
+                  </span>
                 </div>
               )}
 
