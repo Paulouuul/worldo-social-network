@@ -34,7 +34,7 @@ export default function EditProfilePage() {
   const MAX_USERNAME_LENGTH = 30;
   const MIN_USERNAME_LENGTH = 3;
   const MAX_BIO_LENGTH = 500;
-  const MAX_LOCATION_LENGTH = 100;
+  const MAX_LOCATION_LENGTH = 30;
   const MAX_WEBSITE_LENGTH = 200;
 
   const [formData, setFormData] = useState({
@@ -60,16 +60,20 @@ export default function EditProfilePage() {
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Nome é obrigatório';
-    if (trimmed.length < MIN_NAME_LENGTH) return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_NAME_LENGTH) return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    if (trimmed.length < MIN_NAME_LENGTH)
+      return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_NAME_LENGTH)
+      return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
     return '';
   };
 
   const validateUsername = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Username é obrigatório';
-    if (trimmed.length < MIN_USERNAME_LENGTH) return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_USERNAME_LENGTH) return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length < MIN_USERNAME_LENGTH)
+      return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_USERNAME_LENGTH)
+      return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
     if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
       return 'Username deve conter apenas letras, números e underscore';
     }
@@ -82,12 +86,14 @@ export default function EditProfilePage() {
   };
 
   const validateLocation = (value: string) => {
-    if (value.length > MAX_LOCATION_LENGTH) return `Localização deve ter no máximo ${MAX_LOCATION_LENGTH} caracteres`;
+    if (value.length > MAX_LOCATION_LENGTH)
+      return `Localização deve ter no máximo ${MAX_LOCATION_LENGTH} caracteres`;
     return '';
   };
 
   const validateWebsite = (value: string) => {
-    if (value.length > MAX_WEBSITE_LENGTH) return `Website deve ter no máximo ${MAX_WEBSITE_LENGTH} caracteres`;
+    if (value.length > MAX_WEBSITE_LENGTH)
+      return `Website deve ter no máximo ${MAX_WEBSITE_LENGTH} caracteres`;
     if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
       return 'Website deve começar com http:// ou https://';
     }
@@ -204,7 +210,7 @@ export default function EditProfilePage() {
       router.replace('login');
     }
     e.preventDefault();
-    
+
     // VALIDAÇÃO ANTES DE ENVIAR
     const nameError = validateName(formData.name);
     const usernameError = validateUsername(formData.username);
@@ -243,7 +249,7 @@ export default function EditProfilePage() {
 
       if (coverFile) submitData.append('cover', coverFile);
       if (removeCover) submitData.append('removeCover', 'true');
-      
+
       const res = await backendApiCall('/profile/update', {
         method: 'PUT',
         body: submitData,
@@ -284,7 +290,7 @@ export default function EditProfilePage() {
           avatar: data.user?.avatar ?? formData.avatar,
           coverImage: data.user?.coverImage ?? formData.coverImage,
         };
-        
+
         setFormData(updatedUser);
 
         await update({
