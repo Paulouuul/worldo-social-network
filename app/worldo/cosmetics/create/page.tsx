@@ -117,8 +117,8 @@ export default function CreateCosmeticPage() {
   const hasErrors = errors.name !== '' || errors.description !== '';
 
   // Verifica se os campos obrigatórios estão preenchidos e válidos
-  const isFormValid = 
-    formData.name.trim().length >= 3 && 
+  const isFormValid =
+    formData.name.trim().length >= 3 &&
     formData.name.trim().length <= MAX_NAME_LENGTH &&
     imageFile !== null &&
     selectedPackageId !== '' &&
@@ -294,7 +294,7 @@ export default function CreateCosmeticPage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (loading) return;
-      
+
       const nameError = validateName(formData.name);
       if (nameError) {
         setError(nameError);
@@ -309,7 +309,7 @@ export default function CreateCosmeticPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
-      
+
       setLoading(true);
       setError('');
       setSuccess('');
@@ -460,8 +460,8 @@ export default function CreateCosmeticPage() {
                     setErrors((prev) => ({ ...prev, name: validateName(value) }));
                   }}
                   className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
-                    errors.name 
-                      ? 'border-red-500/50 focus:ring-red-500/50' 
+                    errors.name
+                      ? 'border-red-500/50 focus:ring-red-500/50'
                       : 'border-slate-800 focus:ring-1'
                   } ${currentStyle.focusRing}`}
                   required
@@ -492,8 +492,8 @@ export default function CreateCosmeticPage() {
                     setErrors((prev) => ({ ...prev, description: validateDescription(value) }));
                   }}
                   className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all resize-none ${
-                    errors.description 
-                      ? 'border-red-500/50 focus:ring-red-500/50' 
+                    errors.description
+                      ? 'border-red-500/50 focus:ring-red-500/50'
                       : 'border-slate-800 focus:ring-1'
                   } ${currentStyle.focusRing}`}
                   rows={3}
@@ -723,16 +723,16 @@ export default function CreateCosmeticPage() {
                   type="submit"
                   disabled={loading || !isFormValid || hasInsufficientCoins}
                   className={`${
-                     hasInsufficientCoins
+                    hasInsufficientCoins
                       ? 'bg-red-950/40 text-red-500 border border-red-500/20 cursor-not-allowed opacity-70'
                       : `bg-linear-to-r ${currentStyle.buttonSubmit} text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`
                   } font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex-1 text-center tracking-wide select-none`}
                 >
                   {loading
                     ? 'FORJANDO ATIVO...'
-                      : hasInsufficientCoins
-                        ? 'SALDO INSUFICIENTE'
-                        : 'CONFIRMAR CRIAÇÃO'}
+                    : hasInsufficientCoins
+                      ? 'SALDO INSUFICIENTE'
+                      : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link
                   href="/worldo/cosmetics/marketplace"
