@@ -9,7 +9,7 @@ import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { useCartSummaryStore } from '@/stores/cartSummaryStore';
-import { formatItemCount, formatFullNumber, formatPrice } from '@/lib/format-utils';
+import { formatItemCount, formatFullNumber } from '@/lib/format-utils';
 import {
   Coins,
   User,
@@ -498,7 +498,7 @@ export default function ListingDetailPage() {
                       <div className="w-full bg-slate-950/50 border border-slate-800/60 shadow-inner rounded-xl px-4 h-14 flex justify-between sm:justify-end items-center gap-3">
                         <span className="text-slate-500 font-medium text-sm sm:hidden">Total:</span>
                         <div className="flex items-center gap-2 text-2xl font-black text-amber-400">
-                          {formatPrice(listing.priceCoins * buyQuantity)}
+                          {formatFullNumber(listing.priceCoins * buyQuantity)}
                           <Coins className="w-5 h-5 text-amber-500/80" />
                         </div>
                       </div>
