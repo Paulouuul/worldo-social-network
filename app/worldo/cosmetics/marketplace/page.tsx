@@ -48,7 +48,7 @@ export default function MarketplacePage() {
     const url = new URL('/api/cosmetics/marketplace', window.location.origin);
 
     if (rarityFilter !== 'all') url.searchParams.set('rarity', rarityFilter);
-    url.searchParams.set('sort', sort); // Adiciona o parâmetro de ordenação
+    url.searchParams.set('sort', sort);
     url.searchParams.set('limit', '50');
 
     if (searchTerm) {
@@ -77,22 +77,22 @@ export default function MarketplacePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-6 sm:py-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 pb-6 border-b border-slate-800/60">
         <div>
-          <h1 className="text-3xl font-bold bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-3">
-            <Store className="w-8 h-8 text-purple-500" />
-            Marketplace de Molduras
+          <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-400 tracking-wide flex items-center gap-3">
+            <Store className="w-7 h-7 sm:w-8 sm:h-8 text-purple-500 shrink-0" />
+            MARKETPLACE
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium">
             Adquira cosméticos exclusivos de outros usuários
           </p>
         </div>
         {session && (
           <Link
             href="/worldo/cosmetics/inventory"
-            className="btn-secondary flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-purple-500/50"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 transition border border-slate-700 hover:border-purple-500/50 text-slate-200 py-3 sm:py-2.5 px-5 rounded-xl text-sm font-semibold shadow-lg shadow-purple-900/10"
           >
             <Package className="w-4 h-4 text-purple-400" />
             Meu Inventário
@@ -100,8 +100,8 @@ export default function MarketplacePage() {
         )}
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      {/* Filtros - mesmo estilo do inventário */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
           <button
             onClick={() => setSearchTerm(searchInput)}
@@ -116,7 +116,6 @@ export default function MarketplacePage() {
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
           />
-
           <button
             onClick={() => {
               setSearchInput('');
@@ -127,15 +126,16 @@ export default function MarketplacePage() {
             <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
+
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
           {rarityOptions.map((rarity) => (
             <button
               key={rarity}
               onClick={() => setRarityFilter(rarity as 'all' | Rarity)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-[transform,colors] whitespace-nowrap ${
+              className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 rarityFilter === rarity
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30 border-transparent'
-                  : 'bg-slate-900/50 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200'
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30'
+                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
               }`}
             >
               {rarity === 'all' ? 'Todos' : rarity}
@@ -143,26 +143,50 @@ export default function MarketplacePage() {
           ))}
         </div>
       </div>
+
+      {/* Ordenação - mesmo estilo do inventário */}
       <div className="flex items-center gap-2 mb-6">
         <span className="text-xs text-slate-500 font-medium mr-2">Ordenar por:</span>
-        {[
-          { id: 'newest', label: 'Mais recentes' },
-          { id: 'oldest', label: 'Mais antigos' },
-          { id: 'price_asc', label: 'Menor preço' },
-          { id: 'price_desc', label: 'Maior preço' },
-        ].map((option) => (
-          <button
-            key={option.id}
-            onClick={() => setSort(option.id)}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-              sort === option.id
-                ? 'bg-slate-700 text-white border border-slate-600'
-                : 'bg-slate-900/50 text-slate-500 border border-slate-800 hover:text-slate-300'
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+        <button
+          onClick={() => setSort('newest')}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            sort === 'newest'
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Mais recentes
+        </button>
+        <button
+          onClick={() => setSort('oldest')}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            sort === 'oldest'
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Mais antigos
+        </button>
+        <button
+          onClick={() => setSort('price_asc')}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            sort === 'price_asc'
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Menor preço
+        </button>
+        <button
+          onClick={() => setSort('price_desc')}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            sort === 'price_desc'
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Maior preço
+        </button>
       </div>
 
       {/* Grid Premium */}

@@ -315,7 +315,7 @@ export default function ListingDetailPage() {
             >
               {listing.frame.name}
             </h1>
-            
+
             {/* Scroll Container para a descrição de até 500 caracteres */}
             <div className="max-h-48 overflow-y-auto pr-4 custom-scrollbar">
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl font-medium wrap-break-word whitespace-pre-wrap">
@@ -550,10 +550,10 @@ export default function ListingDetailPage() {
       {/* Outros anúncios do vendedor */}
       {listing.sellerOtherListings.length > 0 && !listing.isOwnListing && (
         <div className="mt-20 pt-10 border-t border-slate-800/50">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4 min-w-0">
             <h2 className="text-2xl font-black text-slate-200 flex items-center gap-3">
-              <Store className="w-7 h-7 text-emerald-400" />
-              Mais itens de {listing.seller.name}
+              <Store className="w-7 h-7 text-emerald-400 shrink-0" />
+              <span className="truncate">Mais itens de {listing.seller.name}</span>
             </h2>
 
             <Link
