@@ -22,12 +22,16 @@ async function cleanElasticsearch() {
     // Buscar todos os IDs no Elasticsearch
     const result = await esClient.search({
       index: LISTINGS_INDEX,
-      size: 10000, // Ajuste conforme necessário
+      size: 10000,
       _source: false,
       fields: ['id'],
     });
 
-    const elasticIds = result.hits.hits.map(hit => hit._id);
+    // Filtra apenas os IDs que existem (removendo undefined)
+    const elasticIds = result.hits.hits
+      .map(hit => hit._id)
+      .filter((id): id is string => id !== undefined);
+
     console.log(`Found ${elasticIds.length} documents in Elasticsearch`);
 
     // Encontrar IDs que estão no Elasticsearch mas não no PostgreSQL
