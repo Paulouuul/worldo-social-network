@@ -5,7 +5,16 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { useSession } from 'next-auth/react';
-import { Sparkles, User, AtSign, Mail, Lock, UserPlus, ArrowLeft, AlertTriangle } from 'lucide-react';
+import {
+  Sparkles,
+  User,
+  AtSign,
+  Mail,
+  Lock,
+  UserPlus,
+  ArrowLeft,
+  AlertTriangle,
+} from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,18 +28,18 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   useSession();
 
-  // ═══════════════════════════════════════════════════════
+ 
   // CONSTANTES DE VALIDAÇÃO
-  // ═══════════════════════════════════════════════════════
+ 
   const MAX_NAME_LENGTH = 50;
   const MIN_NAME_LENGTH = 3;
   const MAX_USERNAME_LENGTH = 30;
   const MIN_USERNAME_LENGTH = 3;
   const MIN_PASSWORD_LENGTH = 6;
 
-  // ═══════════════════════════════════════════════════════
+ 
   // ESTADOS DE ERRO POR CAMPO
-  // ═══════════════════════════════════════════════════════
+ 
   const [fieldErrors, setFieldErrors] = useState({
     email: '',
     username: '',
@@ -39,9 +48,9 @@ export default function RegisterPage() {
     confirmPassword: '',
   });
 
-  // ═══════════════════════════════════════════════════════
+ 
   // FUNÇÕES DE VALIDAÇÃO
-  // ═══════════════════════════════════════════════════════
+ 
   const validateEmail = (value: string) => {
     if (!value) return 'Email é obrigatório';
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,8 +61,10 @@ export default function RegisterPage() {
   const validateUsername = (value: string) => {
     if (!value) return 'Username é obrigatório';
     const trimmed = value.trim();
-    if (trimmed.length < MIN_USERNAME_LENGTH) return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_USERNAME_LENGTH) return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length < MIN_USERNAME_LENGTH)
+      return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_USERNAME_LENGTH)
+      return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
     if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
       return 'Username deve conter apenas letras, números e underscore';
     }
@@ -63,24 +74,26 @@ export default function RegisterPage() {
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Nome é obrigatório';
-    if (trimmed.length < MIN_NAME_LENGTH) return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_NAME_LENGTH) return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    if (trimmed.length < MIN_NAME_LENGTH)
+      return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
+    if (trimmed.length > MAX_NAME_LENGTH)
+      return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
     return '';
   };
 
   const validatePassword = (value: string) => {
     const errors = [];
-    
+
     if (!value) return 'Senha é obrigatória';
     if (value.length < MIN_PASSWORD_LENGTH) {
       return `Senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`;
     }
-    
+
     if (!/[A-Z]/.test(value)) errors.push('1 letra maiúscula');
     if (!/[a-z]/.test(value)) errors.push('1 letra minúscula');
     if (!/[0-9]/.test(value)) errors.push('1 número');
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) errors.push('1 caractere especial (!@#$%^&*)');
-    
+
     if (errors.length > 0) {
       return `Senha precisa de: ${errors.join(', ')}`;
     }
@@ -103,9 +116,9 @@ export default function RegisterPage() {
     setError('');
     setSuccess('');
 
-    // ═══════════════════════════════════════════════════════
+   
     // VALIDAÇÃO DE TODOS OS CAMPOS ANTES DE ENVIAR
-    // ═══════════════════════════════════════════════════════
+   
     const emailError = validateEmail(email);
     const usernameError = validateUsername(username);
     const nameError = validateName(name);
@@ -224,7 +237,8 @@ export default function RegisterPage() {
               </p>
             )}
             <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-              Apenas letras, números e underline. De {MIN_USERNAME_LENGTH} a {MAX_USERNAME_LENGTH} caracteres.
+              Apenas letras, números e underline. De {MIN_USERNAME_LENGTH} a {MAX_USERNAME_LENGTH}{' '}
+              caracteres.
             </p>
           </div>
 
@@ -309,9 +323,9 @@ export default function RegisterPage() {
                   setFieldErrors({ ...fieldErrors, password: validatePassword(value) });
                   // Revalidar confirmação se já tiver valor
                   if (confirmPassword) {
-                    setFieldErrors(prev => ({ 
-                      ...prev, 
-                      confirmPassword: validateConfirmPassword(confirmPassword) 
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      confirmPassword: validateConfirmPassword(confirmPassword),
                     }));
                   }
                 }}
@@ -330,7 +344,8 @@ export default function RegisterPage() {
                 </p>
               )}
               <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-                Mín. {MIN_PASSWORD_LENGTH} caracteres. Letras maiúsculas, minúsculas, números e especial.
+                Mín. {MIN_PASSWORD_LENGTH} caracteres. Letras maiúsculas, minúsculas, números e
+                especial.
               </p>
             </div>
 
@@ -345,7 +360,10 @@ export default function RegisterPage() {
                 onChange={(e) => {
                   const value = e.target.value;
                   setConfirmPassword(value);
-                  setFieldErrors({ ...fieldErrors, confirmPassword: validateConfirmPassword(value) });
+                  setFieldErrors({
+                    ...fieldErrors,
+                    confirmPassword: validateConfirmPassword(value),
+                  });
                 }}
                 className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
                   fieldErrors.confirmPassword

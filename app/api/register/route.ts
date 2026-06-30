@@ -7,7 +7,6 @@ import crypto from 'crypto';
 const resend = new Resend(process.env.RESEND_API_KEY);
 const resend_email = process.env.RESEND_EMAIL;
 
-
 // CONSTANTES DE VALIDAÇÃO
 
 const MAX_NAME_LENGTH = 50;
@@ -15,7 +14,6 @@ const MIN_NAME_LENGTH = 3;
 const MAX_USERNAME_LENGTH = 30;
 const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 6;
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,17 +28,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     // VALIDAÇÃO DE EMAIL
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    
     // VALIDAÇÃO DE USERNAME
-    
+
     const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
     if (!usernameRegex.test(username)) {
       return NextResponse.json(
@@ -52,9 +48,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     // VALIDAÇÃO DE NOME
-    
+
     const trimmedName = name.trim();
     if (trimmedName.length < MIN_NAME_LENGTH) {
       return NextResponse.json(
@@ -69,9 +64,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     // VALIDAÇÃO DE SENHA
-    
+
     const validatePassword = (pass: string) => {
       const errors = [];
       if (pass.length < MIN_PASSWORD_LENGTH) {
