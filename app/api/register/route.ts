@@ -28,17 +28,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedUsername = username.trim().toLowerCase();
+    const trimmedName = name.trim();
     // VALIDAÇÃO DE EMAIL
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(trimmedEmail)) {
       return NextResponse.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
     // VALIDAÇÃO DE USERNAME
 
     const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
-    if (!usernameRegex.test(username)) {
+    if (!usernameRegex.test(trimmedUsername)) {
       return NextResponse.json(
         {
           success: false,
@@ -49,8 +53,6 @@ export async function POST(request: NextRequest) {
     }
 
     // VALIDAÇÃO DE NOME
-
-    const trimmedName = name.trim();
     if (trimmedName.length < MIN_NAME_LENGTH) {
       return NextResponse.json(
         { success: false, error: `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres` },
@@ -91,12 +93,12 @@ export async function POST(request: NextRequest) {
     // 2. Consulta Unificada (Evita múltiplas idas ao banco e reduz race conditions)
     const existingUser = await prisma.users.findFirst({
       where: {
-        OR: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
+        OR: [{ email: trimmedEmail }, { username: trimmedUsername }],
       },
     });
 
     if (existingUser) {
-      const field = existingUser.email === email.toLowerCase() ? 'Email' : 'Este username';
+      const field = existingUser.email === trimmedEmail ? 'Email' : 'Este username';
       return NextResponse.json(
         { success: false, error: `${field} já está em uso.` },
         { status: 400 },
@@ -113,10 +115,10 @@ export async function POST(request: NextRequest) {
     await prisma.$transaction(async (tx) => {
       await tx.users.create({
         data: {
-          email: email.toLowerCase(),
+          email: trimmedEmail,
           password: hashedPassword,
           name: trimmedName,
-          username: username.toLowerCase().trim(),
+          username: trimmedUsername,
           publicId: userPublicId,
           emailVerified: null,
         },
@@ -124,7 +126,7 @@ export async function POST(request: NextRequest) {
 
       await tx.verification_tokens.create({
         data: {
-          identifier: email.toLowerCase(),
+          identifier: trimmedEmail,
           token: verificationToken,
           expires: tokenExpires,
         },
@@ -137,14 +139,14 @@ export async function POST(request: NextRequest) {
     try {
       await resend.emails.send({
         from: `${resend_email}`,
-        to: email.toLowerCase(),
+        to: trimmedEmail,
         subject: 'Verifique seu email - Worldo',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #333;">Bem-vindo ao WORDO! 🎉</h1>
-            <p>Olá <strong>${name || email.split('@')[0]}</strong>,</p>
+            <p>Olá <strong>${trimmedName || trimmedEmail.split('@')[0]}</strong>,</p>
             <p>Por favor, verifique seu email clicando no link abaixo:</p>
-            <a href="${verificationLink}" 
+            <a href="${verificationLink}"
                style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
               Verificar Email
             </a>
