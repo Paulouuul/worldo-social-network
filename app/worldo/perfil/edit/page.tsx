@@ -665,16 +665,15 @@ export default function EditProfilePage() {
                   setFormData({ ...formData, website: value });
                   setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
                 }}
-
                 onBlur={() => {
-      let value = formData.website.trim();
-      
-      if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
-        value = `https://${value}`;
-        setFormData({ ...formData, website: value });
-        setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
-      }
-    }}
+                  let value = formData.website.trim();
+
+                  if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                    value = `https://${value}`;
+                    setFormData({ ...formData, website: value });
+                    setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
+                  }
+                }}
                 className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
                   fieldErrors.website
                     ? 'border-red-500/50 focus:ring-red-500/50'

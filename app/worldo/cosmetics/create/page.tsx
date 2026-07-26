@@ -459,6 +459,13 @@ export default function CreateCosmeticPage() {
                     setFormData((prev) => ({ ...prev, name: value }));
                     setErrors((prev) => ({ ...prev, name: validateName(value) }));
                   }}
+                  onBlur={() => {
+                    const trimmed = formData.name.trim().replace(/\s+/g, ' ');
+                    if (trimmed !== formData.name) {
+                      setFormData((prev) => ({ ...prev, name: trimmed }));
+                      setErrors((prev) => ({ ...prev, name: validateName(trimmed) }));
+                    }
+                  }}
                   className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
                     errors.name
                       ? 'border-red-500/50 focus:ring-red-500/50'
