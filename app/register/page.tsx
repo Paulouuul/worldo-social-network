@@ -28,18 +28,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   useSession();
 
- 
   // CONSTANTES DE VALIDAÇÃO
- 
   const MAX_NAME_LENGTH = 50;
   const MIN_NAME_LENGTH = 3;
   const MAX_USERNAME_LENGTH = 30;
   const MIN_USERNAME_LENGTH = 3;
   const MIN_PASSWORD_LENGTH = 6;
 
- 
   // ESTADOS DE ERRO POR CAMPO
- 
   const [fieldErrors, setFieldErrors] = useState({
     email: '',
     username: '',
@@ -48,9 +44,7 @@ export default function RegisterPage() {
     confirmPassword: '',
   });
 
- 
   // FUNÇÕES DE VALIDAÇÃO
- 
   const validateEmail = (value: string) => {
     if (!value) return 'Email é obrigatório';
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -106,19 +100,25 @@ export default function RegisterPage() {
     return '';
   };
 
+  // Previne a digitação da tecla de espaço fisicamente
+  const handleKeyDownNoSpaces = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
+  };
+
   // Verifica se todos os campos obrigatórios estão preenchidos
   const isFormFilled = email && username && name && password && confirmPassword;
 
-  // Verifica se há erros em algum campo
+  // Verifica se há erros em algum campo (bloqueia o botão)
+  const hasErrors = Object.values(fieldErrors).some((errorMsg) => errorMsg !== '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-   
     // VALIDAÇÃO DE TODOS OS CAMPOS ANTES DE ENVIAR
-   
     const emailError = validateEmail(email);
     const usernameError = validateUsername(username);
     const nameError = validateName(name);
@@ -133,9 +133,9 @@ export default function RegisterPage() {
       confirmPassword: confirmPasswordError,
     });
 
+    // Se houver erros, apenas interrompe a submissão silenciosamente 
+    // (O botão já deveria estar bloqueado, mas isso serve de dupla segurança)
     if (emailError || usernameError || nameError || passwordError || confirmPasswordError) {
-      setError('Corrija os campos destacados antes de registrar');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -188,7 +188,7 @@ export default function RegisterPage() {
           <p className="text-slate-400 text-xs mt-1">Crie seu registro de acesso na rede</p>
         </div>
 
-        {/* Alertas de Erro */}
+        {/* Alertas de Erro (Erros de servidor/API) */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs border border-red-500/20 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -216,6 +216,7 @@ export default function RegisterPage() {
             <input
               type="text"
               value={username}
+              onKeyDown={handleKeyDownNoSpaces} // Novo: Impede o espaço
               onChange={(e) => {
                 const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
                 setUsername(value);
@@ -254,7 +255,10 @@ export default function RegisterPage() {
               type="text"
               value={name}
               onChange={(e) => {
-                const value = e.target.value;
+                // Novo: Previne espaços duplos e garante que não inicie com espaço (igual backend)
+                let value = e.target.value.replace(/\s+/g, ' ');
+                if (value.startsWith(' ')) value = value.trimStart();
+                
                 setName(value);
                 setFieldErrors({ ...fieldErrors, name: validateName(value) });
               }}
@@ -286,8 +290,10 @@ export default function RegisterPage() {
             <input
               type="email"
               value={email}
+              onKeyDown={handleKeyDownNoSpaces} // Novo: Impede o espaço
               onChange={(e) => {
-                const value = e.target.value;
+                // Novo: Remove qualquer espaço caso seja copiado/colado
+                const value = e.target.value.replace(/\s/g, '');
                 setEmail(value);
                 setFieldErrors({ ...fieldErrors, email: validateEmail(value) });
               }}
@@ -317,10 +323,12 @@ export default function RegisterPage() {
               <input
                 type="password"
                 value={password}
+                onKeyDown={handleKeyDownNoSpaces} // Novo: Impede o espaço
                 onChange={(e) => {
-                  const value = e.target.value;
+                  const value = e.target.value.replace(/\s/g, ''); // Evita espaços
                   setPassword(value);
                   setFieldErrors({ ...fieldErrors, password: validatePassword(value) });
+                  
                   // Revalidar confirmação se já tiver valor
                   if (confirmPassword) {
                     setFieldErrors((prev) => ({
@@ -357,12 +365,21 @@ export default function RegisterPage() {
               <input
                 type="password"
                 value={confirmPassword}
+                onKeyDown={handleKeyDownNoSpaces} // Novo: Impede o espaço
                 onChange={(e) => {
-                  const value = e.target.value;
+                  const value = e.target.value.replace(/\s/g, ''); // Evita espaços
                   setConfirmPassword(value);
+                  
+                  // Valida usando a senha ATUAL que acabou de ser digitada no confirmPassword
+                  const errorMsg = !value 
+                    ? 'Confirmação de senha é obrigatória' 
+                    : value !== password 
+                      ? 'As senhas não coincidem' 
+                      : '';
+                      
                   setFieldErrors({
                     ...fieldErrors,
-                    confirmPassword: validateConfirmPassword(value),
+                    confirmPassword: errorMsg,
                   });
                 }}
                 className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
@@ -385,7 +402,7 @@ export default function RegisterPage() {
           {/* Botão de Submit */}
           <button
             type="submit"
-            disabled={loading || !isFormFilled}
+            disabled={loading || !isFormFilled || hasErrors} // Novo: Adicionado "hasErrors"
             className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
           >
             {loading ? (

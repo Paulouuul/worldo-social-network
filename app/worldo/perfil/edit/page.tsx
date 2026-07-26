@@ -21,6 +21,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
+const URL_REGEX = /^(https?:\/\/)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|[/?]\S+)$/;
+
 export default function EditProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
@@ -92,10 +94,18 @@ export default function EditProfilePage() {
   };
 
   const validateWebsite = (value: string) => {
+    if (!value) return '';
+
     if (value.length > MAX_WEBSITE_LENGTH)
       return `Website deve ter no máximo ${MAX_WEBSITE_LENGTH} caracteres`;
-    if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
-      return 'Website deve começar com http:// ou https://';
+    
+    let testUrl = value;
+    if (!testUrl.startsWith('http://') && !testUrl.startsWith('https://')) {
+      testUrl = `https://${testUrl}`;
+    }
+
+    if (!URL_REGEX.test(testUrl)) {
+      return 'URL inválida.';
     }
     return '';
   };
@@ -103,7 +113,15 @@ export default function EditProfilePage() {
   // Verifica se todos os campos obrigatórios estão preenchidos
   const isFormFilled = formData.name && formData.username;
 
-  // Verifica se há erros em algum campo (apenas para validação, não afeta o botão)
+  // Verifica se há erros em algum campo (bloqueia o botão de salvar)
+  const hasErrors = Object.values(fieldErrors).some((errorMsg) => errorMsg !== '');
+
+  // Previne a digitação da tecla de espaço
+  const handleKeyDownNoSpaces = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
+  };
 
   // Estados para o Avatar
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -495,6 +513,7 @@ export default function EditProfilePage() {
               <input
                 type="text"
                 value={formData.username}
+                onKeyDown={handleKeyDownNoSpaces}
                 onChange={(e) => {
                   const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
                   setFormData({ ...formData, username: value });
@@ -630,10 +649,11 @@ export default function EditProfilePage() {
                 </span>
               </label>
               <input
-                type="url"
+                type="text"
                 value={formData.website}
+                onKeyDown={handleKeyDownNoSpaces}
                 onChange={(e) => {
-                  const value = e.target.value;
+                  const value = e.target.value.replace(/\s/g, '');
                   setFormData({ ...formData, website: value });
                   setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
                 }}
@@ -659,7 +679,7 @@ export default function EditProfilePage() {
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-800/60">
             <button
               type="submit"
-              disabled={loading || !isFormFilled}
+              disabled={loading || !isFormFilled || hasErrors}
               className="flex-1 order-2 sm:order-1 font-semibold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 tracking-wide bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

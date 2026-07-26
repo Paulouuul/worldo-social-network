@@ -8,7 +8,6 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const resend_email = process.env.RESEND_EMAIL;
 
 // CONSTANTES DE VALIDAÇÃO
-
 const MAX_NAME_LENGTH = 50;
 const MIN_NAME_LENGTH = 3;
 const MAX_USERNAME_LENGTH = 30;
@@ -28,38 +27,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ==========================================
+    // 2. FORMATAÇÃO E SANITIZAÇÃO
+    // ==========================================
+    
+    const formattedEmail = email.trim().toLowerCase();
+    
+    // Remove espaços no início/fim, força minúsculo, e destrói qualquer caractere que não seja a-z, 0-9 ou underline
+    const formattedUsername = username
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, '');
+      
+    // Remove espaços nas pontas e substitui espaços duplos/múltiplos no meio por um único espaço
+    const formattedName = name
+      .trim()
+      .replace(/\s+/g, ' ');
 
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedUsername = username.trim().toLowerCase();
-    const trimmedName = name.trim();
+
+    // ==========================================
+    // 3. VALIDAÇÕES ESTRITAS
+    // ==========================================
+
     // VALIDAÇÃO DE EMAIL
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
+    if (!emailRegex.test(formattedEmail)) {
       return NextResponse.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    // VALIDAÇÃO DE USERNAME
-
-    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
-    if (!usernameRegex.test(trimmedUsername)) {
+    // VALIDAÇÃO DE USERNAME (Após formatação)
+    if (
+      formattedUsername.length < MIN_USERNAME_LENGTH || 
+      formattedUsername.length > MAX_USERNAME_LENGTH
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: `Username deve ter ${MIN_USERNAME_LENGTH}-${MAX_USERNAME_LENGTH} caracteres e conter apenas letras, números e underline`,
+          error: `Username deve ter ${MIN_USERNAME_LENGTH}-${MAX_USERNAME_LENGTH} caracteres válidos (letras, números, underline).`,
         },
         { status: 400 },
       );
     }
 
-    // VALIDAÇÃO DE NOME
-    if (trimmedName.length < MIN_NAME_LENGTH) {
+    // VALIDAÇÃO DE NOME (Após formatação)
+    if (formattedName.length < MIN_NAME_LENGTH) {
       return NextResponse.json(
         { success: false, error: `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres` },
         { status: 400 },
       );
     }
-    if (trimmedName.length > MAX_NAME_LENGTH) {
+    if (formattedName.length > MAX_NAME_LENGTH) {
       return NextResponse.json(
         { success: false, error: `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres` },
         { status: 400 },
@@ -67,7 +84,6 @@ export async function POST(request: NextRequest) {
     }
 
     // VALIDAÇÃO DE SENHA
-
     const validatePassword = (pass: string) => {
       const errors = [];
       if (pass.length < MIN_PASSWORD_LENGTH) {
@@ -90,15 +106,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Consulta Unificada (Evita múltiplas idas ao banco e reduz race conditions)
+    // ==========================================
+    // 4. CONSULTA UNIFICADA (Evita Race Conditions)
+    // ==========================================
     const existingUser = await prisma.users.findFirst({
       where: {
-        OR: [{ email: trimmedEmail }, { username: trimmedUsername }],
+        OR: [{ email: formattedEmail }, { username: formattedUsername }],
       },
     });
 
     if (existingUser) {
-      const field = existingUser.email === trimmedEmail ? 'Email' : 'Este username';
+      const field = existingUser.email === formattedEmail ? 'Email' : 'Este username';
       return NextResponse.json(
         { success: false, error: `${field} já está em uso.` },
         { status: 400 },
@@ -111,14 +129,16 @@ export async function POST(request: NextRequest) {
     const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
     const userPublicId = crypto.randomUUID();
 
-    // 3. Execução Atômica no Banco de Dados
+    // ==========================================
+    // 5. EXECUÇÃO ATÔMICA NO BANCO (Transaction)
+    // ==========================================
     await prisma.$transaction(async (tx) => {
       await tx.users.create({
         data: {
-          email: trimmedEmail,
+          email: formattedEmail,
           password: hashedPassword,
-          name: trimmedName,
-          username: trimmedUsername,
+          name: formattedName,
+          username: formattedUsername,
           publicId: userPublicId,
           emailVerified: null,
         },
@@ -126,25 +146,27 @@ export async function POST(request: NextRequest) {
 
       await tx.verification_tokens.create({
         data: {
-          identifier: trimmedEmail,
+          identifier: formattedEmail,
           token: verificationToken,
           expires: tokenExpires,
         },
       });
     });
 
-    // Envio do E-mail fora da transação do banco (Evita travar conexões)
+    // ==========================================
+    // 6. ENVIO DO E-MAIL DE VERIFICAÇÃO
+    // ==========================================
     const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-email?token=${verificationToken}`;
 
     try {
       await resend.emails.send({
         from: `${resend_email}`,
-        to: trimmedEmail,
+        to: formattedEmail,
         subject: 'Verifique seu email - Worldo',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #333;">Bem-vindo ao WORDO! 🎉</h1>
-            <p>Olá <strong>${trimmedName || trimmedEmail.split('@')[0]}</strong>,</p>
+            <p>Olá <strong>${formattedName || formattedEmail.split('@')[0]}</strong>,</p>
             <p>Por favor, verifique seu email clicando no link abaixo:</p>
             <a href="${verificationLink}"
                style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
