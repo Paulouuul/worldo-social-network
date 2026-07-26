@@ -34,15 +34,35 @@ function LoginContent() {
     }
   }, [searchParams]);
 
+  const handleKeyDownNoSpaces = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
+    const formattedEmail = email.trim().toLowerCase();
+
+    if (!formattedEmail) {
+      setError('Email é obrigatório');
+      setLoading(false);
+      return;
+    }
+
+    if (!password) {
+      setError('Senha é obrigatória');
+      setLoading(false);
+      return;
+    }
+
     try {
       const result = await signIn('credentials', {
-        email,
+        email: formattedEmail,
         password,
         redirect: false,
       });
@@ -119,10 +139,21 @@ function LoginContent() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDownNoSpaces}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\s/g, '');
+                setEmail(value);
+              }}
+              onBlur={() => {
+                const trimmed = email.trim().toLowerCase();
+                if (trimmed !== email) {
+                  setEmail(trimmed);
+                }
+              }}
               className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
               required
               placeholder="seu@email.com"
+              disabled={loading}
             />
           </div>
 
@@ -133,16 +164,19 @@ function LoginContent() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
               className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all text-sm"
               required
               placeholder="••••••••"
+              disabled={loading}
             />
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !email || !password}
             className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
           >
             {loading ? (
