@@ -30,20 +30,17 @@ export async function POST(request: NextRequest) {
     // ==========================================
     // 2. FORMATAÇÃO E SANITIZAÇÃO
     // ==========================================
-    
+
     const formattedEmail = email.trim().toLowerCase();
-    
+
     // Username: lower, trim, apenas letras, números e underscore
     const formattedUsername = username
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9_]/g, '');
-      
-    // Name: trim e espaços duplos removidos
-    const formattedName = name
-      .trim()
-      .replace(/\s+/g, ' ');
 
+    // Name: trim e espaços duplos removidos
+    const formattedName = name.trim().replace(/\s+/g, ' ');
 
     // ==========================================
     // 3. VALIDAÇÕES ESTRITAS
@@ -52,14 +49,15 @@ export async function POST(request: NextRequest) {
     // VALIDAÇÃO DE EMAIL
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formattedEmail)) {
-      return NextResponse.json(
-        { success: false, error: 'Email inválido' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
     // VALIDAÇÃO DE USERNAME
-    if (!formattedUsername || formattedUsername.length < MIN_USERNAME_LENGTH || formattedUsername.length > MAX_USERNAME_LENGTH) {
+    if (
+      !formattedUsername ||
+      formattedUsername.length < MIN_USERNAME_LENGTH ||
+      formattedUsername.length > MAX_USERNAME_LENGTH
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -72,13 +70,19 @@ export async function POST(request: NextRequest) {
     // VALIDAÇÃO DE NOME
     if (!formattedName || formattedName.length < MIN_NAME_LENGTH) {
       return NextResponse.json(
-        { success: false, error: `Nome de Exibição deve ter pelo menos ${MIN_NAME_LENGTH} caracteres` },
+        {
+          success: false,
+          error: `Nome de Exibição deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`,
+        },
         { status: 400 },
       );
     }
     if (formattedName.length > MAX_NAME_LENGTH) {
       return NextResponse.json(
-        { success: false, error: `Nome de Exibição deve ter no máximo ${MAX_NAME_LENGTH} caracteres` },
+        {
+          success: false,
+          error: `Nome de Exibição deve ter no máximo ${MAX_NAME_LENGTH} caracteres`,
+        },
         { status: 400 },
       );
     }
@@ -101,9 +105,9 @@ export async function POST(request: NextRequest) {
     const passwordErrors = validatePassword(password);
     if (passwordErrors.length > 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: `Senha fraca: ${passwordErrors.join(', ')}` 
+        {
+          success: false,
+          error: `Senha fraca: ${passwordErrors.join(', ')}`,
         },
         { status: 400 },
       );
@@ -114,10 +118,7 @@ export async function POST(request: NextRequest) {
     // ==========================================
     const existingUser = await prisma.users.findFirst({
       where: {
-        OR: [
-          { email: formattedEmail },
-          { username: formattedUsername }
-        ],
+        OR: [{ email: formattedEmail }, { username: formattedUsername }],
       },
     });
 
@@ -125,9 +126,9 @@ export async function POST(request: NextRequest) {
       // Mensagem de erro igual ao Python
       const field = existingUser.email === formattedEmail ? 'Email' : 'Nome de Usuário';
       return NextResponse.json(
-        { 
-          success: false, 
-          error: `${field} já está em uso.` 
+        {
+          success: false,
+          error: `${field} já está em uso.`,
         },
         { status: 400 },
       );
@@ -205,11 +206,11 @@ export async function POST(request: NextRequest) {
       // Rollback em caso de falha no email
       await prisma
         .$transaction([
-          prisma.verification_tokens.deleteMany({ 
-            where: { token: verificationToken } 
+          prisma.verification_tokens.deleteMany({
+            where: { token: verificationToken },
           }),
-          prisma.users.delete({ 
-            where: { publicId: userPublicId } 
+          prisma.users.delete({
+            where: { publicId: userPublicId },
           }),
         ])
         .catch(console.error);
@@ -233,9 +234,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Erro no registro:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erro interno ao criar usuário' 
+      {
+        success: false,
+        error: 'Erro interno ao criar usuário',
       },
       { status: 500 },
     );

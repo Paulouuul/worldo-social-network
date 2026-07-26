@@ -21,7 +21,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
-const URL_REGEX = /^(https?:\/\/)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|[/?]\S+)$/;
+const URL_REGEX =
+  /^(https?:\/\/)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|[/?]\S+)$/;
 
 export default function EditProfilePage() {
   const { data: session, status, update } = useSession();
@@ -98,7 +99,7 @@ export default function EditProfilePage() {
 
     if (value.length > MAX_WEBSITE_LENGTH)
       return `Website deve ter no máximo ${MAX_WEBSITE_LENGTH} caracteres`;
-    
+
     let testUrl = value;
     if (!testUrl.startsWith('http://') && !testUrl.startsWith('https://')) {
       testUrl = `https://${testUrl}`;
@@ -553,6 +554,13 @@ export default function EditProfilePage() {
                   setFormData({ ...formData, name: value });
                   setFieldErrors({ ...fieldErrors, name: validateName(value) });
                 }}
+                onBlur={() => {
+                  const trimmed = formData.name.trim().replace(/\s+/g, ' ');
+                  if (trimmed !== formData.name) {
+                    setFormData({ ...formData, name: trimmed });
+                    setFieldErrors({ ...fieldErrors, name: validateName(trimmed) });
+                  }
+                }}
                 className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
                   fieldErrors.name
                     ? 'border-red-500/50 focus:ring-red-500/50'
@@ -657,6 +665,16 @@ export default function EditProfilePage() {
                   setFormData({ ...formData, website: value });
                   setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
                 }}
+
+                onBlur={() => {
+      let value = formData.website.trim();
+      
+      if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+        value = `https://${value}`;
+        setFormData({ ...formData, website: value });
+        setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
+      }
+    }}
                 className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
                   fieldErrors.website
                     ? 'border-red-500/50 focus:ring-red-500/50'

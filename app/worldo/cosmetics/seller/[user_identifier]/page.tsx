@@ -223,7 +223,10 @@ export default function SellerPage() {
           <span className="hidden xs:inline">Marketplace</span>
         </Link>
         <span className="text-slate-600">/</span>
-        <span className="text-slate-300 truncate max-w-32 xs:max-w-48 sm:max-w-md" title={seller.name}>
+        <span
+          className="text-slate-300 truncate max-w-32 xs:max-w-48 sm:max-w-md"
+          title={seller.name}
+        >
           {seller.name}
         </span>
       </div>

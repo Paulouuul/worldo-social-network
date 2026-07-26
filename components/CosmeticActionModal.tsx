@@ -23,7 +23,6 @@ import {
   Circle,
 } from 'lucide-react';
 
-
 // TIPAGENS
 
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
@@ -63,7 +62,6 @@ interface CosmeticActionModalProps {
 }
 
 const rarityDesigns = getRarityDesigns('bottom-10');
-
 
 // COMPONENTE PRINCIPAL
 
@@ -382,7 +380,6 @@ export function CosmeticActionModal({
             />
           </div>
 
-          
           <div className="text-center mb-4 px-2">
             <h3
               className={`font-bold text-base sm:text-lg wrap-break-word leading-tight ${rarityConfig.textClass}`}

@@ -16,7 +16,7 @@ async function cleanElasticsearch() {
       select: { id: true },
     });
 
-    const activeIds = new Set(activeListings.map(l => l.id));
+    const activeIds = new Set(activeListings.map((l) => l.id));
     console.log(`Found ${activeIds.size} active listings in PostgreSQL`);
 
     // Buscar todos os IDs no Elasticsearch
@@ -29,13 +29,13 @@ async function cleanElasticsearch() {
 
     // Filtra apenas os IDs que existem (removendo undefined)
     const elasticIds = result.hits.hits
-      .map(hit => hit._id)
+      .map((hit) => hit._id)
       .filter((id): id is string => id !== undefined);
 
     console.log(`Found ${elasticIds.length} documents in Elasticsearch`);
 
     // Encontrar IDs que estão no Elasticsearch mas não no PostgreSQL
-    const idsToRemove = elasticIds.filter(id => !activeIds.has(id));
+    const idsToRemove = elasticIds.filter((id) => !activeIds.has(id));
     console.log(`Found ${idsToRemove.length} documents to remove`);
 
     if (idsToRemove.length === 0) {
@@ -47,18 +47,18 @@ async function cleanElasticsearch() {
     const batchSize = 100;
     for (let i = 0; i < idsToRemove.length; i += batchSize) {
       const batch = idsToRemove.slice(i, i + batchSize);
-      
-      const body = batch.flatMap(id => [
-        { delete: { _index: LISTINGS_INDEX, _id: id } }
-      ]);
+
+      const body = batch.flatMap((id) => [{ delete: { _index: LISTINGS_INDEX, _id: id } }]);
 
       const response = await esClient.bulk({ body });
-      
+
       if (response.errors) {
         console.error('Bulk delete had errors:', response.errors);
       }
-      
-      console.log(`   Removed batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(idsToRemove.length/batchSize)}`);
+
+      console.log(
+        `   Removed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(idsToRemove.length / batchSize)}`,
+      );
     }
 
     console.log(`Successfully removed ${idsToRemove.length} stale documents`);

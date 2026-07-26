@@ -243,7 +243,7 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Nome de Exibição*/}
+          {/* Nome de Exibição */}
           <div>
             <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
               <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição *

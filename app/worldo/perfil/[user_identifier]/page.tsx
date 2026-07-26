@@ -92,7 +92,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950"></div>
               <div className="relative z-10 flex flex-col items-center gap-2 opacity-30">
                 <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
-                <p className="text-[10px] sm:text-xs font-medium tracking-widest uppercase">Espaço da Capa</p>
+                <p className="text-[10px] sm:text-xs font-medium tracking-widest uppercase">
+                  Espaço da Capa
+                </p>
               </div>
             </div>
           )}
@@ -138,15 +140,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-xs sm:text-sm text-slate-400 font-medium">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <UserIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 shrink-0" />
-                  <span className="text-slate-300 break-all">
-                    @{user.username}
-                  </span>
+                  <span className="text-slate-300 break-all">@{user.username}</span>
                 </div>
 
                 {isOwnProfile && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-purple-500/5 border border-purple-500/10 rounded-lg px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-xs text-purple-400 min-w-0">
                     <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                    <span className="truncate max-w-24 sm:max-w-37.5 md:max-w-50">{user.email}</span>
+                    <span className="truncate max-w-24 sm:max-w-37.5 md:max-w-50">
+                      {user.email}
+                    </span>
                     <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest bg-purple-500/10 border border-purple-500/20 px-1 rounded shrink-0">
                       Privado
                     </span>
@@ -162,7 +164,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   {user.followersCount}
                 </span>
                 <span className="text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
-                  <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> 
+                  <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   <span className="hidden xs:inline">Seguidores</span>
                   <span className="xs:hidden">Seg.</span>
                 </span>
@@ -173,16 +175,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   {user.followingCount}
                 </span>
                 <span className="text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
-                  <UserCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> 
+                  <UserCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   <span className="hidden xs:inline">Seguindo</span>
                   <span className="xs:hidden">Seg.</span>
                 </span>
               </div>
 
               <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-3 sm:px-5 py-2.5 sm:py-3 text-center min-w-20 sm:min-w-27.5 flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
-                <span className="block font-black text-lg sm:text-2xl text-slate-500 tracking-tight">0</span>
+                <span className="block font-black text-lg sm:text-2xl text-slate-500 tracking-tight">
+                  0
+                </span>
                 <span className="text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1 mt-0.5">
-                  <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> 
+                  <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   <span className="hidden xs:inline">Cosméticos</span>
                   <span className="xs:hidden">Cosm.</span>
                 </span>
