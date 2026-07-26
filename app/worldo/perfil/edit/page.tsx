@@ -505,7 +505,7 @@ export default function EditProfilePage() {
             {/* Username */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <AtSign className="w-3.5 h-3.5 text-purple-400" /> Usuário de Acesso
+                <AtSign className="w-3.5 h-3.5 text-purple-400" /> Nome de Usuário *
                 <span className="text-[10px] text-slate-500 font-normal ml-auto">
                   {formData.username.length}/{MAX_USERNAME_LENGTH}
                 </span>
@@ -540,7 +540,7 @@ export default function EditProfilePage() {
             {/* Name */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição
+                <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição *
                 <span className="text-[10px] text-slate-500 font-normal ml-auto">
                   {formData.name.length}/{MAX_NAME_LENGTH}
                 </span>

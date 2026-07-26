@@ -446,7 +446,7 @@ export default function CreateCosmeticPage() {
               {/* Nome da Moldura */}
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                  <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Nome da Moldura
+                  <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Nome da Moldura *
                   <span className="text-xs text-slate-500 font-normal ml-auto">
                     {formData.name.length}/{MAX_NAME_LENGTH}
                   </span>
@@ -592,7 +592,7 @@ export default function CreateCosmeticPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Camada da Moldura
+                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Camada da Moldura *
                   </label>
                   <input
                     ref={imageInputRef}
