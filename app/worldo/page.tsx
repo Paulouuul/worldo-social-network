@@ -1,7 +1,6 @@
 import { auth } from '@/auth';
 import Link from 'next/link';
 import { LogoutButton } from '@/components/LogoutButton';
-import { redirect } from 'next/navigation';
 import { Sparkles, UserCircle, Palette, Coins, MessageSquare } from 'lucide-react';
 
 export default async function Home() {
@@ -9,12 +8,9 @@ export default async function Home() {
 
   // Se não estiver autenticado, redireciona imediatamente.
   // O Next.js para a execução do componente aqui mesmo.
-  if (!session?.user) {
-    redirect('/login');
-  }
 
   // Captura o nome formatado ou o prefixo do email
-  const displayName = session.user?.name || session.user?.email?.split('@')[0] || 'Viajante';
+  const displayName = session?.user?.name || session?.user?.email?.split('@')[0] || 'Viajante';
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-20 relative antialiased text-slate-100 selection:bg-purple-500/30 overflow-hidden sm:overflow-visible">

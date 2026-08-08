@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useCoinStore } from '@/stores/coinStore';
-import { useRouter, redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
@@ -388,10 +388,6 @@ export default function CreateCosmeticPage() {
     },
     [],
   );
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   if (status === 'loading') {
     return <LoadingSpinner text="Carregando fábrica de cosméticos..." />;

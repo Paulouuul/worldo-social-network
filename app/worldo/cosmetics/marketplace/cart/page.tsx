@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter, redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
@@ -70,10 +70,6 @@ export default function CartPage() {
   const isInitialLoad = useRef(true);
   const hasRedirected = useRef(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   const fetchCart = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);

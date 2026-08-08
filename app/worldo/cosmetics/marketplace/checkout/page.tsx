@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter, redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
@@ -69,10 +69,6 @@ export default function CheckoutPage() {
 
   const isInitialLoad = useRef(true);
   const hasRedirected = useRef(false);
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   useEffect(() => {
     const loadCheckoutData = async () => {

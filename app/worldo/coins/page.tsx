@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useCoinStore } from '@/stores/coinStore';
-import { redirect } from 'next/navigation';
 import { formatFullNumber } from '@/lib/format-utils';
 
 import {
@@ -157,10 +156,6 @@ export default function CoinsPage() {
 
   if (status === 'loading') {
     return <LoadingSpinner text="Carregando loja com segurança..." withBackground={true} fullScreen={true} />;
-  }
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
   }
 
   return (

@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { RARITY } from '@/constants/cosmeticRarity';
 import { ProfileBio } from '@/components/ProfileBio';
@@ -30,10 +30,6 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const session = await auth();
-
-  if (!session?.user) {
-    redirect('/login');
-  }
   const { user_identifier } = await params;
   const decodedUsername = decodeURIComponent(user_identifier);
 

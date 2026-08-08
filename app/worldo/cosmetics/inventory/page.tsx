@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
 import { CosmeticActionModal } from '@/components/CosmeticActionModal';
 import { Package, Search, Plus, X, Loader2, Store, CheckCircle, Box } from 'lucide-react';
@@ -59,10 +58,6 @@ export default function MyCosmeticsPage() {
   const [modalMode, setModalMode] = useState<ModalMode>(null);
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   const fetchStats = useCallback(async () => {
     try {

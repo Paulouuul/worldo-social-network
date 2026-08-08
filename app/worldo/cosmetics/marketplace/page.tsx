@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Search, Coins, User, Package, Sparkles, Store, X } from 'lucide-react';
 import { formatItemCount } from '@/lib/format-utils';
 import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
@@ -38,10 +37,6 @@ export default function MarketplacePage() {
   const [rarityFilter, setRarityFilter] = useState<'all' | Rarity>('all');
   const [sort, setSort] = useState('newest');
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   useEffect(() => {
     setLoading(true);

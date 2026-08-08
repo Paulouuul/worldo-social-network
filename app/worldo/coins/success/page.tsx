@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
@@ -14,10 +14,6 @@ function SuccessPageContent() {
   // Caso precise validar o ID do Stripe no banco futuramente:
 
   const [countdown, setCountdown] = useState(5);
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   // Efeito 1: Gerencia apenas o relógio do countdown de forma limpa
   useEffect(() => {

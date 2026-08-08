@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams, useRouter, redirect } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
@@ -98,10 +98,6 @@ export default function ListingDetailPage() {
 
   const listingId = params.listing_id as string;
   const MAX_QUANTITY_PER_ITEM = 99;
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   useEffect(() => {
     fetch(`/api/cosmetics/listings/${listingId}`)

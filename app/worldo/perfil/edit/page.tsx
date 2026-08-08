@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
 import { backendApiCall } from '@/lib/backendApiClient';
-import { redirect } from 'next/navigation';
 
 import {
   Sparkles,
@@ -155,10 +154,6 @@ export default function EditProfilePage() {
       setCoverPreview(session.user.coverImage || '');
     }
   }, [session]);
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   if (status === 'loading' || !session?.user) {
     return <LoadingSpinner text="Carregando terminal de perfil..." withBackground={true} fullScreen={true} />;

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams, redirect } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
@@ -98,10 +98,6 @@ export default function SellerPage() {
 
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
   const ITEMS_PER_PAGE = 24;
-
-  if (status === 'unauthenticated') {
-    redirect('/login');
-  }
 
   useEffect(() => {
     if (!userIdentifier) return;
