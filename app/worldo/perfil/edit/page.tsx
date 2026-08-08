@@ -156,7 +156,13 @@ export default function EditProfilePage() {
   }, [session]);
 
   if (status === 'loading' || !session?.user) {
-    return <LoadingSpinner text="Carregando terminal de perfil..." withBackground={true} fullScreen={true} />;
+    return (
+      <LoadingSpinner
+        text="Carregando terminal de perfil..."
+        withBackground={true}
+        fullScreen={true}
+      />
+    );
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
@@ -591,13 +597,13 @@ export default function EditProfilePage() {
                   : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
               }`}
               onBlur={() => {
-      // Remove apenas espaços no início e fim
-      const trimmed = formData.bio.trim();
-      if (trimmed !== formData.bio) {
-        setFormData({ ...formData, bio: trimmed });
-        setFieldErrors({ ...fieldErrors, bio: validateBio(trimmed) });
-      }
-    }}
+                // Remove apenas espaços no início e fim
+                const trimmed = formData.bio.trim();
+                if (trimmed !== formData.bio) {
+                  setFormData({ ...formData, bio: trimmed });
+                  setFieldErrors({ ...fieldErrors, bio: validateBio(trimmed) });
+                }
+              }}
               disabled={loading}
               rows={3}
               placeholder="Fale um pouco sobre sua trajetória na rede..."

@@ -176,7 +176,7 @@ export default function MyCosmeticsPage() {
 
   // Telas de Carregamento e Não Autenticado
   if (status === 'loading' || (loading && status === 'authenticated' && items.length === 0)) {
-    return <LoadingSpinner text="Acessando cofre de cosméticos..." />;;
+    return <LoadingSpinner text="Acessando cofre de cosméticos..." />;
   }
 
   return (
