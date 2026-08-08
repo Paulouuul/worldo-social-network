@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Package,
 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/Loading';
 
 interface CoinPackage {
   id: string;
@@ -155,16 +156,7 @@ export default function CoinsPage() {
   };
 
   if (status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="text-sm font-medium animate-pulse tracking-wide">
-            Carregando loja com segurança...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner text="Carregando loja com segurança..." withBackground={true} fullScreen={true} />;
   }
 
   if (status === 'unauthenticated') {

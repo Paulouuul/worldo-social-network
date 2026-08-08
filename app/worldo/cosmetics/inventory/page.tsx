@@ -9,6 +9,7 @@ import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
 import { CosmeticActionModal } from '@/components/CosmeticActionModal';
 import { Package, Search, Plus, X, Loader2, Store, CheckCircle, Box } from 'lucide-react';
 import { formatItemCount } from '@/lib/format-utils';
+import { LoadingSpinner } from '@/components/Loading';
 
 interface GroupedItem {
   id: string;
@@ -180,14 +181,7 @@ export default function MyCosmeticsPage() {
 
   // Telas de Carregamento e Não Autenticado
   if (status === 'loading' || (loading && status === 'authenticated' && items.length === 0)) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-400">
-        <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-4" />
-        <p className="text-sm font-medium text-purple-300 uppercase tracking-wider">
-          Acessando cofre de cosméticos...
-        </p>
-      </div>
-    );
+    return <LoadingSpinner text="Acessando cofre de cosméticos..." />;;
   }
 
   return (

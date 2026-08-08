@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { redirect } from 'next/navigation';
+
 import {
   Sparkles,
   User,
@@ -20,6 +21,7 @@ import {
   Image as ImageIcon,
   AlertTriangle,
 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/Loading';
 
 const URL_REGEX =
   /^(https?:\/\/)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|[/?]\S+)$/;
@@ -159,14 +161,7 @@ export default function EditProfilePage() {
   }
 
   if (status === 'loading' || !session?.user) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
-        <span className="ml-3 mt-4 text-purple-300 font-medium text-sm">
-          Sincronizando terminal...
-        </span>
-      </div>
-    );
+    return <LoadingSpinner text="Carregando terminal de perfil..." withBackground={true} fullScreen={true} />;
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
@@ -600,6 +595,14 @@ export default function EditProfilePage() {
                   ? 'border-red-500/50 focus:ring-red-500/50'
                   : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
               }`}
+              onBlur={() => {
+      // Remove apenas espaços no início e fim
+      const trimmed = formData.bio.trim();
+      if (trimmed !== formData.bio) {
+        setFormData({ ...formData, bio: trimmed });
+        setFieldErrors({ ...fieldErrors, bio: validateBio(trimmed) });
+      }
+    }}
               disabled={loading}
               rows={3}
               placeholder="Fale um pouco sobre sua trajetória na rede..."

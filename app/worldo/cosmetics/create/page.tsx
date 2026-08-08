@@ -9,6 +9,7 @@ import { backendApiCall } from '@/lib/backendApiClient';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns, RARITY, Rarity, VALID_RARITIES } from '@/constants/cosmeticRarity';
 import { formatPrice } from '@/lib/format-utils';
+import { LoadingSpinner } from '@/components/Loading';
 import {
   Sparkles,
   FileText,
@@ -37,15 +38,6 @@ interface CreationPackage {
   pricePerUnit: number;
   totalCost: number;
   isActive: boolean;
-}
-
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center min-h-100">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
-      <span className="ml-3 text-purple-300 font-medium">Carregando portal...</span>
-    </div>
-  );
 }
 
 export default function CreateCosmeticPage() {
@@ -402,7 +394,7 @@ export default function CreateCosmeticPage() {
   }
 
   if (status === 'loading') {
-    return <LoadingSpinner />;
+    return <LoadingSpinner text="Carregando fábrica de cosméticos..." />;
   }
 
   return (
