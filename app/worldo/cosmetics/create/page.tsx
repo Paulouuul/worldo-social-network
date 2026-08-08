@@ -486,6 +486,13 @@ export default function CreateCosmeticPage() {
                     setFormData((prev) => ({ ...prev, description: value }));
                     setErrors((prev) => ({ ...prev, description: validateDescription(value) }));
                   }}
+                  onBlur={() => {
+                    const trimmed = formData.description.trim();
+                    if (trimmed !== formData.description) {
+                      setFormData((prev) => ({ ...prev, description: trimmed }));
+                      setErrors((prev) => ({ ...prev, description: validateDescription(trimmed) }));
+                    }
+                  }}
                   className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all resize-none ${
                     errors.description
                       ? 'border-red-500/50 focus:ring-red-500/50'
