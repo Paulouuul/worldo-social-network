@@ -21,6 +21,7 @@ import {
   Calendar,
   Loader2,
 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/Loading';
 
 interface SellerData {
   id: string;
@@ -171,14 +172,7 @@ export default function SellerPage() {
   };
 
   if (loading && !seller) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
-        <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-        <p className="text-purple-400 text-sm font-bold uppercase tracking-widest animate-pulse">
-          Carregando vendedor...
-        </p>
-      </div>
-    );
+    return <LoadingSpinner text="Carregando vendedor..." />;
   }
 
   if (error || !seller) {

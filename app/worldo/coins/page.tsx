@@ -155,9 +155,7 @@ export default function CoinsPage() {
   };
 
   if (status === 'loading') {
-    return (
-      <LoadingSpinner text="Carregando loja com segurança..." withBackground fullScreen />
-    );
+    return <LoadingSpinner text="Carregando loja com segurança..." withBackground fullScreen />;
   }
 
   return (

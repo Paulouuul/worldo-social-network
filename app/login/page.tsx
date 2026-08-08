@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Sparkles, Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
+import { LoadingSpinner } from '@/components/Loading';
 
 function LoginContent() {
   const router = useRouter();
@@ -269,16 +270,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
-          <span className="ml-3 mt-4 text-purple-300 font-medium text-sm">
-            Carregando portal...
-          </span>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSpinner text="Carregando portal..." withBackground fullScreen />}>
       <LoginContent />
     </Suspense>
   );

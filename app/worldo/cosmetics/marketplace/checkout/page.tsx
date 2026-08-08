@@ -20,6 +20,7 @@ import {
   Package,
   CreditCard,
 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/Loading';
 
 interface CartItem {
   id: string;
@@ -173,14 +174,7 @@ export default function CheckoutPage() {
 
   // UI consolidada para Loading e Redirecionamento
   if (loading || redirecting || !cart) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-        <p className="text-purple-400 text-sm font-bold uppercase tracking-widest animate-pulse">
-          Carregando Checkout...
-        </p>
-      </div>
-    );
+    return <LoadingSpinner text="Carregando Checkout..." />;
   }
 
   const hasEnoughBalance = userBalance >= cart.total_price;

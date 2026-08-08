@@ -8,6 +8,7 @@ import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
 import { useCartSummaryStore } from '@/stores/cartSummaryStore';
 import { formatFullNumber, formatItemCount, formatPrice } from '@/lib/format-utils';
+import { LoadingSpinner } from '@/components/Loading';
 import {
   ShoppingCart,
   Coins,
@@ -215,14 +216,7 @@ export default function CartPage() {
   }, [fetchCart]);
 
   if (loading || redirecting) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-        <p className="text-purple-400 text-sm font-bold uppercase tracking-widest animate-pulse">
-          Carregando Carrinho...
-        </p>
-      </div>
-    );
+    return <LoadingSpinner text="Carregando Carrinho..."/>;
   }
 
   const getItemConfig = (rarity: string | undefined) => {
