@@ -216,7 +216,7 @@ export default function CartPage() {
   }, [fetchCart]);
 
   if (loading || redirecting) {
-    return <LoadingSpinner text="Carregando Carrinho..."/>;
+    return <LoadingSpinner text="Carregando Carrinho..." />;
   }
 
   const getItemConfig = (rarity: string | undefined) => {
