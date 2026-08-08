@@ -156,11 +156,7 @@ export default function CoinsPage() {
 
   if (status === 'loading') {
     return (
-      <LoadingSpinner
-        text="Carregando loja com segurança..."
-        withBackground={true}
-        fullScreen={true}
-      />
+      <LoadingSpinner text="Carregando loja com segurança..." withBackground fullScreen />
     );
   }
 

@@ -157,11 +157,7 @@ export default function EditProfilePage() {
 
   if (status === 'loading' || !session?.user) {
     return (
-      <LoadingSpinner
-        text="Carregando terminal de perfil..."
-        withBackground={true}
-        fullScreen={true}
-      />
+      <LoadingSpinner text="Carregando terminal de perfil..." withBackground fullScreen />
     );
   }
 
