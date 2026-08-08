@@ -83,7 +83,7 @@ interface ListingData {
 const rarityDesigns = getRarityDesigns('static');
 
 export default function ListingDetailPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const params = useParams();
   const router = useRouter();
   const [listing, setListing] = useState<ListingData | null>(null);

@@ -28,7 +28,7 @@ interface MarketplaceListing {
 const rarityDesigns = getRarityDesigns('bottom-2');
 
 export default function MarketplacePage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [ownedItems, setOwnedItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);

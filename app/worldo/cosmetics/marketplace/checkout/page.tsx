@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
@@ -54,7 +53,6 @@ interface CartData {
 const rarityDesigns = getRarityDesigns('static');
 
 export default function CheckoutPage() {
-  const { status } = useSession();
   const router = useRouter();
 
   const [cart, setCart] = useState<CartData | null>(null);

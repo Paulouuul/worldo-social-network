@@ -2,10 +2,8 @@
 
 import Link from 'next/link';
 import { XCircle, RefreshCcw, Home } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 
 export default function CancelPage() {
-  const { status } = useSession();
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative antialiased selection:bg-purple-500/30 bg-[#020617]">
       {/* Background Glows (Tema de Cancelamento + Identidade Visual) */}

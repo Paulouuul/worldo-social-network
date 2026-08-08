@@ -4,11 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
-import { useSession } from 'next-auth/react';
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
 function SuccessPageContent() {
-  const { status } = useSession();
   const router = useRouter();
 
   // Caso precise validar o ID do Stripe no banco futuramente:

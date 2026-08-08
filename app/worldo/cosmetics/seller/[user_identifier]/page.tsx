@@ -79,7 +79,7 @@ interface ApiResponse {
 const rarityDesigns = getRarityDesigns('bottom-2');
 
 export default function SellerPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const params = useParams();
   const userIdentifier = params.user_identifier as string;
 
