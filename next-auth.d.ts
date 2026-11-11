@@ -1,18 +1,11 @@
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { JWT as DefaultJWT } from 'next-auth/jwt';
-import { Rarity } from '@/constants/cosmeticRarity';
 
-// Interface para o Frame equipado
-interface EquippedFrame {
-  id: string;
-  name: string;
-  imageUrl: string;
-  rarity: Rarity;
-}
+// A sessão guarda apenas identidade. Dados de perfil vêm de useMe() (/api/worldo/me).
 
 declare module 'next-auth' {
   /**
-   * Estende o objeto `user` retornado no callback `session` e no `authorize`
+   * Usuário retornado pelo adapter e pelo `authorize`
    */
   interface User extends DefaultUser {
     id: string;
@@ -21,54 +14,29 @@ declare module 'next-auth' {
     name: string;
     avatar?: string | null;
     coverImage?: string | null;
-    bio?: string | null;
-    location?: string | null;
-    website?: string | null;
-    equippedFrame?: EquippedFrame | null;
-    hasPassword?: boolean;
-    isOAuth?: boolean;
-    provider?: string | null;
   }
 
   /**
-   * Estende o objeto `session` retornado pelo hook `useSession`, `auth()`, etc.
+   * Objeto `session` retornado por `useSession`, `auth()`, etc.
    */
   interface Session {
     user: {
       id: string;
       publicId: string;
-      username: string;
-      name: string;
-      avatar?: string | null;
-      coverImage?: string | null;
-      bio?: string | null;
-      location?: string | null;
-      website?: string | null;
-      equippedFrame?: EquippedFrame | null;
-      isOAuth: boolean;
-      hasPassword: boolean;
-      provider: string | null;
-    } & DefaultSession['user'];
+      email: string;
+      provider: string;
+    } & Omit<DefaultSession['user'], 'name' | 'image'>;
   }
 }
 
 declare module 'next-auth/jwt' {
   /**
-   * Estende o objeto `token` compartilhado entre os callbacks `jwt` e `session`
+   * Token compartilhado entre os callbacks `jwt` e `session`
    */
   interface JWT extends DefaultJWT {
     id: string;
     publicId: string;
-    username: string;
-    name: string;
-    avatar?: string | null;
-    coverImage?: string | null;
-    bio?: string | null;
-    location?: string | null;
-    website?: string | null;
-    equippedFrame?: EquippedFrame | null;
-    isOAuth: boolean;
-    hasPassword: boolean;
-    provider: string | null;
+    email: string;
+    provider: string;
   }
 }

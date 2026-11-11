@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +9,10 @@ import { ClientImage } from '@/components/ClientImage';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
-import { useCartSummaryStore } from '@/stores/cartSummaryStore';
+import { backendJson, fetchJson } from '@/lib/fetcher';
+import { invalidate } from '@/lib/invalidate';
+import { useMe } from '@/hooks/queries/useMe';
+import { cachePolicy, qk } from '@/lib/query-keys';
 import { formatItemCount, formatFullNumber } from '@/lib/format-utils';
 import {
   Coins,
@@ -86,69 +90,47 @@ export default function ListingDetailPage() {
   const { data: session } = useSession();
   const params = useParams();
   const router = useRouter();
-  const [listing, setListing] = useState<ListingData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: me } = useMe();
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [buying, setBuying] = useState(false);
-  const [error, setError] = useState('');
-  const [cartQuantity, setCartQuantity] = useState(0);
-  const [availableQuantity, setAvailableQuantity] = useState(0);
-  const [loadingCart, setLoadingCart] = useState(false);
-  const { fetchSummary } = useCartSummaryStore();
+  const [actionError, setError] = useState('');
 
   const listingId = params.listing_id as string;
   const MAX_QUANTITY_PER_ITEM = 99;
 
+  // Preço e estoque: sempre buscados do servidor, sem cache
+  const listingQuery = useQuery({
+    queryKey: qk.marketplace.listing(listingId),
+    queryFn: ({ signal }) =>
+      fetchJson<ListingData>(`/api/worldo/cosmetics/listings/${listingId}`, { signal }),
+    ...cachePolicy.critical,
+  });
+  const listing = listingQuery.data ?? null;
+  const loading = listingQuery.isPending;
+
+  const cartItemQuery = useQuery({
+    queryKey: qk.cart.item(listingId),
+    queryFn: async ({ signal }) => {
+      const data = await backendJson<{ data?: { quantity?: number } }>(
+        `/cosmetics/marketplace/cart/item/${listingId}/quantity`,
+        { method: 'GET', signal },
+      );
+      return data.data?.quantity || 0;
+    },
+    enabled: !!session?.user?.id && !!listing,
+    ...cachePolicy.critical,
+  });
+  const loadingCart = cartItemQuery.isFetching;
+  const cartQuantity = cartItemQuery.data ?? 0;
+  const availableQuantity = listing ? Math.max(0, listing.quantity - cartQuantity) : 0;
+
+  const error = actionError || (listingQuery.error ? 'Anúncio não encontrado' : '');
+
+  // Quantidade inicial depende do disponível (estoque - já no carrinho)
   useEffect(() => {
-    fetch(`/api/worldo/cosmetics/listings/${listingId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Anúncio não encontrado');
-        return res.json();
-      })
-      .then((data) => {
-        setListing(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [listingId]);
-
-  useEffect(() => {
-    if (!session?.user?.id || !listing) return;
-
-    const fetchCartQuantity = async () => {
-      setLoadingCart(true);
-      try {
-        const res = await backendApiCall(`/cosmetics/marketplace/cart/item/${listingId}/quantity`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.data) {
-          const quantityInCart = data.data.quantity || 0;
-          setCartQuantity(quantityInCart);
-
-          const available = listing.quantity - quantityInCart;
-          setAvailableQuantity(Math.max(0, available));
-
-          const initialQuantity = available > 0 ? 1 : 0;
-          setBuyQuantity(initialQuantity);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar quantidade no carrinho:', error);
-        setAvailableQuantity(listing.quantity);
-      } finally {
-        setLoadingCart(false);
-      }
-    };
-
-    fetchCartQuantity();
-  }, [session, listingId, listing]);
+    setBuyQuantity(availableQuantity > 0 ? 1 : 0);
+  }, [availableQuantity]);
 
   const handleIncrement = () => {
     if (buyQuantity < availableQuantity && buyQuantity < MAX_QUANTITY_PER_ITEM) {
@@ -210,7 +192,7 @@ export default function ListingDetailPage() {
         setError(data.detail || 'Erro ao adicionar ao carrinho');
         return;
       }
-      await fetchSummary();
+      await invalidate.cart(queryClient);
       router.push('/worldo/cosmetics/marketplace/cart');
     } catch (error) {
       console.error('Erro ao adicionar ao carrinho:', error);
@@ -283,8 +265,8 @@ export default function ListingDetailPage() {
             <div className="z-10 relative flex flex-col items-center mt-auto mb-auto w-full">
               <div className="mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
                 <AvatarWithFrame
-                  avatarUrl={session?.user?.avatar}
-                  name={session?.user?.name}
+                  avatarUrl={me?.avatar}
+                  name={me?.name}
                   frameUrl={listing.frame.imageUrl}
                   rarity={listing.frame.rarity}
                   className="w-40 h-40 md:w-52 md:h-52"

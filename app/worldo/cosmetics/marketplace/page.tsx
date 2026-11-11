@@ -1,129 +1,47 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Search, Package, Store, X } from 'lucide-react';
 import { RARITY, Rarity } from '@/constants/cosmeticRarity';
-import { MarketplaceVirtualized } from '@/components/MarketplaceVirtualized';
+import {
+  MarketplaceVirtualized,
+  selectListings,
+  type ListingsPage,
+} from '@/components/MarketplaceVirtualized';
+import type { PagedSource } from '@/components/VirtualizedPagedGrid';
+import { fetchJson, toQueryString } from '@/lib/fetcher';
+import { cachePolicy, qk } from '@/lib/query-keys';
 
-interface MarketplaceListing {
-  id: string;
-  frameId: string;
-  quantity: number;
-  priceCoins: number;
-  frame: {
-    id: string;
-    name: string;
-    description: string;
-    imageUrl: string;
-    thumbnailUrl: string;
-    rarity: Rarity;
-    creator: { name: string; username: string; avatar: string | null };
-  };
-  seller: { publicId: string; name: string; username: string; avatar: string | null };
-}
+const PAGE_SIZE = 56;
 
 export default function MarketplacePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-  const [listings, setListings] = useState<MarketplaceListing[]>([]);
-  const [ownedItems, setOwnedItems] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [rarityFilter, setRarityFilter] = useState<'all' | Rarity>('all');
   const [sort, setSort] = useState('newest');
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [, setTotalItems] = useState(0);
-
-  const abortControllerRef = useRef<AbortController | null>(null);
-
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
 
-  const fetchListings = useCallback(
-    async (page: number, isLoadMore = false) => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-
-      try {
-        if (isLoadMore) {
-          setLoadingMore(true);
-        } else {
-          setLoading(true);
-        }
-
-        const url = new URL('/api/worldo/cosmetics/marketplace', window.location.origin);
-        if (rarityFilter !== 'all') url.searchParams.set('rarity', rarityFilter);
-        url.searchParams.set('sort', sort);
-        url.searchParams.set('limit', '56');
-        url.searchParams.set('page', page.toString());
-        if (searchTerm) url.searchParams.set('search', searchTerm);
-
-        const res = await fetch(url.toString(), {
-          signal: abortControllerRef.current.signal,
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        if (isLoadMore) {
-          setListings((prev) => {
-            const existingIds = new Set(prev.map((item) => item.id));
-            const newItems = (data.listings || []).filter(
-              (item: MarketplaceListing) => !existingIds.has(item.id),
-            );
-            return [...prev, ...newItems];
-          });
-        } else {
-          setListings(data.listings || []);
-          setOwnedItems(data.ownedFrameIds || []);
-          setTotalItems(data.total || 0);
-        }
-
-        setCurrentPage(page);
-        setHasMore(data.hasMore ?? false);
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          return;
-        }
-        console.error('Erro ao carregar marketplace:', err);
-      } finally {
-        if (!abortControllerRef.current?.signal.aborted) {
-          setLoading(false);
-          setLoadingMore(false);
-        }
-      }
-    },
-    [rarityFilter, sort, searchTerm],
-  );
-
-  const loadMore = useCallback(async () => {
-    if (!hasMore || loading || loadingMore) return;
-    await fetchListings(currentPage + 1, true);
-  }, [hasMore, loading, loadingMore, currentPage, fetchListings]);
-
-  useEffect(() => {
-    setListings([]);
-    setCurrentPage(1);
-    setHasMore(true);
-
-    fetchListings(1, false);
-
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+  // Preço/estoque: páginas revalidadas sempre e liberadas da memória ao sair da tela
+  const source = useMemo<PagedSource<ListingsPage['listings'][number], ListingsPage>>(() => {
+    const filters = { rarity: rarityFilter, sort, search: searchTerm };
+    return {
+      baseKey: qk.marketplace.list(filters),
+      pageSize: PAGE_SIZE,
+      fetchPage: (page, signal) =>
+        fetchJson<ListingsPage>(
+          `/api/worldo/cosmetics/marketplace${toQueryString({ ...filters, page, limit: PAGE_SIZE })}`,
+          { signal },
+        ),
+      select: selectListings,
+      cache: cachePolicy.livePages,
+      enabled: status === 'authenticated',
     };
-  }, [fetchListings]);
+  }, [rarityFilter, sort, searchTerm, status]);
 
   const handleClearSearch = () => {
     setSearchInput('');
@@ -221,13 +139,7 @@ export default function MarketplacePage() {
 
       {/* Componente Virtualizado */}
       <div className="flex-1 min-h-0">
-        <MarketplaceVirtualized
-          listings={listings}
-          ownedItems={ownedItems}
-          loading={loading || loadingMore}
-          hasMore={hasMore}
-          onLoadMore={loadMore}
-        />
+        <MarketplaceVirtualized source={source} />
       </div>
     </div>
   );

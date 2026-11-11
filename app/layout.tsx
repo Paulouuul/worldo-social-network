@@ -5,6 +5,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import { MainWrapper } from '@/components/MainWrapper';
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { QueryProvider } from '@/components/providers/query-provider';
 import { GlobalMediaProtector } from '@/components/GlobalMediaProtector';
 const inter = Inter({
   subsets: ['latin'],
@@ -29,9 +30,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR">
       <body className={inter.className}>
         <AuthProvider>
-          <GlobalMediaProtector />
-          <Header />
-          <MainWrapper>{children}</MainWrapper>
+          <QueryProvider>
+            <GlobalMediaProtector />
+            <Header />
+            <MainWrapper>{children}</MainWrapper>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

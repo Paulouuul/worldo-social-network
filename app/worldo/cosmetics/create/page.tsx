@@ -1,8 +1,12 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useCoinStore } from '@/stores/coinStore';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCoinBalance } from '@/hooks/queries/useWallet';
+import { useCreationPackages } from '@/hooks/queries/useCatalog';
+import { useMe } from '@/hooks/queries/useMe';
+import { invalidate } from '@/lib/invalidate';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { backendApiCall } from '@/lib/backendApiClient';
@@ -41,11 +45,13 @@ interface CreationPackage {
 }
 
 export default function CreateCosmeticPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
+  const queryClient = useQueryClient();
+  const { data: me } = useMe();
   const router = useRouter();
 
-  // Store de moedas conectada
-  const { balance: userCoins, fetchBalance, updateBalance } = useCoinStore();
+  // Saldo de moedas (Sempre buscado do servidor)
+  const { data: userCoins = 0 } = useCoinBalance();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -58,7 +64,6 @@ export default function CreateCosmeticPage() {
     stock: 10,
   });
 
-  const [packages, setPackages] = useState<CreationPackage[]>([]);
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -69,7 +74,7 @@ export default function CreateCosmeticPage() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+  const avatarUrl = me?.avatar || '/default-avatar.png';
   const rarityDesigns = getRarityDesigns('static');
   const currentStyle = useMemo(
     () => rarityDesigns[formData.rarity] || rarityDesigns.COMUM,
@@ -114,31 +119,23 @@ export default function CreateCosmeticPage() {
     formData.name.trim().length <= MAX_NAME_LENGTH &&
     imageFile !== null &&
     selectedPackageId !== '' &&
-    !hasErrors; // ← ADICIONADO: verifica se não há erros
+    !hasErrors; // ← Verifica se não há erros
 
-  // Busca o saldo atualizado quando a sessão estiver autenticada
+  // Pacotes de criação (custo cobrado em seguida: sem cache)
+  const { data: packagesData } = useCreationPackages<CreationPackage>(formData.rarity);
+  const packages = useMemo(() => packagesData ?? [], [packagesData]);
+
+  // Seleciona o primeiro pacote quando a lista da raridade chega
+  // (structural sharing do React Query mantém a referência se os dados não mudarem)
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchBalance();
+    if (!packagesData) return;
+    if (packagesData.length > 0) {
+      setSelectedPackageId(packagesData[0].id);
+      setFormData((prev) => ({ ...prev, stock: packagesData[0].quantity }));
+    } else {
+      setSelectedPackageId('');
     }
-  }, [status, fetchBalance]);
-
-  useEffect(() => {
-    if (!formData.rarity) return;
-
-    fetch(`/api/worldo/cosmetics/creation/packages?rarity=${formData.rarity}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPackages(data);
-        if (data.length > 0) {
-          setSelectedPackageId(data[0].id);
-          setFormData((prev) => ({ ...prev, stock: data[0].quantity }));
-        } else {
-          setSelectedPackageId('');
-        }
-      })
-      .catch((err) => console.error('Erro ao buscar pacotes:', err));
-  }, [formData.rarity]);
+  }, [packagesData]);
 
   const currentPackage = useMemo(() => {
     return packages.find((pkg) => pkg.id === selectedPackageId) || null;
@@ -175,30 +172,6 @@ export default function CreateCosmeticPage() {
       document.body.style.webkitUserSelect = '';
     };
   }, []);
-
-  // Fetch das informações do usuário para atualizar avatar
-  useEffect(() => {
-    if (!session?.user) return;
-
-    if (session.user.avatar) {
-      setAvatarUrl(session.user.avatar);
-    }
-
-    if (!session.user.publicId) return;
-
-    const controller = new AbortController();
-
-    fetch(`/api/worldo/user/${session.user.publicId}`, { signal: controller.signal })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.avatar) setAvatarUrl(data.avatar);
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') console.error(err);
-      });
-
-    return () => controller.abort();
-  }, [session]);
 
   useEffect(() => {
     return () => {
@@ -354,8 +327,9 @@ export default function CreateCosmeticPage() {
           return;
         } else {
           setSuccess(data.message || 'Moldura criada com sucesso!');
-          // Débito otimista na store
-          updateBalance(userCoins - creationCost);
+          // Saldo debitado e nova moldura no inventário
+          invalidate.balance(queryClient);
+          invalidate.inventory(queryClient);
           setTimeout(() => {
             router.push('/worldo/cosmetics/inventory');
           }, 1500);
@@ -375,9 +349,7 @@ export default function CreateCosmeticPage() {
       router,
       loading,
       hasInsufficientCoins,
-      userCoins,
-      creationCost,
-      updateBalance,
+      queryClient,
     ],
   );
 
@@ -761,7 +733,7 @@ export default function CreateCosmeticPage() {
                       <div className="relative min-h-40 flex items-center justify-center">
                         <AvatarWithFrame
                           avatarUrl={avatarUrl && avatarUrl !== 'None' ? avatarUrl : null}
-                          name={session?.user?.name}
+                          name={me?.name}
                           frameUrl={imagePreview}
                           rarity={formData.rarity}
                           size="md"

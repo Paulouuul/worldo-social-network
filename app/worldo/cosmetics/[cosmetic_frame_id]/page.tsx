@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJson } from '@/lib/fetcher';
+import { cachePolicy, qk } from '@/lib/query-keys';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -60,25 +63,19 @@ export default function CosmeticDetailPage() {
   const { data: session } = useSession();
   const params = useParams();
   const router = useRouter();
-  const [frame, setFrame] = useState<FrameData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [selectedListing, setSelectedListing] = useState<string | null>(null);
 
   const frameId = params.cosmetic_frame_id as string;
 
-  useEffect(() => {
-    fetch(`/api/worldo/cosmetics/${frameId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setFrame(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, [frameId]);
+  // Estoque e preços das ofertas: sempre buscados do servidor, sem cache
+  const frameQuery = useQuery({
+    queryKey: qk.cosmetics.frame(frameId),
+    queryFn: ({ signal }) => fetchJson<FrameData>(`/api/worldo/cosmetics/${frameId}`, { signal }),
+    ...cachePolicy.critical,
+  });
+  const frame = frameQuery.data ?? null;
+  const loading = frameQuery.isPending;
 
   const handleBuy = async () => {
     if (!selectedListing) return;

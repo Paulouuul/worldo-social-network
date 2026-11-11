@@ -24,7 +24,7 @@ function SessionForceSync() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider refetchOnWindowFocus={true} refetchInterval={60}>
+    <SessionProvider refetchOnWindowFocus={true}>
       <SessionForceSync />
       {children}
     </SessionProvider>

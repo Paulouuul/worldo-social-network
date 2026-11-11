@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useCoinStore } from '@/stores/coinStore';
+import { useCoinBalance } from '@/hooks/queries/useWallet';
+import { useCoinPackages } from '@/hooks/queries/useCatalog';
 import { formatFullNumber } from '@/lib/format-utils';
 
 import {
@@ -32,63 +33,29 @@ interface CoinPackage {
 export default function CoinsPage() {
   const { status } = useSession();
 
-  const [packages, setPackages] = useState<CoinPackage[]>([]);
-  const { balance, fetchBalance } = useCoinStore();
+  const { data: balance = 0 } = useCoinBalance();
+  const { data: rawPackages } = useCoinPackages<CoinPackage>();
   const [buyingId, setBuyingId] = useState<string | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const hasFetched = useRef(false);
+  // Destaques: top 2 custo-benefício e "mais popular" (segundo mais barato)
+  const packages = useMemo<CoinPackage[]>(() => {
+    if (!Array.isArray(rawPackages) || rawPackages.length === 0) return [];
 
-  // Controle estrito de requisições de API
-  useEffect(() => {
-    if (status === 'authenticated' && !hasFetched.current) {
-      hasFetched.current = true;
+    const valueOf = (pkg: CoinPackage) => (pkg.coins + pkg.bonusCoins) / pkg.priceReal;
+    const bestValueIds = [...rawPackages]
+      .sort((a, b) => valueOf(b) - valueOf(a))
+      .slice(0, 2)
+      .map((p) => p.id);
+    const popularPackage = [...rawPackages].sort((a, b) => a.priceReal - b.priceReal)[1];
 
-      fetch('/api/worldo/coins/packages')
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            const packagesWithValue = data.map((pkg: CoinPackage) => {
-              const totalCoins = pkg.coins + pkg.bonusCoins;
-              const valueForMoney = totalCoins / pkg.priceReal;
-              return { ...pkg, valueForMoney };
-            });
-
-            // Encontra o melhor custo-benefício
-            const sortedByValue = [...packagesWithValue].sort(
-              (a, b) => b.valueForMoney - a.valueForMoney,
-            );
-            const bestValueIds = sortedByValue.slice(0, 2).map((p) => p.id); // top 2
-
-            // Define o mais popular como o segundo mais barato
-            const sortedByPrice = [...packagesWithValue].sort((a, b) => a.priceReal - b.priceReal);
-            const popularPackage = sortedByPrice[1];
-
-            const enhancedPackages = data.map((pkg: CoinPackage) => ({
-              ...pkg,
-              popular: pkg.id === popularPackage?.id,
-              bestValue: bestValueIds.includes(pkg.id) && pkg.id !== popularPackage?.id,
-            }));
-
-            setPackages(enhancedPackages);
-          }
-        })
-        .catch((err) => console.error('Erro ao buscar pacotes:', err));
-
-      fetchBalance();
-    }
-  }, [status]);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      const interval = setInterval(() => {
-        fetchBalance();
-      }, 5000); // Atualiza a cada 5 segundos
-
-      return () => clearInterval(interval);
-    }
-  }, [status, fetchBalance]);
+    return rawPackages.map((pkg) => ({
+      ...pkg,
+      popular: pkg.id === popularPackage?.id,
+      bestValue: bestValueIds.includes(pkg.id) && pkg.id !== popularPackage?.id,
+    }));
+  }, [rawPackages]);
 
   const handleBuyClick = (pkg: CoinPackage) => {
     setSelectedPackage(pkg);

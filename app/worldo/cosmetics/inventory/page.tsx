@@ -1,149 +1,75 @@
 // app/worldo/cosmetics/inventory/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { RARITY, Rarity } from '@/constants/cosmeticRarity';
+import { RARITY } from '@/constants/cosmeticRarity';
 import { CosmeticActionModal } from '@/components/CosmeticActionModal';
 import { Package, Search, Plus, X, Store, Box } from 'lucide-react';
 import { formatItemCount } from '@/lib/format-utils';
 import { LoadingSpinner } from '@/components/Loading';
-import { InventoryVirtualized } from '@/components/InventoryVirtualized';
-
-interface GroupedItem {
-  id: string;
-  frameId: string;
-  isListed: boolean;
-  resalePrice: number | null;
-  listingId?: string | null;
-  isEquipped: boolean;
-  equippedItemId: string | null;
-  count: number;
-  frame: {
-    id: string;
-    name: string;
-    description: string;
-    thumbnailUrl: string;
-    imageUrl: string;
-    rarity: Rarity;
-    stock: number;
-  };
-}
+import {
+  InventoryVirtualized,
+  selectInventory,
+  type GroupedItem,
+  type InventoryPage,
+} from '@/components/InventoryVirtualized';
+import type { PagedSource } from '@/components/VirtualizedPagedGrid';
+import { useMe } from '@/hooks/queries/useMe';
+import { fetchJson, toQueryString } from '@/lib/fetcher';
+import { invalidate } from '@/lib/invalidate';
+import { cachePolicy, qk } from '@/lib/query-keys';
 
 type FilterType = 'all' | 'listed' | 'unlisted';
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
 
-export default function MyCosmeticsPage() {
-  const { data: session, status } = useSession();
+const PAGE_SIZE = 56;
 
-  // Estados da Lista e Filtros
-  const [items, setItems] = useState<GroupedItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function MyCosmeticsPage() {
+  const { status } = useSession();
+  const queryClient = useQueryClient();
+  const { data: me } = useMe();
+
+  // Estados de Filtros
   const [activeFilter, setActiveFilter] = useState<FilterType>('unlisted');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [rarityFilter, setRarityFilter] = useState('all');
   const [sort, setSort] = useState('newest');
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [statsData, setStatsData] = useState({ all: 0, listed: 0, unlisted: 0 });
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
 
   // Estados do Modal
   const [selectedItem, setSelectedItem] = useState<GroupedItem | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await fetch('/api/worldo/cosmetics/inventory/stats');
-      const data = await res.json();
-      setStatsData(data);
-    } catch (err) {
-      console.error('Erro ao buscar stats:', err);
-    }
-  }, []);
+  const { data: statsData = { all: 0, listed: 0, unlisted: 0 } } = useQuery({
+    queryKey: qk.inventory.stats(),
+    queryFn: ({ signal }) =>
+      fetchJson<{ all: number; listed: number; unlisted: number }>(
+        '/api/worldo/cosmetics/inventory/stats',
+        { signal },
+      ),
+    enabled: status === 'authenticated',
+    ...cachePolicy.inventory,
+  });
 
-  const fetchInventory = useCallback(
-    async (page: number, isLoadMore = false) => {
-      try {
-        if (isLoadMore) {
-          setLoadingMore(true);
-        } else {
-          setLoading(true);
-        }
-
-        const res = await fetch(
-          `/api/worldo/cosmetics/inventory/grouped?page=${page}&limit=56&filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}&rarity=${rarityFilter}&sort=${sort}`,
-        );
-        if (!res.ok) throw new Error('Falha ao sincronizar inventário');
-
-        const data = await res.json();
-
-        if (isLoadMore) {
-          setItems((prev) => [...prev, ...data.items]);
-        } else {
-          setItems(data.items);
-        }
-
-        setHasMore(data.hasMore ?? false);
-        setCurrentPage(page);
-      } catch (err) {
-        console.error('Erro ao processar inventário:', err);
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [activeFilter, searchTerm, rarityFilter, sort],
-  );
-
-  const loadMore = useCallback(() => {
-    if (!hasMore || loading || loadingMore) return;
-    fetchInventory(currentPage + 1, true);
-  }, [hasMore, loading, loadingMore, currentPage, fetchInventory]);
-
-  // Carrega avatar apenas uma vez quando houver a sessão do usuário
-  useEffect(() => {
-    if (!session?.user) return;
-
-    if (session.user.avatar) {
-      setAvatarUrl(session.user.avatar);
-    }
-
-    if (!session.user.publicId) return;
-
-    const controller = new AbortController();
-
-    fetch(`/api/worldo/user/${session.user.publicId}`, { signal: controller.signal })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.avatar) setAvatarUrl(data.avatar);
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') console.error(err);
-      });
-
-    return () => controller.abort();
-  }, [session]);
-
-  // Hook unificado com DEBOUNCE para evitar requisições infinitas na digitação
-  useEffect(() => {
-    if (status !== 'authenticated' || !session?.user?.publicId) return;
-
-    fetchStats();
-
-    const timeoutId = setTimeout(() => {
-      setItems([]);
-      setCurrentPage(1);
-      setHasMore(true);
-      fetchInventory(1, false);
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [activeFilter, searchTerm, rarityFilter, sort, status, session, fetchStats, fetchInventory]);
+  const source = useMemo<PagedSource<GroupedItem, InventoryPage>>(() => {
+    const filters = { filter: activeFilter, search: searchTerm, rarity: rarityFilter, sort };
+    return {
+      baseKey: qk.inventory.list(filters),
+      pageSize: PAGE_SIZE,
+      fetchPage: (page, signal) =>
+        fetchJson<InventoryPage>(
+          `/api/worldo/cosmetics/inventory/grouped${toQueryString({ ...filters, page, limit: PAGE_SIZE })}`,
+          { signal },
+        ),
+      select: selectInventory,
+      cache: cachePolicy.inventory,
+      enabled: status === 'authenticated',
+    };
+  }, [activeFilter, searchTerm, rarityFilter, sort, status]);
 
   // Ações do Modal
   const handleOpenItem = (item: GroupedItem) => {
@@ -152,12 +78,11 @@ export default function MyCosmeticsPage() {
   };
 
   const handleModalSuccess = () => {
-    fetchInventory(1, false);
-    fetchStats();
+    invalidate.inventory(queryClient);
   };
 
   // Telas de Carregamento e Não Autenticado
-  if (status === 'loading' || (loading && status === 'authenticated' && items.length === 0)) {
+  if (status === 'loading') {
     return <LoadingSpinner text="Acessando cofre de cosméticos..." />;
   }
 
@@ -174,7 +99,7 @@ export default function MyCosmeticsPage() {
             Gerencie seu inventário e comercialize suas molduras
           </p>
         </div>
-        {items.length > 0 && (
+        {statsData.all > 0 && (
           <Link
             href="/worldo/cosmetics/create"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50 text-purple-300 py-3 sm:py-2.5 px-5 rounded-xl transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold shadow-lg shadow-purple-900/10"
@@ -300,14 +225,7 @@ export default function MyCosmeticsPage() {
 
       {/* Componente Virtualizado */}
       <div className="flex-1 min-h-0">
-        <InventoryVirtualized
-          items={items}
-          loading={loading}
-          loadingMore={loadingMore}
-          hasMore={hasMore}
-          onLoadMore={loadMore}
-          onItemClick={handleOpenItem}
-        />
+        <InventoryVirtualized source={source} onItemClick={handleOpenItem} />
       </div>
 
       {/* Modal */}
@@ -320,7 +238,7 @@ export default function MyCosmeticsPage() {
             setModalMode(null);
           }}
           onSuccess={handleModalSuccess}
-          avatarUrl={avatarUrl}
+          avatarUrl={me?.avatar || '/default-avatar.png'}
         />
       )}
     </div>

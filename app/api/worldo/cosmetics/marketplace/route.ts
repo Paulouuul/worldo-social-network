@@ -5,6 +5,8 @@ import { esClient, LISTINGS_INDEX } from '@/lib/elasticsearch';
 import { NextRequest, NextResponse } from 'next/server';
 import { Rarity } from '@prisma/client';
 
+const ES_MAX_RESULT_WINDOW = 10_000;
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -21,12 +23,16 @@ export async function GET(req: NextRequest) {
     const sort = searchParams.get('sort') || 'newest';
     const search = searchParams.get('search') || '';
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '12'), 1), 100);
     const from = (page - 1) * limit;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
+
+    // Elasticsearch não pagina além de max_result_window (padrão 10.000) com from/size.
+    // Fora da janela, busca só o total (size 0) e devolve a página vazia.
+    const size = Math.max(0, Math.min(limit, ES_MAX_RESULT_WINDOW - from));
 
     // Construir query do Elasticsearch
     const must: any[] = [{ term: { isActive: true } }, { range: { quantity: { gt: 0 } } }];
@@ -108,18 +114,20 @@ export async function GET(req: NextRequest) {
     // Buscar no Elasticsearch
     const response = await esClient.search({
       index: LISTINGS_INDEX,
-      from,
-      size: limit,
+      from: size > 0 ? from : 0,
+      size,
       query: { bool: { must } },
       sort: sortField,
       track_total_hits: true,
     });
 
     const hits = response.hits.hits;
-    const total =
+    const realTotal =
       typeof response.hits.total === 'number'
         ? response.hits.total
         : response.hits.total?.value || 0;
+    // O total exposto é limitado à janela paginável, para a grade não pedir páginas inacessíveis
+    const total = Math.min(realTotal, ES_MAX_RESULT_WINDOW);
     const hasMore = from + limit < total;
 
     // Mapear resultados para o formato esperado
@@ -167,7 +175,7 @@ export async function GET(req: NextRequest) {
         },
         select: { frameId: true },
       });
-      ownedFrameIds = ownedItems.map((item) => item.frameId);
+      ownedFrameIds = [...new Set(ownedItems.map((item) => item.frameId))];
     }
 
     return NextResponse.json({

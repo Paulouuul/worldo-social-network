@@ -1,4 +1,5 @@
 import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { LogoutButton } from '@/components/LogoutButton';
 import { Sparkles, UserCircle, Palette, Coins, MessageSquare } from 'lucide-react';
@@ -10,7 +11,10 @@ export default async function Home() {
   // O Next.js para a execução do componente aqui mesmo.
 
   // Captura o nome formatado ou o prefixo do email
-  const displayName = session?.user?.name || session?.user?.email?.split('@')[0] || 'Viajante';
+  const user = session?.user?.id
+    ? await prisma.users.findUnique({ where: { id: session.user.id }, select: { name: true } })
+    : null;
+  const displayName = user?.name || session?.user?.email?.split('@')[0] || 'Viajante';
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-20 relative antialiased text-slate-100 selection:bg-purple-500/30 overflow-hidden sm:overflow-visible">

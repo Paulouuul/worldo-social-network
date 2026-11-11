@@ -1,15 +1,14 @@
+// components/MarketplaceVirtualized.tsx
 'use client';
 
-import { useRef, useEffect, useMemo, useState } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import Link from 'next/link';
 import { Coins, User, Sparkles } from 'lucide-react';
 import { ClientImage } from '@/components/ClientImage';
 import { formatItemCount } from '@/lib/format-utils';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
-import { LoadingMore } from '@/components/Loading';
+import { VirtualizedPagedGrid, type PagedSource } from '@/components/VirtualizedPagedGrid';
 
-interface MarketplaceListing {
+export interface MarketplaceListing {
   id: string;
   frameId: string;
   quantity: number;
@@ -26,13 +25,40 @@ interface MarketplaceListing {
   seller: { publicId: string; name: string; username: string; avatar: string | null };
 }
 
-interface Props {
-  listings: MarketplaceListing[];
-  ownedItems: string[];
-  loading: boolean;
-  hasMore: boolean;
-  onLoadMore: () => void;
+/** Formato mínimo de uma página de listagens (marketplace e loja do vendedor). */
+export interface ListingsPage<L extends MarketplaceListing = MarketplaceListing> {
+  listings: L[];
+  total: number;
+  ownedFrameIds?: string[];
 }
+
+export const selectListings = <L extends MarketplaceListing>(page: ListingsPage<L>) => ({
+  items: page.listings || [],
+  total: page.total || 0,
+});
+
+// Set de itens adquiridos por página, calculado uma vez por resposta
+const ownedCache = new WeakMap<object, Set<string>>();
+function ownedSet(page: ListingsPage<any>) {
+  let set = ownedCache.get(page);
+  if (!set) {
+    set = new Set(page.ownedFrameIds || []);
+    ownedCache.set(page, set);
+  }
+  return set;
+}
+
+const columnsForWidth = (width: number) => {
+  if (width < 480) return 2;
+  if (width < 640) return 3;
+  if (width < 768) return 4;
+  if (width < 1024) return 5;
+  if (width < 1280) return 6;
+  return 7;
+};
+
+// Card: h-62.5 = 250px (mobile) | h-67.5 = 270px; +16px de espaçamento vertical
+const rowHeight = (isMobile: boolean) => (isMobile ? 250 : 270) + 16;
 
 const rarityDesigns = getRarityDesigns('bottom-2');
 
@@ -48,7 +74,7 @@ const MarketplaceItem = ({
   return (
     <Link
       href={`/worldo/cosmetics/marketplace/${listing.id}`}
-      className={`group relative flex flex-col items-center justify-between p-3 sm:p-4 h-62.5 sm:h-67.5 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-2 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass}`}
+      className={`group relative w-full flex flex-col items-center justify-between p-3 sm:p-4 h-62.5 sm:h-67.5 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-2 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass}`}
     >
       {config.bgDecoration}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05]" />
@@ -98,177 +124,43 @@ const MarketplaceItem = ({
   );
 };
 
-export function MarketplaceVirtualized({
-  listings,
-  ownedItems,
-  loading,
-  hasMore,
-  onLoadMore,
-}: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isLoadingRef = useRef(false);
+const ListingSkeleton = () => (
+  <div className="h-62.5 sm:h-67.5 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse" />
+);
 
-  // Começa com 4 (padrão seguro para SSR) e atualiza no cliente
-  const [columns, setColumns] = useState(4);
+interface Props<L extends MarketplaceListing, P extends ListingsPage<L>> {
+  source: PagedSource<L, P>;
+  emptyMessage?: string;
+}
 
-  useEffect(() => {
-    const updateColumns = () => {
-      const width = window.innerWidth;
-      if (width < 480) setColumns(2);
-      else if (width < 640) setColumns(3);
-      else if (width < 768) setColumns(4);
-      else if (width < 1024) setColumns(5);
-      else if (width < 1280) setColumns(6);
-      else setColumns(7);
-    };
-
-    updateColumns();
-    window.addEventListener('resize', updateColumns);
-    return () => window.removeEventListener('resize', updateColumns);
-  }, []);
-
-  const groupedListings = useMemo(() => {
-    const groups: MarketplaceListing[][] = [];
-    for (let i = 0; i < listings.length; i += columns) {
-      groups.push(listings.slice(i, i + columns));
-    }
-    return groups;
-  }, [listings, columns]);
-
-  const estimateSize = (index: number) => {
-    // Altura do loader
-    if (index === groupedListings.length) return 60;
-
-    // Calcula a altura baseado no tamanho da tela (h-62.5 = 250px | h-67.5 = 270px)
-    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
-    const cardHeight = isMobile ? 250 : 270;
-    const verticalSpacing = 16; // Ajuste esse valor para aumentar/diminuir o gap vertical
-
-    return cardHeight + verticalSpacing;
-  };
-
-  const virtualCount = hasMore ? groupedListings.length + 1 : groupedListings.length;
-
-  const rowVirtualizer = useVirtualizer({
-    count: virtualCount,
-    getScrollElement: () => containerRef.current,
-    estimateSize,
-    overscan: 3,
-    paddingStart: 0,
-    paddingEnd: 0,
-  });
-
-  const virtualItems = rowVirtualizer.getVirtualItems();
-  const lastItemIndex = virtualItems.length > 0 ? virtualItems[virtualItems.length - 1].index : 0;
-
-  useEffect(() => {
-    const shouldLoadMore =
-      lastItemIndex >= groupedListings.length - 2 &&
-      hasMore &&
-      !loading &&
-      !isLoadingRef.current &&
-      listings.length > 0;
-
-    if (shouldLoadMore) {
-      isLoadingRef.current = true;
-      onLoadMore();
-    }
-  }, [lastItemIndex, groupedListings.length, hasMore, loading, onLoadMore, listings.length]);
-
-  useEffect(() => {
-    if (!loading) {
-      isLoadingRef.current = false;
-    }
-  }, [loading]);
-
-  useEffect(() => {
-    if (containerRef.current && groupedListings.length === 0) {
-      containerRef.current.scrollTop = 0;
-    }
-  }, [groupedListings.length]);
-
-  if (loading && listings.length === 0) {
-    return (
-      <div className="flex justify-center items-center min-h-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500" />
-      </div>
-    );
-  }
-
-  if (listings.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-900/20 border border-slate-800/50 rounded-2xl border-dashed">
-        <Sparkles className="w-16 h-16 text-slate-700 mb-4 animate-pulse" />
-        <h3 className="text-lg sm:text-xl font-bold text-slate-300 mb-2">
-          Nenhuma oferta encontrada
-        </h3>
-        <p className="text-sm text-slate-500 max-w-md">
-          Não há molduras disponíveis no mercado no momento. Tente buscar por algo diferente!
-        </p>
-      </div>
-    );
-  }
-
+export function MarketplaceVirtualized<L extends MarketplaceListing, P extends ListingsPage<L>>({
+  source,
+  emptyMessage = 'Não há molduras disponíveis no mercado no momento. Tente buscar por algo diferente!',
+}: Props<L, P>) {
   return (
-    <div ref={containerRef} className="h-full overflow-y-auto scroll-smooth scrollbar-hide">
-      <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-          minHeight: '100%',
-        }}
-      >
-        {virtualItems.map((virtualRow) => {
-          const isLoaderRow = virtualRow.index >= groupedListings.length;
-
-          if (isLoaderRow) {
-            return (
-              <div
-                key={virtualRow.key}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${virtualRow.size}px`,
-                  transform: `translateY(${virtualRow.start}px)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {hasMore ? <LoadingMore text="Carregando mais ofertas..." /> : null}
-              </div>
-            );
-          }
-
-          const rowItems = groupedListings[virtualRow.index];
-
-          return (
-            <div
-              key={virtualRow.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-                display: 'grid',
-                gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                gap: '8px',
-                padding: '4px 8px 8px 8px',
-              }}
-            >
-              {rowItems.map((listing) => {
-                const isOwned = ownedItems.includes(listing.frame.id);
-                return <MarketplaceItem key={listing.id} listing={listing} isOwned={isOwned} />;
-              })}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <VirtualizedPagedGrid
+      source={source}
+      columnsForWidth={columnsForWidth}
+      rowHeight={rowHeight}
+      getItemKey={(listing) => listing.id}
+      renderItem={(listing, page) => (
+        <MarketplaceItem listing={listing} isOwned={ownedSet(page).has(listing.frame.id)} />
+      )}
+      renderSkeleton={ListingSkeleton}
+      loadingState={
+        <div className="flex justify-center items-center min-h-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500" />
+        </div>
+      }
+      emptyState={
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-900/20 border border-slate-800/50 rounded-2xl border-dashed">
+          <Sparkles className="w-16 h-16 text-slate-700 mb-4 animate-pulse" />
+          <h3 className="text-lg sm:text-xl font-bold text-slate-300 mb-2">
+            Nenhuma oferta encontrada
+          </h3>
+          <p className="text-sm text-slate-500 max-w-md">{emptyMessage}</p>
+        </div>
+      }
+    />
   );
 }

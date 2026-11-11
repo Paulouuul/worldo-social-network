@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
-import { useCartSummaryStore } from '@/stores/cartSummaryStore';
+import { useCartSummary } from '@/hooks/queries/useWallet';
 
 interface CartBadgeProps {
   onClick?: () => void;
@@ -12,25 +11,7 @@ interface CartBadgeProps {
 
 export function CartBadge({ onClick }: CartBadgeProps) {
   const { status } = useSession();
-  const { summary, isLoading, fetchSummary } = useCartSummaryStore();
-
-  // Renderização do componente
-
-  // Buscar resumo do carrinho quando autenticar
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchSummary();
-
-      // Atualizar a cada 30 segundos (estoque pode mudar)
-      const interval = setInterval(() => {
-        fetchSummary();
-      }, 30000);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [status, fetchSummary]);
+  const { data: summary, isPending: isLoading } = useCartSummary();
 
   // Se o NextAuth ainda está checando ou o usuário não está logado, não renderiza nada
   if (status === 'loading' || status === 'unauthenticated') {

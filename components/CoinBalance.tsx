@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Coins, Plus } from 'lucide-react';
-import { useCoinStore } from '@/stores/coinStore';
+import { useCoinBalance } from '@/hooks/queries/useWallet';
 import { formatFullNumber } from '@/lib/format-utils';
 interface CoinBalanceProps {
   onClick?: () => void;
@@ -12,20 +11,7 @@ interface CoinBalanceProps {
 
 export function CoinBalance({ onClick }: CoinBalanceProps) {
   const { status } = useSession();
-  const { balance, isLoading, fetchBalance } = useCoinStore();
-
-  // Buscar saldo quando autenticar
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchBalance();
-
-      const interval = setInterval(() => {
-        fetchBalance();
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [status, fetchBalance]);
+  const { data: balance = 0, isPending: isLoading } = useCoinBalance();
 
   // Se o NextAuth ainda está checando ou o usuário não está logado, não renderiza nada
   if (status === 'loading' || status === 'unauthenticated') {

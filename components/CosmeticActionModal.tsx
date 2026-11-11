@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMe } from '@/hooks/queries/useMe';
+import { usePlatformFee } from '@/hooks/queries/useCatalog';
+import { invalidate } from '@/lib/invalidate';
 import Link from 'next/link';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { PlatformFeeTooltipIcon } from '@/components/PlatformFeeTooltipIcon';
@@ -73,7 +76,10 @@ export function CosmeticActionModal({
   onSuccess,
   avatarUrl,
 }: CosmeticActionModalProps) {
-  const { data: session, update } = useSession();
+  const { data: me } = useMe();
+  const queryClient = useQueryClient();
+  const { data: platformFeeData } = usePlatformFee();
+  const platformFee = platformFeeData ?? null;
 
   const [currentMode, setCurrentMode] = useState<NonNullable<ModalMode>>(mode);
   const [quantity, setQuantity] = useState(mode === 'sell' ? 1 : item.count);
@@ -87,7 +93,6 @@ export function CosmeticActionModal({
   const [localIsEquipped, setLocalIsEquipped] = useState(item.isEquipped);
   const [hasEquipChanged, setHasEquipChanged] = useState(false);
   const [localItem, setLocalItem] = useState(item);
-  const [platformFee, setPlatformFee] = useState<number | null>(null);
   const MAX_PRICE = 1000000;
   const MAX_QUANTITY = 1000000;
 
@@ -114,21 +119,6 @@ export function CosmeticActionModal({
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
-
-  useEffect(() => {
-    const fetchPlatformFee = async () => {
-      try {
-        const res = await fetch('/api/worldo/cosmetics/listings/platform_fee');
-        const data = await res.json();
-        if (res.ok) {
-          setPlatformFee(data.platform_fee);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar taxa:', error);
-      }
-    };
-    fetchPlatformFee();
-  }, []);
 
   // FUNÇÕES DE API
 
@@ -190,7 +180,7 @@ export function CosmeticActionModal({
 
   const handleClose = async () => {
     if (hasEquipChanged) {
-      await update();
+      await invalidate.me(queryClient);
     }
     onClose();
   };
@@ -368,7 +358,7 @@ export function CosmeticActionModal({
           <div className="flex flex-col items-center justify-center w-full mb-6">
             <AvatarWithFrame
               avatarUrl={avatarUrl}
-              name={session?.user?.name || 'Usuário'}
+              name={me?.name || 'Usuário'}
               frameUrl={item.frame.imageUrl}
               rarity={item.frame.rarity || RARITY.COMUM}
               priority

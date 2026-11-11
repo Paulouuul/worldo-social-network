@@ -2,6 +2,9 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMe, type Me } from '@/hooks/queries/useMe';
+import { qk } from '@/lib/query-keys';
 import { useRouter } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
 import { backendApiCall } from '@/lib/backendApiClient';
@@ -27,7 +30,9 @@ const URL_REGEX =
   /^(https?:\/\/)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|[/?]\S+)$/;
 
 export default function EditProfilePage() {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
+  const { data: me } = useMe();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -140,23 +145,23 @@ export default function EditProfilePage() {
   const hasLoaded = useRef(false);
 
   useEffect(() => {
-    if (session?.user && !hasLoaded.current) {
+    if (me && !hasLoaded.current) {
       hasLoaded.current = true;
       setFormData({
-        name: session.user.name || '',
-        username: session.user.username || '',
-        bio: session.user.bio || '',
-        location: session.user.location || '',
-        website: session.user.website || '',
-        avatar: session.user.avatar || '',
-        coverImage: session.user.coverImage || '',
+        name: me.name || '',
+        username: me.username || '',
+        bio: me.bio || '',
+        location: me.location || '',
+        website: me.website || '',
+        avatar: me.avatar || '',
+        coverImage: me.coverImage || '',
       });
-      setAvatarPreview(session.user.avatar || '');
-      setCoverPreview(session.user.coverImage || '');
+      setAvatarPreview(me.avatar || '');
+      setCoverPreview(me.coverImage || '');
     }
-  }, [session]);
+  }, [me]);
 
-  if (status === 'loading' || !session?.user) {
+  if (status === 'loading' || !session?.user || !me) {
     return <LoadingSpinner text="Carregando terminal de perfil..." withBackground fullScreen />;
   }
 
@@ -303,9 +308,19 @@ export default function EditProfilePage() {
 
         setFormData(updatedUser);
 
-        await update({
-          user: updatedUser,
-        });
+        // Atualiza o cache do perfil (Header, inventário etc. reagem na hora) e revalida no servidor
+        queryClient.setQueryData<Me>(qk.me(), (old) =>
+          old
+            ? {
+                ...old,
+                ...updatedUser,
+                avatar: updatedUser.avatar || null,
+                coverImage: updatedUser.coverImage || null,
+              }
+            : old,
+        );
+        queryClient.invalidateQueries({ queryKey: qk.me() });
+        queryClient.invalidateQueries({ queryKey: qk.user(me.publicId) });
 
         setAvatarFile(null);
         setRemoveAvatar(false);

@@ -1,7 +1,8 @@
 // app/worldo/cosmetics/seller/[user_identifier]/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useState } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -9,7 +10,10 @@ import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { RARITY, Rarity } from '@/constants/cosmeticRarity';
 import { ArrowLeft, Package, Store, Search, X, Sparkles, Calendar } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
-import { MarketplaceVirtualized } from '@/components/MarketplaceVirtualized';
+import { MarketplaceVirtualized, selectListings } from '@/components/MarketplaceVirtualized';
+import { pageQueryOptions, type PagedSource } from '@/components/VirtualizedPagedGrid';
+import { fetchJson, HttpError, toQueryString } from '@/lib/fetcher';
+import { cachePolicy, qk } from '@/lib/query-keys';
 
 interface SellerData {
   id: string;
@@ -67,107 +71,45 @@ interface ApiResponse {
 }
 
 export default function SellerPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const params = useParams();
   const userIdentifier = params.user_identifier as string;
 
-  const [seller, setSeller] = useState<SellerData | null>(null);
-  const [listings, setListings] = useState<ListingData[]>([]);
-  const [ownedItems, setOwnedItems] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [rarityFilter, setRarityFilter] = useState<'all' | Rarity>('all');
   const [sort, setSort] = useState('newest');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalItems, setTotalItems] = useState(0);
 
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
   const ITEMS_PER_PAGE = 56;
 
-  const fetchListings = useCallback(
-    async (page: number, isLoadMore = false) => {
-      if (!userIdentifier) return;
+  const source = useMemo<PagedSource<ListingData, ApiResponse>>(() => {
+    const filters = { rarity: rarityFilter, sort, search: searchTerm };
+    return {
+      baseKey: qk.seller.list(userIdentifier, filters),
+      pageSize: ITEMS_PER_PAGE,
+      fetchPage: (page, signal) =>
+        fetchJson<ApiResponse>(
+          `/api/worldo/cosmetics/seller/${encodeURIComponent(userIdentifier)}${toQueryString({ ...filters, page, limit: ITEMS_PER_PAGE })}`,
+          { signal },
+        ),
+      select: selectListings,
+      cache: cachePolicy.livePages,
+      enabled: status === 'authenticated' && !!userIdentifier,
+    };
+  }, [userIdentifier, rarityFilter, sort, searchTerm, status]);
 
-      try {
-        if (isLoadMore) {
-          setLoadingMore(true);
-        } else {
-          setLoading(true);
-        }
-
-        const url = new URL(`/api/worldo/cosmetics/seller/${userIdentifier}`, window.location.origin);
-
-        if (rarityFilter !== 'all') url.searchParams.set('rarity', rarityFilter);
-        url.searchParams.set('sort', sort);
-        url.searchParams.set('page', page.toString());
-        url.searchParams.set('limit', ITEMS_PER_PAGE.toString());
-        if (searchTerm) url.searchParams.set('search', searchTerm);
-
-        const res = await fetch(url.toString());
-
-        if (!res.ok) {
-          if (res.status === 404) {
-            setError('Vendedor não encontrado');
-          } else {
-            setError('Erro ao carregar dados do vendedor');
-          }
-          setLoading(false);
-          setLoadingMore(false);
-          return;
-        }
-
-        const data: ApiResponse = await res.json();
-
-        if (!isLoadMore) {
-          setSeller(data.seller);
-          setOwnedItems(data.ownedFrameIds || []);
-          setTotalItems(data.total || 0);
-        }
-
-        if (isLoadMore) {
-          setListings((prev) => {
-            const existingIds = new Set(prev.map((item) => item.id));
-            const newItems = (data.listings || []).filter(
-              (item: ListingData) => !existingIds.has(item.id),
-            );
-            return [...prev, ...newItems];
-          });
-        } else {
-          setListings(data.listings || []);
-        }
-
-        setCurrentPage(page);
-        setHasMore(data.hasMore ?? false);
-      } catch (err) {
-        console.error('Erro ao carregar dados do vendedor:', err);
-        if (!isLoadMore) {
-          setError('Erro ao conectar com o servidor');
-        }
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [userIdentifier, rarityFilter, sort, searchTerm],
-  );
-
-  const loadMore = useCallback(async () => {
-    if (!hasMore || loading || loadingMore) return;
-    await fetchListings(currentPage + 1, true);
-  }, [hasMore, loading, loadingMore, currentPage, fetchListings]);
-
-  useEffect(() => {
-    if (!userIdentifier) return;
-
-    setListings([]);
-    setCurrentPage(1);
-    setHasMore(true);
-    fetchListings(1, false);
-  }, [userIdentifier, rarityFilter, sort, searchTerm, fetchListings]);
+  // Mesma query da página 1 usada pela grade (deduplicada pelo React Query).
+  // keepPreviousData mantém o cabeçalho do vendedor visível enquanto os filtros mudam.
+  const firstPage = useQuery({ ...pageQueryOptions(source, 1), placeholderData: keepPreviousData });
+  const seller = firstPage.data?.seller ?? null;
+  const totalItems = firstPage.data?.total ?? 0;
+  const error = firstPage.error
+    ? firstPage.error instanceof HttpError && firstPage.error.status === 404
+      ? 'Vendedor não encontrado'
+      : 'Erro ao carregar dados do vendedor'
+    : '';
+  const loading = firstPage.isPending;
 
   const handleSearch = () => {
     setSearchTerm(searchInput);
@@ -371,11 +313,8 @@ export default function SellerPage() {
       {/* Componente Virtualizado */}
       <div className="flex-1 min-h-0">
         <MarketplaceVirtualized
-          listings={listings}
-          ownedItems={ownedItems}
-          loading={loading || loadingMore}
-          hasMore={hasMore}
-          onLoadMore={loadMore}
+          source={source}
+          emptyMessage="Este vendedor não possui itens à venda com esses filtros."
         />
       </div>
     </div>

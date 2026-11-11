@@ -1,15 +1,13 @@
 // components/InventoryVirtualized.tsx
 'use client';
 
-import { useRef, useEffect, useMemo, useState } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { Store, CheckCircle, Package } from 'lucide-react';
 import { ClientImage } from '@/components/ClientImage';
 import { formatItemCount } from '@/lib/format-utils';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
-import { LoadingMore } from '@/components/Loading';
+import { VirtualizedPagedGrid, type PagedSource } from '@/components/VirtualizedPagedGrid';
 
-interface GroupedItem {
+export interface GroupedItem {
   id: string;
   frameId: string;
   isListed: boolean;
@@ -29,14 +27,31 @@ interface GroupedItem {
   };
 }
 
-interface Props {
+export interface InventoryPage {
   items: GroupedItem[];
-  loading: boolean;
-  loadingMore: boolean;
-  hasMore: boolean;
-  onLoadMore: () => void;
-  onItemClick: (item: GroupedItem) => void;
+  pagination?: { totalItems: number };
 }
+
+export const selectInventory = (page: InventoryPage) => ({
+  items: page.items || [],
+  total: page.pagination?.totalItems || 0,
+});
+
+const columnsForWidth = (width: number) => {
+  if (width < 480) return 2;
+  if (width < 640) return 3;
+  if (width < 768) return 4;
+  if (width < 1024) return 5;
+  if (width < 1280) return 7;
+  return 8;
+};
+
+// Card: h-48 = 192px (mobile) | h-52 = 208px; +16px de espaçamento vertical
+const rowHeight = (isMobile: boolean) => (isMobile ? 192 : 208) + 16;
+
+const ItemSkeleton = () => (
+  <div className="h-48 sm:h-52 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse" />
+);
 
 const rarityDesigns = getRarityDesigns('bottom-2');
 
@@ -52,7 +67,7 @@ const InventoryItem = ({
   return (
     <button
       onClick={() => onClick(item)}
-      className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-3 h-48 sm:h-52 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-1.5 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${
+      className={`group relative w-full flex flex-col items-center justify-between p-2.5 sm:p-3 h-48 sm:h-52 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-1.5 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${config.cardClass} ${
         item.isListed ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]' : ''
       }`}
     >
@@ -113,186 +128,39 @@ const InventoryItem = ({
   );
 };
 
-export function InventoryVirtualized({
-  items,
-  loading,
-  loadingMore,
-  hasMore,
-  onLoadMore,
-  onItemClick,
-}: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isLoadingRef = useRef(false);
+interface Props {
+  source: PagedSource<GroupedItem, InventoryPage>;
+  onItemClick: (item: GroupedItem) => void;
+}
 
-  const [columns, setColumns] = useState(4);
-
-  useEffect(() => {
-    const updateColumns = () => {
-      const width = window.innerWidth;
-      if (width < 480) setColumns(2);
-      else if (width < 640) setColumns(3);
-      else if (width < 768) setColumns(4);
-      else if (width < 1024) setColumns(5);
-      else if (width < 1280) setColumns(7);
-      else setColumns(8);
-    };
-
-    updateColumns();
-    window.addEventListener('resize', updateColumns);
-    return () => window.removeEventListener('resize', updateColumns);
-  }, []);
-
-  const groupedItems = useMemo(() => {
-    const groups: GroupedItem[][] = [];
-    for (let i = 0; i < items.length; i += columns) {
-      groups.push(items.slice(i, i + columns));
-    }
-    return groups;
-  }, [items, columns]);
-
-  const estimateSize = (index: number) => {
-    // Altura do loader
-    if (index === groupedItems.length) return 60;
-
-    // Calcula a altura baseado no tamanho da tela (h-48 = 192px | h-52 = 208px)
-    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
-    const cardHeight = isMobile ? 192 : 208;
-    const verticalSpacing = 16; // Ajuste esse valor para aumentar/diminuir o gap vertical
-
-    return cardHeight + verticalSpacing;
-  };
-
-  const virtualCount = hasMore ? groupedItems.length + 1 : groupedItems.length;
-
-  const rowVirtualizer = useVirtualizer({
-    count: virtualCount,
-    getScrollElement: () => containerRef.current,
-    estimateSize,
-    overscan: 3,
-    paddingStart: 0,
-    paddingEnd: 0,
-  });
-
-  const virtualItems = rowVirtualizer.getVirtualItems();
-  const lastItemIndex = virtualItems.length > 0 ? virtualItems[virtualItems.length - 1].index : 0;
-
-  // Trigger load more quando chegar perto do fim
-  useEffect(() => {
-    const shouldLoadMore =
-      lastItemIndex >= groupedItems.length - 2 &&
-      hasMore &&
-      !loading &&
-      !loadingMore &&
-      !isLoadingRef.current &&
-      items.length > 0;
-
-    if (shouldLoadMore) {
-      isLoadingRef.current = true;
-      onLoadMore();
-    }
-  }, [lastItemIndex, groupedItems.length, hasMore, loading, loadingMore, onLoadMore, items.length]);
-
-  useEffect(() => {
-    if (!loading && !loadingMore) {
-      isLoadingRef.current = false;
-    }
-  }, [loading, loadingMore]);
-
-  // Reset scroll quando items mudam
-  useEffect(() => {
-    if (containerRef.current && groupedItems.length === 0) {
-      containerRef.current.scrollTop = 0;
-    }
-  }, [groupedItems.length]);
-
-  // Loading inicial
-  if (loading && items.length === 0) {
-    return (
-      <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="h-48 sm:h-52 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse"
-          />
-        ))}
-      </div>
-    );
-  }
-
-  // Empty state
-  if (items.length === 0 && !loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-900/20 border border-slate-800/50 rounded-2xl border-dashed">
-        <Package className="w-16 h-16 text-slate-700 mb-4 animate-pulse" />
-        <h3 className="text-lg sm:text-xl font-bold text-slate-300 mb-2">
-          Seu inventário está vazio
-        </h3>
-        <p className="text-sm text-slate-500 max-w-md">
-          Adquira no marketplace ou crie sua própria moldura!
-        </p>
-      </div>
-    );
-  }
-
+export function InventoryVirtualized({ source, onItemClick }: Props) {
   return (
-    <div ref={containerRef} className="h-full overflow-y-auto scroll-smooth scrollbar-hide">
-      <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-          minHeight: '100%',
-        }}
-      >
-        {virtualItems.map((virtualRow) => {
-          const isLoaderRow = virtualRow.index >= groupedItems.length;
-
-          if (isLoaderRow) {
-            return (
-              <div
-                key={virtualRow.key}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${virtualRow.size}px`,
-                  transform: `translateY(${virtualRow.start}px)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {hasMore ? <LoadingMore text="Carregando mais itens..." /> : null}
-              </div>
-            );
-          }
-
-          const rowItems = groupedItems[virtualRow.index];
-
-          return (
-            <div
-              key={virtualRow.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-                display: 'grid',
-                gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                gap: '8px',
-                padding: '4px 8px',
-              }}
-            >
-              {rowItems.map((item) => (
-                <InventoryItem key={item.id} item={item} onClick={onItemClick} />
-              ))}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <VirtualizedPagedGrid
+      source={source}
+      columnsForWidth={columnsForWidth}
+      rowHeight={rowHeight}
+      rowPadding="4px 8px"
+      getItemKey={(item) => item.id}
+      renderItem={(item) => <InventoryItem item={item} onClick={onItemClick} />}
+      renderSkeleton={ItemSkeleton}
+      loadingState={
+        <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-5">
+          {[...Array(12)].map((_, i) => (
+            <ItemSkeleton key={i} />
+          ))}
+        </div>
+      }
+      emptyState={
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-slate-900/20 border border-slate-800/50 rounded-2xl border-dashed">
+          <Package className="w-16 h-16 text-slate-700 mb-4 animate-pulse" />
+          <h3 className="text-lg sm:text-xl font-bold text-slate-300 mb-2">
+            Seu inventário está vazio
+          </h3>
+          <p className="text-sm text-slate-500 max-w-md">
+            Adquira no marketplace ou crie sua própria moldura!
+          </p>
+        </div>
+      }
+    />
   );
 }

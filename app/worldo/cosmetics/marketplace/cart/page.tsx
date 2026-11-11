@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
-import { useCartSummaryStore } from '@/stores/cartSummaryStore';
+import { useCartDetail } from '@/hooks/queries/useWallet';
+import { invalidate } from '@/lib/invalidate';
 import { formatFullNumber, formatItemCount, formatPrice } from '@/lib/format-utils';
 import { LoadingSpinner } from '@/components/Loading';
 import {
@@ -59,50 +61,31 @@ const rarityDesigns = getRarityDesigns('static');
 export default function CartPage() {
   const router = useRouter();
 
-  const [cart, setCart] = useState<CartData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [redirecting, setRedirecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [actionError, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const { fetchSummary } = useCartSummaryStore();
   const isInitialLoad = useRef(true);
-  const hasRedirected = useRef(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
-  const fetchCart = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-    setError('');
+  const cartQuery = useCartDetail<CartData>();
+  const cart = cartQuery.data ?? null;
+  const loading = cartQuery.isPending;
+  const error = actionError || (cartQuery.error ? 'Erro ao carregar carrinho' : '');
 
-    try {
-      const res = await backendApiCall('/cosmetics/marketplace/cart/get', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
+  // Recarrega carrinho, resumo do Header e quantidades por item
+  const refreshCart = () => invalidate.cart(queryClient);
 
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.detail || 'Erro ao buscar carrinho');
-
-      setCart(data.data);
-
-      if (isInitialLoad.current && data.data && data.data.items.length === 0) {
-        isInitialLoad.current = false;
-        if (!hasRedirected.current) {
-          hasRedirected.current = true;
-          setRedirecting(true);
-          router.replace('/worldo');
-          return;
-        }
-      }
-      isInitialLoad.current = false;
-    } catch (err) {
-      console.error('Erro ao buscar carrinho:', err);
-      setError('Erro ao carregar carrinho');
-    } finally {
-      if (showLoading) setLoading(false);
+  // Carrinho vazio na primeira carga: volta para o início
+  useEffect(() => {
+    if (!cartQuery.isSuccess || !isInitialLoad.current) return;
+    isInitialLoad.current = false;
+    if (cart && cart.items.length === 0) {
+      setRedirecting(true);
+      router.replace('/worldo');
     }
-  }, []);
+  }, [cartQuery.isSuccess, cart, router]);
 
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 0) return;
@@ -128,8 +111,7 @@ export default function CartPage() {
         return;
       }
 
-      await fetchCart(false);
-      await fetchSummary();
+      await refreshCart();
     } catch (err) {
       console.error('Erro ao atualizar quantidade:', err);
       setError(err instanceof Error ? err.message : 'Erro ao atualizar quantidade');
@@ -148,8 +130,7 @@ export default function CartPage() {
 
       if (!res.ok) throw new Error(data.detail || 'Erro ao remover item');
 
-      await fetchCart(false);
-      await fetchSummary();
+      await refreshCart();
     } catch (err) {
       console.error('Erro ao remover item:', err);
       setError(err instanceof Error ? err.message : 'Erro ao remover item');
@@ -171,8 +152,7 @@ export default function CartPage() {
 
       if (!res.ok) throw new Error(data.detail || 'Erro ao limpar carrinho');
 
-      await fetchCart(false);
-      await fetchSummary();
+      await refreshCart();
       setSuccess('Carrinho esvaziado com sucesso!');
     } catch (err) {
       console.error('Erro ao limpar carrinho:', err);
@@ -199,7 +179,7 @@ export default function CartPage() {
       if (!res.ok) {
         const errorDetail = data.detail || {};
         setError(errorDetail.error || errorDetail.message || 'Erro ao validar carrinho');
-        await fetchCart(false);
+        await refreshCart();
         return;
       }
       router.push('/worldo/cosmetics/marketplace/checkout');
@@ -210,10 +190,6 @@ export default function CartPage() {
       setSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
 
   if (loading || redirecting) {
     return <LoadingSpinner text="Carregando Carrinho..." />;

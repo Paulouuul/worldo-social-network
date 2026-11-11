@@ -177,7 +177,7 @@ export async function GET(
         },
         select: { frameId: true },
       });
-      ownedFrameIds = ownedItems.map((item) => item.frameId);
+      ownedFrameIds = [...new Set(ownedItems.map((item) => item.frameId))];
     }
 
     const hasMore = from + limit < total;

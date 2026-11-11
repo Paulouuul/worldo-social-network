@@ -10,12 +10,15 @@ import { CoinBalance } from '@/components/CoinBalance';
 import { CartBadge } from '@/components/CartBadge';
 import { AvatarWithFrame } from './AvatarWithFrame';
 import { RARITY } from '@/constants/cosmeticRarity';
+import { useMe } from '@/hooks/queries/useMe';
 
 import { Home, User, Compass, Menu, X, Store, Package, Sparkles, ChevronDown } from 'lucide-react';
 
 export default function Header() {
   const { data: session, status } = useSession();
   const isLoggedIn = !!session;
+  const { data: me } = useMe();
+  const displayName = me?.name || session?.user?.email?.split('@')[0];
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isCosmeticsOpen, setIsCosmeticsOpen] = useState(false);
@@ -189,15 +192,15 @@ export default function Header() {
               <div className="flex items-center gap-2 xl:gap-3 galaxy-user-card bg-white/5 border border-white/10 px-2 py-1.5 xl:px-3 rounded-xl backdrop-blur-sm shadow-inner max-w-50 xl:max-w-62.5">
                 <div className="shrink-0">
                   <AvatarWithFrame
-                    avatarUrl={session.user?.avatar}
-                    name={session?.user?.name}
-                    frameUrl={session.user?.equippedFrame?.imageUrl}
-                    rarity={session.user?.equippedFrame?.rarity || RARITY.COMUM}
+                    avatarUrl={me?.avatar}
+                    name={me?.name}
+                    frameUrl={me?.equippedFrame?.imageUrl}
+                    rarity={me?.equippedFrame?.rarity || RARITY.COMUM}
                     size="smsm"
                   />
                 </div>
                 <span className="text-xs font-medium text-slate-200 pr-1 truncate">
-                  Olá, {session.user?.name || session.user?.email?.split('@')[0]}
+                  Olá, {displayName}
                 </span>
               </div>
 
@@ -256,17 +259,15 @@ export default function Header() {
               <div className="flex items-center gap-3 bg-white/5 border border-white/5 p-3 rounded-2xl">
                 <div className="shrink-0">
                   <AvatarWithFrame
-                    avatarUrl={session.user?.avatar}
-                    name={session?.user?.name}
-                    frameUrl={session.user?.equippedFrame?.imageUrl}
-                    rarity={session.user?.equippedFrame?.rarity || RARITY.COMUM}
+                    avatarUrl={me?.avatar}
+                    name={me?.name}
+                    frameUrl={me?.equippedFrame?.imageUrl}
+                    rarity={me?.equippedFrame?.rarity || RARITY.COMUM}
                     size="sm"
                   />
                 </div>
                 <div className="overflow-hidden w-full">
-                  <p className="text-white text-sm font-bold truncate">
-                    {session.user?.name || session.user?.email?.split('@')[0]}
-                  </p>
+                  <p className="text-white text-sm font-bold truncate">{displayName}</p>
                   <p className="text-[11px] text-slate-400 truncate mt-0.5">
                     {session.user?.email}
                   </p>

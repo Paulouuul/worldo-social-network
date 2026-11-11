@@ -103,7 +103,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="relative shrink-0">
               <AvatarWithFrame
                 avatarUrl={user.avatar && user.avatar !== 'None' ? user.avatar : null}
-                name={session?.user?.name}
+                name={user.name}
                 frameUrl={user.equippedFrame?.imageUrl}
                 className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36"
                 rarity={user.equippedFrame?.rarity || RARITY.COMUM}

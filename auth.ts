@@ -192,6 +192,20 @@ const customAdapter = {
   },
 };
 
+const LEGACY_PROFILE_CLAIMS = [
+  'name',
+  'username',
+  'avatar',
+  'coverImage',
+  'bio',
+  'location',
+  'website',
+  'equippedFrame',
+  'hasPassword',
+  'isOAuth',
+  'picture',
+] as const;
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: customAdapter,
   providers: [
@@ -239,10 +253,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           username: user.username,
-          avatar: user.avatar,
-          hasPassword: true,
-          isOAuth: false,
-          provider: 'credentials',
         };
       },
     }),
@@ -257,60 +267,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     updateAge: 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user, account, trigger, session }) {
-      // 1. Executado apenas no momento do Login Inicial
+    // A sessão guarda apenas identidade. Dados de perfil (nome, avatar, bio, moldura...)
+    // vêm de /api/worldo/me via React Query (hook useMe), sem consultar o banco a cada auth().
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id as string;
         token.publicId = user.publicId;
-
-        if (account) {
-          token.provider = account.provider;
-          token.isOAuth = account.provider !== 'credentials';
-        }
-        token.hasPassword = user.hasPassword ?? true;
+        token.email = user.email ?? '';
+        token.provider = account?.provider || 'credentials';
       }
 
-      // 2. Executado quando a aplicação cliente dispara um update() manually
-      if (trigger === 'update' && session?.user) {
-        if (session.user.name !== undefined) token.name = session.user.name;
-        if (session.user.username !== undefined) token.username = session.user.username;
-        if (session.user.bio !== undefined) token.bio = session.user.bio;
-        if (session.user.location !== undefined) token.location = session.user.location;
-        if (session.user.website !== undefined) token.website = session.user.website;
-        if (session.user.email !== undefined) token.email = session.user.email;
-
-        // Fotos/Imagens (Aqui aceitamos a string vazia '' enviada pelo front de remoção)
-        if (session.user.avatar !== undefined) token.avatar = session.user.avatar;
-        if (session.user.coverImage !== undefined) token.coverImage = session.user.coverImage;
-        if (session.user.equippedFrame !== undefined)
-          token.equippedFrame = session.user.equippedFrame;
-      }
-
-      // 3. Resgate dinâmico do banco de dados para manter sincronia em navegações normais e F5
-      // Isso impede que mutações diretas no banco fiquem defasadas no client-side
-      if (token.id) {
-        const dbUser = await prisma.users.findUnique({
-          where: { id: token.id as string },
-          include: { equippedFrame: true, accounts: true },
-        });
-
-        if (dbUser) {
-          token.name = dbUser.name;
-          token.username = dbUser.username;
-          token.email = dbUser.email;
-          token.avatar = dbUser.avatar;
-          token.coverImage = dbUser.coverImage;
-          token.equippedFrame = dbUser.equippedFrame;
-          token.bio = dbUser.bio || '';
-          token.location = dbUser.location || '';
-          token.website = dbUser.website || '';
-          token.hasPassword = !!dbUser.password;
-          token.isOAuth = Boolean(dbUser.accounts.length > 0);
-          if (!token.provider) {
-            token.provider = dbUser.accounts[0]?.provider || 'credentials';
-          }
-        }
-      }
+      // Remove campos de perfil de tokens emitidos antes desta mudança
+      for (const key of LEGACY_PROFILE_CLAIMS) delete (token as Record<string, unknown>)[key];
 
       return token;
     },
@@ -319,18 +287,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user && token) {
         session.user.id = token.id as string;
         session.user.publicId = token.publicId as string;
-        session.user.name = token.name as string;
-        session.user.username = token.username as string;
         session.user.email = token.email as string;
-        session.user.avatar = (token.avatar as string) || null;
-        session.user.coverImage = (token.coverImage as string) || null;
-        session.user.bio = (token.bio as string) || '';
-        session.user.location = (token.location as string) || '';
-        session.user.website = (token.website as string) || '';
-        session.user.equippedFrame = token.equippedFrame || null;
         session.user.provider = (token.provider as string) || 'credentials';
-        session.user.isOAuth = (token.isOAuth as boolean) ?? false;
-        session.user.hasPassword = (token.hasPassword as boolean) ?? true;
       }
       return session;
     },

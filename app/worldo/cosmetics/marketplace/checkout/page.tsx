@@ -2,13 +2,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
-import { backendApiCall } from '@/lib/backendApiClient';
-import { useCoinStore } from '@/stores/coinStore';
-import { useCartSummaryStore } from '@/stores/cartSummaryStore';
+import { useCartDetail, useCoinBalance } from '@/hooks/queries/useWallet';
+import { invalidate } from '@/lib/invalidate';
 import { formatFullNumber, formatItemCount, formatPrice } from '@/lib/format-utils';
 import {
   ArrowLeft,
@@ -56,63 +56,33 @@ const rarityDesigns = getRarityDesigns('static');
 export default function CheckoutPage() {
   const router = useRouter();
 
-  const [cart, setCart] = useState<CartData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [redirecting, setRedirecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [actionError, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const { balance: userBalance, fetchBalance } = useCoinStore();
-  const { fetchSummary } = useCartSummaryStore();
+  // Saldo e carrinho: dados críticos, sempre buscados do servidor.
+  // Após a compra o carrinho para de ser buscado para não "esvaziar" a tela antes do redirecionamento.
+  const balanceQuery = useCoinBalance();
+  const cartQuery = useCartDetail<CartData>({ enabled: !success });
+  const userBalance = balanceQuery.data ?? 0;
+  const cart = cartQuery.data ?? null;
+  const loading = cartQuery.isPending || balanceQuery.isPending;
+  const error =
+    actionError || (cartQuery.error ? cartQuery.error.message || 'Erro ao carregar dados' : '');
 
   const isInitialLoad = useRef(true);
-  const hasRedirected = useRef(false);
 
+  // Redirecionamento silencioso caso o carrinho esteja vazio na primeira carga
   useEffect(() => {
-    const loadCheckoutData = async () => {
-      setLoading(true);
-      setError('');
-
-      try {
-        // 1. Busca carrinho
-        const cartRes = await backendApiCall('/cosmetics/marketplace/cart/get', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
-
-        const cartData = await cartRes.json();
-
-        if (!cartRes.ok) {
-          throw new Error(cartData.detail || 'Erro ao buscar carrinho');
-        }
-
-        // Redirecionamento silencioso caso o carrinho esteja vazio
-        if (isInitialLoad.current && (!cartData.data || cartData.data.items.length === 0)) {
-          isInitialLoad.current = false;
-          if (!hasRedirected.current) {
-            hasRedirected.current = true;
-            setRedirecting(true);
-            router.replace('/worldo');
-            return;
-          }
-        }
-
-        setCart(cartData.data);
-
-        // 2. Busca saldo
-        await fetchBalance();
-        isInitialLoad.current = false;
-      } catch (err) {
-        console.error('Erro ao carregar checkout:', err);
-        setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCheckoutData();
-  }, [router, fetchBalance]);
+    if (!cartQuery.isSuccess || !isInitialLoad.current) return;
+    isInitialLoad.current = false;
+    if (!cart || cart.items.length === 0) {
+      setRedirecting(true);
+      router.replace('/worldo');
+    }
+  }, [cartQuery.isSuccess, cart, router]);
 
   const handleFinalize = async () => {
     if (!cart) return;
@@ -154,8 +124,7 @@ export default function CheckoutPage() {
       }
 
       setSuccess(true);
-      await fetchBalance();
-      await fetchSummary();
+      await invalidate.purchase(queryClient);
 
       setTimeout(() => {
         router.push('/worldo/cosmetics/orders/success');
