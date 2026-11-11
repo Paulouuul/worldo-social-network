@@ -1,16 +1,19 @@
 // scripts/test-connection.ts
+// Script manual: testa a conexão com o Elasticsearch e cria o índice de anúncios se necessário.
+// Executar com: npx tsx scripts/test-connection.ts
+
 import { checkElasticsearchConnection, setupElasticsearchIndices } from '../lib/elasticsearch';
 
+/** Faz ping no cluster e, se conectado, cria o índice; senão mostra como subir o container. */
 async function test() {
   console.log('Testing Elasticsearch connection...\n');
 
-  // Testar conexão
   const isConnected = await checkElasticsearchConnection();
 
   if (isConnected) {
     console.log('Connection successful!\n');
 
-    // Setup dos índices
+    // Cria o índice de anúncios se ainda não existir
     console.log('Setting up indices...');
     await setupElasticsearchIndices();
 

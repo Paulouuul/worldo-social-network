@@ -1,6 +1,11 @@
+// capacitor.config.ts
+// Configuração do Capacitor (apps Android/iOS): o app nativo carrega o site em
+// CAPACITOR_SERVER_URL e configura splash screen e barra de status.
+
 import type { CapacitorConfig } from '@capacitor/cli';
 import 'dotenv/config';
 
+/** Identificação do app, servidor remoto e plugins nativos. */
 const config: CapacitorConfig = {
   appId: 'com.app.worldo',
   appName: 'Worldo',

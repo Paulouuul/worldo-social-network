@@ -1,4 +1,6 @@
 // app/worldo/cosmetics/seller/[user_identifier]/page.tsx
+// Página /worldo/cosmetics/seller/[user_identifier]: loja de um vendedor com perfil, busca,
+// filtros e grade virtualizada dos anúncios.
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -15,6 +17,7 @@ import { pageQueryOptions, type PagedSource } from '@/components/VirtualizedPage
 import { fetchJson, HttpError, toQueryString } from '@/lib/fetcher';
 import { cachePolicy, qk } from '@/lib/query-keys';
 
+/** Dados públicos do vendedor. */
 interface SellerData {
   id: string;
   name: string;
@@ -28,6 +31,7 @@ interface SellerData {
   } | null;
 }
 
+/** Anúncio do vendedor. */
 interface ListingData {
   id: string;
   frameId: string;
@@ -59,6 +63,7 @@ interface ListingData {
   };
 }
 
+/** Página retornada por /api/worldo/cosmetics/seller/[id]. */
 interface ApiResponse {
   seller: SellerData;
   listings: ListingData[];
@@ -70,6 +75,7 @@ interface ApiResponse {
   sellerId: string;
 }
 
+/** Loja do vendedor. O cabeçalho reaproveita a query da página 1 da grade. */
 export default function SellerPage() {
   const { data: session, status } = useSession();
   const params = useParams();
@@ -111,10 +117,12 @@ export default function SellerPage() {
     : '';
   const loading = firstPage.isPending;
 
+  /** Aplica o termo de busca digitado. */
   const handleSearch = () => {
     setSearchTerm(searchInput);
   };
 
+  /** Limpa o campo e o termo de busca. */
   const clearSearch = () => {
     setSearchInput('');
     setSearchTerm('');
@@ -170,7 +178,7 @@ export default function SellerPage() {
         </span>
       </div>
 
-      {/* Perfil do Vendedor */}
+      {/* Perfil do vendedor */}
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 backdrop-blur-xl shadow-2xl relative overflow-hidden shrink-0">
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
@@ -310,7 +318,7 @@ export default function SellerPage() {
         </button>
       </div>
 
-      {/* Componente Virtualizado */}
+      {/* Grade virtualizada */}
       <div className="flex-1 min-h-0">
         <MarketplaceVirtualized
           source={source}

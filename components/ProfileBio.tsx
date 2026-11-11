@@ -1,15 +1,19 @@
+// components/ProfileBio.tsx
+// Bio do perfil com opção de expandir/recolher textos longos.
 'use client';
 
 import { useState } from 'react';
 
+/** Propriedades da bio. */
 interface ProfileBioProps {
   bio: string;
 }
 
+/** Exibe a bio truncada em 60 caracteres com botão "Ler mais/Ver menos". */
 export function ProfileBio({ bio }: ProfileBioProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Define o limite de caracteres antes de cortar o texto
+  // Limite de caracteres antes de truncar
   const MAX_LENGTH = 60;
   const shouldTruncate = bio.length > MAX_LENGTH;
 

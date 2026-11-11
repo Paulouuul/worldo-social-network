@@ -1,3 +1,6 @@
+// app/worldo/coins/success/page.tsx
+// Página /worldo/coins/success: retorno do Stripe após o pagamento de moedas; volta para a loja
+// de moedas após 5 segundos.
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,14 +9,13 @@ import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
+/** Confirmação do pagamento com contagem regressiva até voltar para /worldo/coins. */
 function SuccessPageContent() {
   const router = useRouter();
 
-  // Caso precise validar o ID do Stripe no banco futuramente:
-
   const [countdown, setCountdown] = useState(5);
 
-  // Efeito 1: Gerencia apenas o relógio do countdown de forma limpa
+  // Decrementa a contagem a cada segundo
   useEffect(() => {
     if (countdown <= 0) return;
 
@@ -24,7 +26,7 @@ function SuccessPageContent() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  // Efeito 2: Monitora o countdown e dispara a navegação de forma isolada e segura
+  // Ao chegar a zero, volta para a loja de moedas
   useEffect(() => {
     if (countdown === 0) {
       router.replace('/worldo/coins');
@@ -33,7 +35,7 @@ function SuccessPageContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Efeitos de fundo para manter a consistência visual da rede */}
+      {/* Efeitos de fundo */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
 
@@ -62,7 +64,7 @@ function SuccessPageContent() {
           </span>
         </div>
 
-        {/* Botão de Escape de Emergência */}
+        {/* Voltar agora */}
         <Link
           href="/worldo/coins"
           className="w-full inline-flex items-center justify-center gap-2 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 group"
@@ -75,6 +77,7 @@ function SuccessPageContent() {
   );
 }
 
+/** Página de sucesso com Suspense. */
 export default function SuccessPage() {
   return (
     <Suspense

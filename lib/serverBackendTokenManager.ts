@@ -1,6 +1,11 @@
+// lib/serverBackendTokenManager.ts
+// Gerenciador do JWT do backend no servidor Next.js: gera o token a partir da sessão (auth()),
+// reutiliza enquanto válido (com 2 minutos de margem) e evita gerações simultâneas.
+
 import 'server-only';
 import { auth } from '@/auth';
 import { generateJwtToken } from '@/lib/backend-jwt-token-generator';
+/** Cache em memória do JWT do backend no servidor. */
 class serverBackendTokenManager {
   private token: string | null = null;
   private expiryTime: number = 0;
@@ -11,6 +16,10 @@ class serverBackendTokenManager {
     (Number(process.env.BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
   private readonly SAFETY_MARGIN_MS = 2 * 60 * 1000;
 
+  /**
+   * Retorna o token em cache ou gera um novo a partir da sessão atual; chamadas concorrentes
+   * compartilham a mesma geração.
+   */
   async getToken(): Promise<string> {
     const now = Date.now();
 
@@ -60,6 +69,7 @@ class serverBackendTokenManager {
     return this.generatePromise;
   }
 
+  /** Descarta o token em cache. */
   invalidate(): void {
     console.log('[BackendTokenManager] Invalidando token...');
     this.token = null;
@@ -68,16 +78,19 @@ class serverBackendTokenManager {
     this.generatePromise = null;
   }
 
+  /** Indica se o token em cache ainda vale, considerando a margem de segurança. */
   isValid(): boolean {
     if (!this.token) return false;
     const now = Date.now();
     return now < this.expiryTime - this.SAFETY_MARGIN_MS;
   }
 
+  /** Segundos restantes até o token expirar (0 sem token). */
   getTimeRemaining(): number {
     if (!this.token) return 0;
     const remaining = (this.expiryTime - Date.now()) / 1000;
     return Math.max(0, Math.floor(remaining));
   }
 }
+/** Instância única do servidor. */
 export const serverTokenManager = new serverBackendTokenManager();

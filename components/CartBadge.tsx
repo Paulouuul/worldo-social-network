@@ -1,3 +1,6 @@
+// components/CartBadge.tsx
+// Atalho do carrinho no Header com a quantidade de unidades; oculto sem sessão ou com carrinho
+// vazio.
 'use client';
 
 import { useSession } from 'next-auth/react';
@@ -5,15 +8,17 @@ import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCartSummary } from '@/hooks/queries/useWallet';
 
+/** Propriedades do atalho do carrinho. */
 interface CartBadgeProps {
   onClick?: () => void;
 }
 
+/** Link para o carrinho exibindo o total de unidades do resumo do carrinho. */
 export function CartBadge({ onClick }: CartBadgeProps) {
   const { status } = useSession();
   const { data: summary, isPending: isLoading } = useCartSummary();
 
-  // Se o NextAuth ainda está checando ou o usuário não está logado, não renderiza nada
+  // Sem sessão autenticada não renderiza
   if (status === 'loading' || status === 'unauthenticated') {
     return null;
   }
@@ -36,7 +41,7 @@ export function CartBadge({ onClick }: CartBadgeProps) {
       </div>
 
       {isLoading ? (
-        // Shimmer/Skeleton loading
+        // Esqueleto enquanto o resumo carrega
         <div className="w-4 h-4 bg-purple-500/20 animate-pulse rounded" />
       ) : (
         <span className="font-bold text-sm text-slate-100 tracking-wide">{totalItems}</span>

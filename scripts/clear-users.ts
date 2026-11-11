@@ -1,3 +1,8 @@
+// scripts/clear-users.ts
+// Script destrutivo de desenvolvimento: apaga todos os usuários e os dados ligados a eles
+// (cosméticos, anúncios, compras, chats, posts, transações), respeitando a ordem das chaves
+// estrangeiras. Executar com: npx tsx scripts/clear-users.ts
+
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -15,47 +20,51 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+/**
+ * Apaga as tabelas dependentes e por fim os usuários, imprimindo quantos registros saíram de
+ * cada uma.
+ */
 async function clearUsers() {
   try {
-    // 1. Primeiro, registros mais específicos/filhos
+    // Registros mais dependentes primeiro (likes e avaliações)
     const deletedReviewLikes = await prisma.cosmetic_review_like.deleteMany();
     console.log(`${deletedReviewLikes.count} likes de reviews removidos`);
 
     const deletedReviews = await prisma.cosmetic_review.deleteMany();
     console.log(`${deletedReviews.count} reviews removidas`);
 
-    // 2. Itens de usuários (depende de purchase, listing e frame)
+    // Itens de usuários (dependem de compras, anúncios e molduras)
     const deletedItems = await prisma.user_frame_item.deleteMany();
     console.log(`${deletedItems.count} itens de usuários removidos`);
 
-    // 3. Listagens (depende de frame)
+    // Anúncios (dependem de molduras)
     const deletedListings = await prisma.cosmetic_listing.deleteMany();
     console.log(`${deletedListings.count} listings removidos`);
 
-    // 4. Compras (depende de frame)
+    // Compras (dependem de molduras)
     const deletedPurchases = await prisma.cosmetic_purchase.deleteMany();
     console.log(`${deletedPurchases.count} compras removidas`);
 
-    // 5. Molduras (agora pode deletar)
+    // Molduras
     const deletedFrames = await prisma.cosmetic_frame.deleteMany();
     console.log(`${deletedFrames.count} molduras removidas`);
 
-    // 6. Tokens de verificação
+    // Tokens de verificação
     const deletedTokens = await prisma.verification_tokens.deleteMany();
     console.log(`${deletedTokens.count} tokens de verificação removidos`);
 
-    // 7. Contas OAuth
+    // Contas OAuth
     const deletedAccounts = await prisma.accounts.deleteMany();
     console.log(`${deletedAccounts.count} contas OAuth removidas`);
 
-    // 8. Chats e membros
+    // Chats e membros
     const deletedChatMembers = await prisma.chat_member.deleteMany();
     console.log(`${deletedChatMembers.count} membros de chat removidos`);
 
     const deletedChats = await prisma.chat.deleteMany();
     console.log(`${deletedChats.count} chats removidos`);
 
-    // 9. Likes, comments, posts
+    // Likes, comentários e posts
     const deletedLikes = await prisma.like.deleteMany();
     console.log(`${deletedLikes.count} likes removidos`);
 
@@ -65,18 +74,18 @@ async function clearUsers() {
     const deletedPosts = await prisma.post.deleteMany();
     console.log(`${deletedPosts.count} posts removidos`);
 
-    // 10. Follows
+    // Follows
     const deletedFollows = await prisma.follow.deleteMany();
     console.log(`${deletedFollows.count} follows removidos`);
 
-    // 11. Transações de moedas
+    // Transações e compras de moedas
     const deletedCoinTransactions = await prisma.coin_transaction.deleteMany();
     console.log(`${deletedCoinTransactions.count} transações de moedas removidas`);
 
     const deletedCoinPurchases = await prisma.coin_purchase.deleteMany();
     console.log(`${deletedCoinPurchases.count} compras de moedas removidas`);
 
-    // 12. Finalmente, usuários
+    // Usuários
     const deletedUsers = await prisma.users.deleteMany();
     console.log(`${deletedUsers.count} usuários removidos`);
 

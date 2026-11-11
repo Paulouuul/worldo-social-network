@@ -1,8 +1,11 @@
+// components/LogoutButton.tsx
+// Botão de sair da conta.
 'use client';
 
 import { signOut } from 'next-auth/react';
 import { LogOut } from 'lucide-react';
 
+/** Encerra a sessão do NextAuth e redireciona para /login. */
 export function LogoutButton() {
   return (
     <button

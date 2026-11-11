@@ -1,9 +1,20 @@
-// app/api/cosmetics/creation/packages/route.ts
+// app/api/worldo/cosmetics/creation/packages/route.ts
+// Rota /api/worldo/cosmetics/creation/packages: pacotes de criação de moldura (quantidade ×
+// custo) por raridade.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { Rarity } from '@prisma/client';
 
+/**
+ * GET /api/worldo/cosmetics/creation/packages — pacotes ativos de criação.
+ *
+ * - ?packageId=...: um pacote com pricePerUnit, multiplier e baseCost.
+ * - ?rarity=...: lista da raridade com pricePerUnit e multiplier.
+ * - sem filtros: pacotes agrupados por raridade.
+ * O multiplier é o custo do pacote dividido pelo menor custo da mesma raridade.
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -16,9 +27,9 @@ export async function GET(request: NextRequest) {
     const rarityParam = searchParams.get('rarity');
     const packageId = searchParams.get('packageId');
 
-    // Se tem packageId, busca UM pacote específico
+    // Consulta de um pacote específico
     if (packageId) {
-      // 1. Buscar o pacote específico
+      // Pacote ativo solicitado
       const packageData = await prisma.cosmetic_creation_package.findUnique({
         where: {
           id: packageId,
@@ -42,7 +53,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // 2. Buscar TODOS os pacotes da mesma raridade para calcular o baseCost
+      // Menor custo da raridade (baseCost) para calcular o multiplier
       const allPackages = await prisma.cosmetic_creation_package.findMany({
         where: {
           rarity: packageData.rarity,
@@ -56,16 +67,16 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      // 3. Calcular o baseCost (menor totalCost da raridade)
+      // Menor custo da raridade
       const baseCost = allPackages[0]?.totalCost || packageData.totalCost;
 
-      // 4. Calcular o preço por unidade
+      // Preço por unidade (2 casas decimais)
       const pricePerUnit = Math.round((packageData.totalCost / packageData.quantity) * 100) / 100;
 
-      // 5. Calcular o multiplier
+      // Quantas vezes o custo do pacote supera o menor custo da raridade
       const multiplier = Number((packageData.totalCost / baseCost).toFixed(2));
 
-      // 6. Retornar os dados do pacote com pricePerUnit e multiplier
+      // Pacote com pricePerUnit, multiplier e baseCost
       return NextResponse.json({
         package: {
           ...packageData,
@@ -76,7 +87,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Se NÃO tem packageId, busca todos os pacotes (com filtro de rarity)
+    // Listagem, opcionalmente filtrada por raridade
     let rarityFilter: Rarity | undefined;
     if (rarityParam && rarityParam !== '') {
       const validRarities = Object.values(Rarity);
@@ -103,7 +114,7 @@ export async function GET(request: NextRequest) {
       orderBy: [{ rarity: 'asc' }, { totalCost: 'asc' }],
     });
 
-    // CALCULAR O BASE COST POR RARIDADE (menor totalCost)
+    // Menor custo por raridade (lista já ordenada por custo)
     const baseCosts: Record<string, number> = {};
 
     packages.forEach((pkg) => {
@@ -112,7 +123,6 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // CALCULAR O MULTIPLIER PARA CADA PACOTE
     const packagesWithMultiplier = packages.map((pkg) => {
       const baseCost = baseCosts[pkg.rarity] || pkg.totalCost;
       const multiplier = Number((pkg.totalCost / baseCost).toFixed(2));
@@ -125,7 +135,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Se não especificou rarity, retorna agrupado
+    // Sem filtro de raridade, a resposta vem agrupada
     if (!rarityFilter) {
       const grouped = packagesWithMultiplier.reduce(
         (acc, pkg) => {

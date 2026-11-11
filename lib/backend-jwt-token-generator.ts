@@ -1,19 +1,22 @@
 // lib/backend-jwt-token-generator.ts
+// Geração do JWT enviado ao backend Python, assinado com BACKEND_JWT_SECRET a partir da sessão do
+// NextAuth.
+
 import { SignJWT } from 'jose';
 import { Session } from 'next-auth';
 
-// Configurações
 const JWT_SECRET = process.env.BACKEND_JWT_SECRET;
 const JWT_ALGORITHM = process.env.BACKEND_JWT_ALGORITHM || 'HS256';
 const TOKEN_EXPIRATION = process.env.BACKEND_TOKEN_EXPIRATION || '15m';
 
-// Validação da secret
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET não configurada no ambiente');
 }
 
-// Dados do token. O backend Python só depende de id/publicId/email
-// (nome e username caem no prefixo do email em app/auth/dependencies.py).
+/**
+ * Claims do token. O backend Python depende de id, publicId e email; nome e username usam o
+ * prefixo do email em app/auth/dependencies.py.
+ */
 export interface BackendTokenPayload {
   id: string;
   publicId: string;
@@ -21,6 +24,7 @@ export interface BackendTokenPayload {
   provider: string;
 }
 
+/** Extrai as claims da sessão. Lança erro se faltar id ou email. */
 function extractUserFromSession(session: Session): BackendTokenPayload {
   const user = session?.user;
 
@@ -37,9 +41,8 @@ function extractUserFromSession(session: Session): BackendTokenPayload {
 }
 
 /**
- * Gera um token JWT para comunicação com o backend a partir da sessão do NextAuth
- * @param session - Sessão retornada por auth()
- * @returns Token JWT assinado
+ * Gera o JWT do backend (sub = id do usuário) com validade BACKEND_TOKEN_EXPIRATION (padrão
+ * 15m).
  */
 export async function generateJwtToken(session: Session): Promise<string> {
   const userData = extractUserFromSession(session);

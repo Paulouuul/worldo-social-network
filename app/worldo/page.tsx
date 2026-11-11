@@ -1,16 +1,21 @@
+// app/worldo/page.tsx
+// Página /worldo: tela inicial do usuário logado com boas-vindas e atalhos para cosméticos,
+// moedas e chat.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { LogoutButton } from '@/components/LogoutButton';
 import { Sparkles, UserCircle, Palette, Coins, MessageSquare } from 'lucide-react';
 
+/**
+ * Tela inicial (server component). O nome exibido vem do banco, com o prefixo do email como
+ * alternativa.
+ */
 export default async function Home() {
   const session = await auth();
 
-  // Se não estiver autenticado, redireciona imediatamente.
-  // O Next.js para a execução do componente aqui mesmo.
-
-  // Captura o nome formatado ou o prefixo do email
+  // Nome do usuário ou prefixo do email
   const user = session?.user?.id
     ? await prisma.users.findUnique({ where: { id: session.user.id }, select: { name: true } })
     : null;
@@ -18,10 +23,10 @@ export default async function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-20 relative antialiased text-slate-100 selection:bg-purple-500/30 overflow-hidden sm:overflow-visible">
-      {/* Background Glows (Atmosfera do Dashboard) - Ajustado para mobile */}
+      {/* Brilhos de fundo */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-75 sm:w-150 h-50 sm:h-75 bg-purple-600/15 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none z-0" />
 
-      {/* Banner de Boas-vindas (Card Principal) */}
+      {/* Banner de boas-vindas */}
       <div className="relative z-10 text-center mb-12 sm:mb-16">
         {/* Paddings reduzidos no mobile (p-6) e bordas suavizadas (rounded-2xl) */}
         <div className="bg-slate-900/50 border border-white/6 p-6 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl max-w-3xl mx-auto backdrop-blur-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden">
@@ -67,7 +72,7 @@ export default async function Home() {
       {/* Cards de Funcionalidades */}
       {/* gap-4 no mobile, gap-6 no desktop */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 relative z-10">
-        {/* Card 1: Cosméticos */}
+        {/* Card: Cosméticos */}
         {/* Paddings menores (p-6) em telas pequenas */}
         <div className="bg-slate-900/40 border border-white/4 p-6 sm:p-8 rounded-2xl backdrop-blur-sm shadow-xl hover:-translate-y-1 hover:bg-slate-900/60 hover:border-purple-500/30 transition-all duration-300 group">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 group-hover:bg-pink-500/20 transition-all duration-300">
@@ -81,7 +86,7 @@ export default async function Home() {
           </p>
         </div>
 
-        {/* Card 2: Moedas Virtuais */}
+        {/* Card: Moedas virtuais */}
         <div className="bg-slate-900/40 border border-white/4 p-6 sm:p-8 rounded-2xl backdrop-blur-sm shadow-xl hover:-translate-y-1 hover:bg-slate-900/60 hover:border-amber-500/30 transition-all duration-300 group">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all duration-300">
             <Coins className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
@@ -95,7 +100,7 @@ export default async function Home() {
           </p>
         </div>
 
-        {/* Card 3: Chat Social */}
+        {/* Card: Chat social */}
         <div className="bg-slate-900/40 border border-white/4 p-6 sm:p-8 rounded-2xl backdrop-blur-sm shadow-xl hover:-translate-y-1 hover:bg-slate-900/60 hover:border-blue-500/30 transition-all duration-300 group">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all duration-300">
             <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />

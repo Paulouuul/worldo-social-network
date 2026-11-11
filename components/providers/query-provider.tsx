@@ -1,4 +1,6 @@
 // components/providers/query-provider.tsx
+// Provider do React Query: cria o QueryClient com os padrões do app, limpa o cache na troca de
+// usuário e inclui o React Query Devtools.
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -6,7 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 
-/** Limpa todo o cache quando o usuário troca (logout/login com outra conta). */
+/** Limpa todo o cache quando o usuário da sessão muda (logout ou login com outra conta). */
 function ClearCacheOnUserChange({ client }: { client: QueryClient }) {
   const { data: session, status } = useSession();
   const userId = status === 'loading' ? undefined : (session?.user?.id ?? null);
@@ -23,6 +25,10 @@ function ClearCacheOnUserChange({ client }: { client: QueryClient }) {
   return null;
 }
 
+/**
+ * QueryClientProvider com padrões: staleTime 30s, gcTime 5min, 1 retentativa e revalidação ao
+ * focar.
+ */
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [client] = useState(
     () =>

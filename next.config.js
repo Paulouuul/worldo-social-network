@@ -1,3 +1,7 @@
+// next.config.js
+// Configuração do Next.js: URLs com barra final, imagens sem otimização (com domínios remotos
+// permitidos) e build sem bloquear em erros de TypeScript.
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,

@@ -1,8 +1,17 @@
+// app/api/worldo/cosmetics/listings/update-price/route.ts
+// Rota /api/worldo/cosmetics/listings/update-price: altera o preço de um anúncio do próprio
+// usuário.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { syncToListing } from '@/lib/prisma-sync';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * PATCH /api/worldo/cosmetics/listings/update-price — define { priceCoins } (até 1.000.000) no
+ * anúncio { listingId } e nas suas unidades, em transação, e sincroniza o Elasticsearch. 403 se
+ * o anúncio não for do usuário.
+ */
 export async function PATCH(request: NextRequest) {
   try {
     const MAX_PRICE = 1000000;
@@ -24,7 +33,6 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Campos inválidos' }, { status: 400 });
     }
 
-    // Buscar o anúncio
     console.log('[UPDATE PRICE] Buscando listing...');
     const listing = await prisma.cosmetic_listing.findUnique({
       where: { id: listingId },
@@ -50,7 +58,6 @@ export async function PATCH(request: NextRequest) {
     console.log('[UPDATE PRICE] Iniciando transação PostgreSQL...');
 
     const updatedListing = await prisma.$transaction(async (tx) => {
-      // Atualizar preço do anúncio
       console.log('[UPDATE PRICE] Atualizando preço do listing...');
       const updated = await tx.cosmetic_listing.update({
         where: { id: listingId },
@@ -61,7 +68,7 @@ export async function PATCH(request: NextRequest) {
       });
       console.log('[UPDATE PRICE] Listing atualizado:', updated.id);
 
-      // Atualizar o preço nos itens associados
+      // Preço de revenda das unidades do anúncio
       console.log('[UPDATE PRICE] Atualizando preço dos itens...');
       const updateResult = await tx.user_frame_item.updateMany({
         where: { listingId: listingId },

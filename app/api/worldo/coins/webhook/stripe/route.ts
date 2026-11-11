@@ -1,3 +1,7 @@
+// app/api/worldo/coins/webhook/stripe/route.ts
+// Rota /api/worldo/coins/webhook/stripe: webhook do Stripe que credita as moedas compradas quando
+// o checkout é concluído.
+
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
@@ -5,6 +9,14 @@ import { prisma } from '@/lib/prisma';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+/**
+ * POST /api/worldo/coins/webhook/stripe — valida a assinatura do Stripe e, em
+ * checkout.session.completed, credita as moedas.
+ *
+ * Idempotente pelo stripeSessionId. Em uma única transação registra a coin_purchase, incrementa
+ * o saldo e grava a coin_transaction com o saldo resultante. Erro de banco retorna 500 para o
+ * Stripe reenviar; outros eventos são ignorados com 200.
+ */
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -22,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  // Processa apenas o evento de checkout finalizado com sucesso
+  // Apenas checkout concluído credita moedas
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const { userId, packageId, coins } = session.metadata || {};
@@ -38,17 +50,17 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // 1. DEFESA DE IDEMPOTÊNCIA: Verifica se este pagamento já foi processado antes
+      // Idempotência: sessão já processada não credita de novo
       const existingPurchase = await prisma.coin_purchase.findFirst({
         where: { stripeSessionId: session.id },
       });
 
       if (existingPurchase) {
-        // Retorna status 200 para o Stripe parar de reenviar este mesmo evento
+        // 200 faz o Stripe parar de reenviar o evento
         return NextResponse.json({ received: true, message: 'Already processed' });
       }
 
-      // 2. Buscar o pacote de moedas para auditar o preço histórico
+      // Pacote comprado (preço registrado na compra)
       const coinPackage = await prisma.coin_package.findUnique({
         where: { id: packageId },
       });
@@ -58,9 +70,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Package not found' }, { status: 400 });
       }
 
-      // 3. Execução Atômica Completa (Transação Interativa)
+      // Compra, saldo e histórico na mesma transação
       await prisma.$transaction(async (tx) => {
-        // A) Salva o registro da compra do pacote
+        // Registro da compra
         const coinPurchase = await tx.coin_purchase.create({
           data: {
             userId,
@@ -74,19 +86,19 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // B) Incrementa o saldo diretamente no banco e captura os dados atualizados do usuário
+        // Incremento atômico do saldo
         const updatedUser = await tx.users.update({
           where: { id: userId },
           data: { coins: { increment: coinsToCredit } },
           select: { coins: true },
         });
 
-        // C) Cria o histórico log financeiro utilizando o saldo em tempo real retornado pelo banco (Sem Race Conditions)
+        // Histórico financeiro com o saldo resultante do incremento
         await tx.coin_transaction.create({
           data: {
             userId,
             amount: coinsToCredit,
-            balance: updatedUser.coins, // Saldo preciso gerado no passo B
+            balance: updatedUser.coins,
             type: 'purchase',
             description: `Compra de ${coinsToCredit.toString()} moedas`,
             stripePaymentId: session.id,
@@ -96,11 +108,11 @@ export async function POST(request: NextRequest) {
       });
     } catch (dbError) {
       console.error('Falha crítica ao persistir dados do pagamento no banco:', dbError);
-      // Retorna 500 para que o Stripe guarde o evento na fila e tente enviá-lo novamente mais tarde
+      // 500 faz o Stripe reenviar o evento mais tarde
       return NextResponse.json({ error: 'Database transaction failed' }, { status: 500 });
     }
   }
 
-  // Retorna sucesso para qualquer outro tipo de evento que você não queira processar (ex: checkout.session.expired)
+  // Demais eventos (ex.: checkout.session.expired) são apenas confirmados
   return NextResponse.json({ received: true });
 }

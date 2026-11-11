@@ -1,4 +1,6 @@
 // components/InventoryVirtualized.tsx
+// Grade virtualizada do inventário: cards dos grupos de itens (por moldura ou por anúncio) com
+// selos de "à venda" e "equipado".
 'use client';
 
 import { Store, CheckCircle, Package } from 'lucide-react';
@@ -7,6 +9,7 @@ import { formatItemCount } from '@/lib/format-utils';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
 import { VirtualizedPagedGrid, type PagedSource } from '@/components/VirtualizedPagedGrid';
 
+/** Grupo do inventário retornado por /api/worldo/cosmetics/inventory/grouped. */
 export interface GroupedItem {
   id: string;
   frameId: string;
@@ -27,16 +30,19 @@ export interface GroupedItem {
   };
 }
 
+/** Página da API de inventário agrupado. */
 export interface InventoryPage {
   items: GroupedItem[];
   pagination?: { totalItems: number };
 }
 
+/** Extrai itens e total de uma página do inventário para a grade. */
 export const selectInventory = (page: InventoryPage) => ({
   items: page.items || [],
   total: page.pagination?.totalItems || 0,
 });
 
+/** Colunas da grade conforme a largura da janela (2 a 8). */
 const columnsForWidth = (width: number) => {
   if (width < 480) return 2;
   if (width < 640) return 3;
@@ -46,15 +52,18 @@ const columnsForWidth = (width: number) => {
   return 8;
 };
 
-// Card: h-48 = 192px (mobile) | h-52 = 208px; +16px de espaçamento vertical
+/** Altura da linha: card h-48/h-52 (192/208px) + 16px de espaçamento. */
 const rowHeight = (isMobile: boolean) => (isMobile ? 192 : 208) + 16;
 
+/** Card de esqueleto para itens de páginas ainda não carregadas. */
 const ItemSkeleton = () => (
   <div className="h-48 sm:h-52 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse" />
 );
 
+/** Estilos por raridade com o selo posicionado abaixo da imagem. */
 const rarityDesigns = getRarityDesigns('bottom-2');
 
+/** Card de um grupo do inventário; abre o modal de ações ao clicar. */
 const InventoryItem = ({
   item,
   onClick,
@@ -71,11 +80,11 @@ const InventoryItem = ({
         item.isListed ? 'ring-1 ring-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.08)]' : ''
       }`}
     >
-      {/* Efeitos de fundo da Raridade */}
+      {/* Efeitos de fundo da raridade */}
       {config.bgDecoration}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05]" />
 
-      {/* Header: Tags e Quantidade */}
+      {/* Selos e quantidade */}
       <div className="w-full flex justify-between items-start z-20 mb-1 gap-1 min-h-6">
         <div className="flex flex-col gap-1">
           {item.isListed && (
@@ -113,10 +122,10 @@ const InventoryItem = ({
         </div>
       </div>
 
-      {/* Badge de Raridade */}
+      {/* Selo de raridade */}
       <div className="relative w-full flex justify-center z-20 mt-1 mb-2 h-6">{config.badge}</div>
 
-      {/* Nome do Item */}
+      {/* Nome da moldura */}
       <div className="w-full z-10 pt-1.5 border-t border-slate-800/40 flex flex-col items-center">
         <span
           className={`block text-[10px] sm:text-xs text-center px-1 truncate w-full drop-shadow-md ${config.textClass}`}
@@ -128,11 +137,13 @@ const InventoryItem = ({
   );
 };
 
+/** Propriedades da grade: fonte paginada e callback de clique no item. */
 interface Props {
   source: PagedSource<GroupedItem, InventoryPage>;
   onItemClick: (item: GroupedItem) => void;
 }
 
+/** Grade do inventário sobre o VirtualizedPagedGrid, com esqueletos e estado vazio. */
 export function InventoryVirtualized({ source, onItemClick }: Props) {
   return (
     <VirtualizedPagedGrid

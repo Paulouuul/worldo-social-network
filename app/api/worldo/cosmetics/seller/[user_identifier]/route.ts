@@ -1,9 +1,20 @@
-// app/api/cosmetics/seller/[user_identifier]/route.ts
+// app/api/worldo/cosmetics/seller/[user_identifier]/route.ts
+// Rota /api/worldo/cosmetics/seller/[user_identifier]: loja de um vendedor (perfil + anúncios
+// ativos paginados), consultada no PostgreSQL.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { Rarity, Prisma } from '@prisma/client';
 
+/**
+ * GET /api/worldo/cosmetics/seller/:usernameOuPublicId — dados do vendedor e seus anúncios
+ * ativos com estoque.
+ *
+ * Query: rarity, search (nome/descrição da moldura, nome/username do criador), sort
+ * (newest|oldest|price_asc|price_desc), page e limit. Inclui ownedFrameIds (molduras da página
+ * que o usuário já possui). 404 se o vendedor não existir.
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { user_identifier: string } },
@@ -12,7 +23,6 @@ export async function GET(
     const session = await auth();
     const { searchParams } = new URL(request.url);
 
-    // Parâmetros de filtro
     const { user_identifier } = await params;
     const rarityParam = searchParams.get('rarity');
     const sort = searchParams.get('sort') || 'newest';
@@ -25,12 +35,11 @@ export async function GET(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    // VALIDAÇÃO: user_identifier é obrigatório
     if (!user_identifier) {
       return NextResponse.json({ error: 'Vendedor não encontrado' }, { status: 400 });
     }
 
-    // Buscar o usuário pelo username ou publicId
+    // Vendedor por username ou publicId
     const seller = await prisma.users.findFirst({
       where: {
         OR: [{ username: user_identifier }, { publicId: user_identifier }],
@@ -56,14 +65,13 @@ export async function GET(
       return NextResponse.json({ error: 'Vendedor não encontrado' }, { status: 404 });
     }
 
-    // Construir where clause para o Prisma usando o ID do vendedor encontrado
+    // Anúncios ativos e com estoque do vendedor
     const where: Prisma.cosmetic_listingWhereInput = {
       isActive: true,
       quantity: { gt: 0 },
       sellerId: seller.id,
     };
 
-    // Filtrar por raridade
     if (rarityParam && rarityParam !== 'all') {
       const validRarities = Object.values(Rarity);
       if (validRarities.includes(rarityParam as Rarity)) {
@@ -115,7 +123,6 @@ export async function GET(
       ];
     }
 
-    // Determinar ordenação
     let orderBy: Prisma.cosmetic_listingOrderByWithRelationInput = {};
     switch (sort) {
       case 'price_asc':
@@ -127,14 +134,12 @@ export async function GET(
       case 'oldest':
         orderBy = { createdAt: 'asc' };
         break;
-      default: // 'newest'
+      default:
         orderBy = { createdAt: 'desc' };
     }
 
-    // Buscar total de itens para paginação
     const total = await prisma.cosmetic_listing.count({ where });
 
-    // Buscar listings com todos os relacionamentos
     const listings = await prisma.cosmetic_listing.findMany({
       where,
       skip: from,
@@ -166,7 +171,7 @@ export async function GET(
       },
     });
 
-    // Verificar se o usuário já possui cada item
+    // Molduras da página que o usuário já possui
     let ownedFrameIds: string[] = [];
     if (session?.user?.id && listings.length > 0) {
       const frameIds = listings.map((listing) => listing.frameId);
@@ -182,7 +187,6 @@ export async function GET(
 
     const hasMore = from + limit < total;
 
-    // Formatar resposta
     const formattedListings = listings.map((listing) => ({
       id: listing.id,
       frameId: listing.frameId,
@@ -214,7 +218,6 @@ export async function GET(
       },
     }));
 
-    // Retornar também informações do vendedor
     return NextResponse.json({
       seller: {
         id: seller.publicId,

@@ -1,3 +1,6 @@
+// app/worldo/cosmetics/marketplace/cart/page.tsx
+// Página /worldo/cosmetics/marketplace/cart: carrinho de compras (backend Python) com alteração
+// de quantidade, remoção, limpeza e validação antes do checkout.
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -26,6 +29,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
+/** Item do carrinho com dados do anúncio. */
 interface CartItem {
   id: string;
   listing_id: string;
@@ -47,6 +51,7 @@ interface CartItem {
   in_stock: boolean;
 }
 
+/** Carrinho com itens e totais. */
 interface CartData {
   user_id: string;
   total_items: number;
@@ -55,9 +60,13 @@ interface CartData {
   items: CartItem[];
 }
 
-// Usamos a configuração base para carregar os badges e classes
+/** Estilos por raridade na variante estática (selos e classes). */
 const rarityDesigns = getRarityDesigns('static');
 
+/**
+ * Carrinho sempre buscado do servidor. Cada alteração invalida carrinho, resumo do Header e
+ * quantidades por item; carrinho vazio na primeira carga redireciona para /worldo.
+ */
 export default function CartPage() {
   const router = useRouter();
 
@@ -74,7 +83,7 @@ export default function CartPage() {
   const loading = cartQuery.isPending;
   const error = actionError || (cartQuery.error ? 'Erro ao carregar carrinho' : '');
 
-  // Recarrega carrinho, resumo do Header e quantidades por item
+  /** Recarrega carrinho, resumo do Header e quantidades por item. */
   const refreshCart = () => invalidate.cart(queryClient);
 
   // Carrinho vazio na primeira carga: volta para o início
@@ -87,6 +96,7 @@ export default function CartPage() {
     }
   }, [cartQuery.isSuccess, cart, router]);
 
+  /** Altera a quantidade do item (0 remove); mostra o máximo disponível quando excede o estoque. */
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 0) return;
     if (newQuantity === 0) {
@@ -118,6 +128,7 @@ export default function CartPage() {
     }
   };
 
+  /** Remove o item do carrinho. */
   const handleRemoveItem = async (itemId: string) => {
     setError('');
     try {
@@ -137,6 +148,7 @@ export default function CartPage() {
     }
   };
 
+  /** Esvazia o carrinho. */
   const handleClearCart = async () => {
     setSubmitting(true);
     setError('');
@@ -163,6 +175,7 @@ export default function CartPage() {
     }
   };
 
+  /** Valida o carrinho no backend e segue para o checkout; em erro, recarrega o carrinho. */
   const handleValidate = async () => {
     setSubmitting(true);
     setError('');
@@ -195,6 +208,7 @@ export default function CartPage() {
     return <LoadingSpinner text="Carregando Carrinho..." />;
   }
 
+  /** Estilos da raridade do item (COMUM como padrão). */
   const getItemConfig = (rarity: string | undefined) => {
     return rarityDesigns[rarity?.toUpperCase() || ''] || rarityDesigns.COMUM;
   };
@@ -203,7 +217,7 @@ export default function CartPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 relative">
-      {/* Modal de Limpeza */}
+      {/* Modal de confirmação para esvaziar */}
       {isClearModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center text-center">
@@ -233,7 +247,7 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-black text-slate-200 flex items-center gap-3">
@@ -273,9 +287,9 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* Grid: Items + Resumo */}
+      {/* Itens e resumo */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Lista de itens ou Mensagem Vazia */}
+        {/* Lista de itens ou carrinho vazio */}
         <div className="lg:col-span-2 space-y-4">
           {isEmpty ? (
             <div className="flex flex-col items-center justify-center min-h-[40vh] text-center bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
@@ -313,12 +327,12 @@ export default function CartPage() {
                         : config.cardClass || 'border-slate-800 bg-slate-900/50'
                   }`}
                 >
-                  {/* Efeitos de Fundo (Mesmo do Marketplace) */}
+                  {/* Efeitos de fundo da raridade */}
                   {!isOutOfStock && config.bgDecoration}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none z-0" />
 
                   <div className="relative z-10 flex flex-col sm:flex-row gap-5 sm:items-center">
-                    {/* Esquerda: Imagem + Badge de Raridade */}
+                    {/* Imagem e selo de raridade */}
                     <div className="shrink-0 flex flex-col items-center">
                       <div
                         className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center shadow-xl transition-transform duration-500 sm:group-hover:scale-105 ${config.borderClass || 'border-slate-700'}`}
@@ -333,13 +347,13 @@ export default function CartPage() {
                         />
                       </div>
 
-                      {/* Pílula de Raridade Substituindo o Texto Antigo */}
+                      {/* Selo de raridade */}
                       <div className="relative w-full flex justify-center z-20 -mt-3 h-6">
                         {config.badge}
                       </div>
                     </div>
 
-                    {/* Direita: Informações */}
+                    {/* Informações do item */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -371,7 +385,7 @@ export default function CartPage() {
                           )}
                         </div>
 
-                        {/* Tag de Preço com estilo Marketplace (Glassmorphism + Neon) */}
+                        {/* Preço */}
                         <span className="flex items-center gap-1.5 text-sm sm:text-base font-black text-amber-400 bg-amber-950/90 border border-amber-500/40 px-3 py-1.5 rounded-lg shadow-[0_0_10px_rgba(245,158,11,0.2)] tracking-wider backdrop-blur-sm shrink-0 mt-2 sm:mt-0">
                           <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
                           {formatPrice(item.price)}
@@ -427,7 +441,7 @@ export default function CartPage() {
           )}
         </div>
 
-        {/* Resumo / Checkout */}
+        {/* Resumo e botão de checkout */}
         <div className="lg:col-span-1">
           <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-xl sticky top-24">
             <h2 className="text-lg font-black text-slate-200 mb-6 flex items-center gap-2">

@@ -1,8 +1,15 @@
-// app/api/cosmetics/listings/[listing_id]/route.ts
+// app/api/worldo/cosmetics/listings/[listing_id]/route.ts
+// Rota /api/worldo/cosmetics/listings/[listing_id]: detalhes de um anúncio ativo do marketplace.
+
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
 
+/**
+ * GET /api/worldo/cosmetics/listings/:id — anúncio ativo com estoque, moldura, criador,
+ * vendedor (publicId como id), até 12 outros anúncios do vendedor e se é do próprio usuário.
+ * 404 se inativo ou esgotado.
+ */
 export async function GET(request: Request, { params }: { params: { listing_id: string } }) {
   try {
     const session = await auth();
@@ -11,7 +18,7 @@ export async function GET(request: Request, { params }: { params: { listing_id: 
     }
     const { listing_id } = await params;
 
-    // 1. Buscar o anúncio específico
+    // Anúncio ativo com estoque
     const listing = await prisma.cosmetic_listing.findUnique({
       where: {
         id: listing_id,
@@ -59,7 +66,7 @@ export async function GET(request: Request, { params }: { params: { listing_id: 
       );
     }
 
-    // 2. Buscar outros anúncios do mesmo vendedor
+    // Outros anúncios ativos do mesmo vendedor
     const sellerOtherListings = await prisma.cosmetic_listing.findMany({
       where: {
         sellerId: listing.sellerId,

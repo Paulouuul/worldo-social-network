@@ -1,19 +1,23 @@
 // components/VirtualizedPagedGrid.tsx
-// Grade virtualizada com paginação sob demanda.
-// - A altura do scroll é calculada a partir do `total` informado pela API.
-// - Apenas as páginas que cobrem as linhas visíveis (+ meia página de folga) são buscadas.
-// - Páginas que saem da tela perdem observadores e o React Query as remove da memória após `gcTime`.
+// Grade virtualizada com paginação sob demanda. A altura do scroll vem do `total` da API, apenas
+// as páginas que cobrem as linhas visíveis (com meia página de folga) são buscadas, e páginas
+// fora da tela são removidas da memória pelo React Query após o `gcTime`.
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { hashKey, useQueries, useQuery, type QueryKey } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
+/** Itens de uma página e total geral da listagem. */
 export interface PageSlice<T> {
   items: T[];
   total: number;
 }
 
+/**
+ * Fonte de dados paginada: chave base, tamanho da página, busca, seleção dos itens e política
+ * de cache.
+ */
 export interface PagedSource<T, P> {
   /** Chave base (filtros incluídos). A página é acrescentada ao fim. */
   baseKey: QueryKey;
@@ -24,7 +28,10 @@ export interface PagedSource<T, P> {
   enabled?: boolean;
 }
 
-/** Opções de query de uma página. Exportado para que a tela possa ler a página 1 (ex.: dados do vendedor). */
+/**
+ * Opções de query de uma página. Usado pela grade e por telas que leem a página 1 (ex.: dados
+ * do vendedor).
+ */
 export function pageQueryOptions<T, P>(source: PagedSource<T, P>, page: number) {
   return {
     queryKey: [...source.baseKey, 'page', page] as const,
@@ -34,10 +41,14 @@ export function pageQueryOptions<T, P>(source: PagedSource<T, P>, page: number) 
   };
 }
 
+/**
+ * Propriedades da grade: fonte, layout responsivo, renderização dos itens e estados de
+ * carregamento/vazio.
+ */
 interface Props<T, P> {
   source: PagedSource<T, P>;
   columnsForWidth: (width: number) => number;
-  /** Altura da linha (card + espaçamento vertical) */
+  /** Altura da linha (card + espaçamento vertical). */
   rowHeight: (isMobile: boolean) => number;
   rowPadding?: string;
   getItemKey: (item: T) => string;
@@ -47,10 +58,12 @@ interface Props<T, P> {
   emptyState: ReactNode;
 }
 
+/** Número de colunas e se a tela é mobile (< 640px), atualizados no resize. */
 function useViewport(columnsForWidth: (width: number) => number) {
   const [state, setState] = useState({ columns: 4, isMobile: false });
 
   useEffect(() => {
+    /** Recalcula colunas e modo mobile, mantendo o estado quando nada mudou. */
     const update = () => {
       const width = window.innerWidth;
       setState((prev) => {
@@ -66,6 +79,10 @@ function useViewport(columnsForWidth: (width: number) => number) {
   return state;
 }
 
+/**
+ * Renderiza a grade virtualizada buscando só as páginas necessárias para as linhas visíveis.
+ * Itens de páginas ainda não carregadas aparecem como esqueleto.
+ */
 export function VirtualizedPagedGrid<T, P>({
   source,
   columnsForWidth,

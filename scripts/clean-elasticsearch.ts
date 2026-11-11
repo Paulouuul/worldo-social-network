@@ -1,13 +1,17 @@
 // scripts/clean-elasticsearch.ts
+// Script de manutenção: remove do Elasticsearch os documentos de anúncios que não estão mais
+// ativos no PostgreSQL. Executar com: npx tsx scripts/clean-elasticsearch.ts
+
 import 'dotenv/config';
 import { prisma } from '../lib/prisma';
 import { esClient, LISTINGS_INDEX } from '../lib/elasticsearch';
 
+/** Compara os ids do índice com os anúncios ativos no banco e apaga os órfãos em lotes. */
 async function cleanElasticsearch() {
   console.log('Starting Elasticsearch cleanup...');
 
   try {
-    // Buscar todos os IDs de listagens ativas no PostgreSQL
+    // Ids dos anúncios ativos no PostgreSQL
     const activeListings = await prisma.cosmetic_listing.findMany({
       where: {
         isActive: true,
@@ -19,7 +23,7 @@ async function cleanElasticsearch() {
     const activeIds = new Set(activeListings.map((l) => l.id));
     console.log(`Found ${activeIds.size} active listings in PostgreSQL`);
 
-    // Buscar todos os IDs no Elasticsearch
+    // Ids presentes no Elasticsearch
     const result = await esClient.search({
       index: LISTINGS_INDEX,
       size: 10000,
@@ -27,14 +31,14 @@ async function cleanElasticsearch() {
       fields: ['id'],
     });
 
-    // Filtra apenas os IDs que existem (removendo undefined)
+    // Descarta ids indefinidos
     const elasticIds = result.hits.hits
       .map((hit) => hit._id)
       .filter((id): id is string => id !== undefined);
 
     console.log(`Found ${elasticIds.length} documents in Elasticsearch`);
 
-    // Encontrar IDs que estão no Elasticsearch mas não no PostgreSQL
+    // Ids no índice sem anúncio ativo correspondente
     const idsToRemove = elasticIds.filter((id) => !activeIds.has(id));
     console.log(`Found ${idsToRemove.length} documents to remove`);
 
@@ -43,7 +47,7 @@ async function cleanElasticsearch() {
       return;
     }
 
-    // Remover em lotes para evitar sobrecarga
+    // Remove em lotes
     const batchSize = 100;
     for (let i = 0; i < idsToRemove.length; i += batchSize) {
       const batch = idsToRemove.slice(i, i + batchSize);
@@ -63,7 +67,7 @@ async function cleanElasticsearch() {
 
     console.log(`Successfully removed ${idsToRemove.length} stale documents`);
 
-    // Verificar total no Elasticsearch
+    // Total restante no índice
     const count = await esClient.count({ index: LISTINGS_INDEX });
     console.log(`Total documents in Elasticsearch: ${count.count}`);
   } catch (error) {

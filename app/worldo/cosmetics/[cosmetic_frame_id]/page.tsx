@@ -1,3 +1,6 @@
+// app/worldo/cosmetics/[cosmetic_frame_id]/page.tsx
+// Página /worldo/cosmetics/[cosmetic_frame_id]: detalhes de uma moldura (criador, estatísticas,
+// ofertas à venda e avaliações).
 'use client';
 
 import { useState } from 'react';
@@ -11,6 +14,7 @@ import { ClientImage } from '@/components/ClientImage';
 import { RARITY, getRarityDesigns } from '@/constants/cosmeticRarity';
 import { Star, ShoppingBag, Users, Coins, User } from 'lucide-react';
 
+/** Moldura retornada por /api/worldo/cosmetics/[id]. */
 interface FrameData {
   id: string;
   name: string;
@@ -59,6 +63,7 @@ interface FrameData {
   totalListings: number;
 }
 
+/** Detalhe da moldura; estoque e preços das ofertas são buscados sem cache. */
 export default function CosmeticDetailPage() {
   const { data: session } = useSession();
   const params = useParams();
@@ -77,6 +82,10 @@ export default function CosmeticDetailPage() {
   const frame = frameQuery.data ?? null;
   const loading = frameQuery.isPending;
 
+  /**
+   * Envia a compra da oferta selecionada para POST /api/worldo/cosmetics/buy, rota que não
+   * existe no projeto (a compra do marketplace é feita pelo carrinho/checkout).
+   */
   const handleBuy = async () => {
     if (!selectedListing) return;
     try {
@@ -100,6 +109,7 @@ export default function CosmeticDetailPage() {
     }
   };
 
+  /** Classes de borda e fundo da raridade. */
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case 'COMUM':
@@ -115,6 +125,7 @@ export default function CosmeticDetailPage() {
     }
   };
 
+  /** Classe de cor do texto da raridade. */
   const getRarityTextColor = (rarity: string) => {
     switch (rarity) {
       case 'COMUM':
@@ -130,6 +141,7 @@ export default function CosmeticDetailPage() {
     }
   };
 
+  /** Renderiza 5 estrelas preenchidas até a nota informada. */
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center gap-0.5">

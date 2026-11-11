@@ -1,10 +1,12 @@
 // lib/prisma-sync.ts
+// Sincronização de anúncios do PostgreSQL para o Elasticsearch.
+
 import { esClient, LISTINGS_INDEX } from './elasticsearch';
 import { baseClient } from './prisma';
 
-// Se
 /**
- * Busca os dados completos no banco e envia para o Elasticsearch
+ * Lê o anúncio (com moldura, criador e vendedor) no banco — ou na transação `tx` informada — e
+ * indexa o documento no Elasticsearch. Erros são registrados sem lançar.
  */
 export async function syncToListing(listingId: string, tx?: any) {
   try {
@@ -62,9 +64,7 @@ export async function syncToListing(listingId: string, tx?: any) {
   }
 }
 
-/**
- * Remove o documento do Elasticsearch
- */
+/** Remove o documento do anúncio do Elasticsearch. Erros são registrados sem lançar. */
 export async function removeFromElasticsearch(listingId: string) {
   try {
     await esClient.delete({

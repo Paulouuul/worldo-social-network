@@ -1,11 +1,17 @@
 // components/GlobalMediaProtector.tsx
+// Proteção global de mídia: bloqueia menu de contexto e arraste em imagens/vídeos e desativa
+// download e picture-in-picture de vídeos.
 'use client';
 
 import { useEffect } from 'react';
 
+/**
+ * Aplica a proteção de mídia no documento inteiro, inclusive em elementos adicionados depois
+ * (MutationObserver).
+ */
 export function GlobalMediaProtector() {
   useEffect(() => {
-    // 1. Impede clique direito em imagens/vídeos
+    /** Bloqueia o menu de contexto (clique direito) sobre imagens e vídeos. */
     const handleContextMenu = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (
@@ -19,7 +25,7 @@ export function GlobalMediaProtector() {
       }
     };
 
-    // 2. Impede arrastar imagens
+    /** Bloqueia o arraste de imagens. */
     const handleDragStart = (e: DragEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName === 'IMG' || target.closest('img')) {
@@ -28,7 +34,10 @@ export function GlobalMediaProtector() {
       }
     };
 
-    // 3. Adiciona atributos de proteção (sem modificar style)
+    /**
+     * Marca imagens como não arrastáveis e vídeos sem download/picture-in-picture (sem alterar
+     * estilos).
+     */
     const protectMedia = () => {
       // Imagens
       const images = document.querySelectorAll('img');
@@ -50,10 +59,10 @@ export function GlobalMediaProtector() {
       });
     };
 
-    // Aplica proteção inicial
+    // Protege a mídia já presente
     protectMedia();
 
-    // Observer para novos elementos
+    // Protege mídias adicionadas depois
     const observer = new MutationObserver(() => {
       protectMedia();
     });
@@ -63,7 +72,6 @@ export function GlobalMediaProtector() {
       subtree: true,
     });
 
-    // Adiciona event listeners
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('dragstart', handleDragStart);
 

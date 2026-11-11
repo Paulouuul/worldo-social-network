@@ -1,8 +1,16 @@
+// app/api/worldo/coins/packages/route.ts
+// Rota /api/worldo/coins/packages: lista os pacotes de moedas ativos.
+
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
+/** Revalidação do cache da rota (segundos). */
 export const revalidate = 3600;
 
+/**
+ * GET /api/worldo/coins/packages — pacotes ativos ordenados por quantidade de moedas (moedas e
+ * bônus convertidos de BigInt para número).
+ */
 export async function GET() {
   try {
     const packages = await prisma.coin_package.findMany({

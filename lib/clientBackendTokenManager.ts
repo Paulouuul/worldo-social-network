@@ -1,35 +1,39 @@
-// lib/backendTokenManager.ts
+// lib/clientBackendTokenManager.ts
+// Gerenciador do JWT do backend no navegador: busca o token em /api/auth/back/token, reutiliza
+// enquanto válido (com 2 minutos de margem) e evita requisições simultâneas.
+
+/** Cache em memória do JWT do backend para o navegador. */
 class clientBackendTokenManager {
   private token: string | null = null;
   private expiryTime: number = 0;
   private isGenerating: boolean = false;
   private generatePromise: Promise<string> | null = null;
 
-  // Configurações
+  // Validade do token (BACKEND_TOKEN_EXPIRATION em minutos) e margem de renovação
   private readonly TOKEN_EXPIRY_MS =
     (Number(process.env.BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
   private readonly SAFETY_MARGIN_MS = 2 * 60 * 1000;
 
   /**
-   * Obtém um token válido. Se expirou ou não existe, gera um novo.
-   * Só gera quando realmente precisa.
+   * Retorna o token em cache ou busca um novo; chamadas concorrentes compartilham a mesma
+   * requisição.
    */
   async getToken(): Promise<string> {
     const now = Date.now();
 
-    // Se token existe e ainda é válido, retorna
+    // Token em cache ainda válido
     if (this.token && now < this.expiryTime - this.SAFETY_MARGIN_MS) {
       console.log('[TokenManager] Token válido, reutilizando');
       return this.token;
     }
 
-    // Se já está gerando um token, aguarda
+    // Requisição de token já em andamento
     if (this.isGenerating && this.generatePromise) {
       console.log('[TokenManager] Aguardando token sendo gerado...');
       return this.generatePromise;
     }
 
-    // Gera novo token via API
+    // Busca um novo token na API do Next.js
     console.log('[TokenManager] Gerando novo token JWT...');
     this.isGenerating = true;
 
@@ -68,9 +72,7 @@ class clientBackendTokenManager {
     return this.generatePromise;
   }
 
-  /**
-   * Força renovação do token (ex: quando der 401)
-   */
+  /** Descarta o token em cache (ex.: após 401). */
   invalidate(): void {
     console.log('[TokenManager] Invalidando token...');
     this.token = null;
@@ -79,18 +81,14 @@ class clientBackendTokenManager {
     this.generatePromise = null;
   }
 
-  /**
-   * Verifica se o token é válido sem gerar um novo
-   */
+  /** Indica se o token em cache ainda vale, considerando a margem de segurança. */
   isValid(): boolean {
     if (!this.token) return false;
     const now = Date.now();
     return now < this.expiryTime - this.SAFETY_MARGIN_MS;
   }
 
-  /**
-   * Retorna o tempo restante do token em segundos
-   */
+  /** Segundos restantes até o token expirar (0 sem token). */
   getTimeRemaining(): number {
     if (!this.token) return 0;
     const remaining = (this.expiryTime - Date.now()) / 1000;
@@ -98,4 +96,5 @@ class clientBackendTokenManager {
   }
 }
 
+/** Instância única usada pelo backendApiCall. */
 export const clientTokenManager = new clientBackendTokenManager();

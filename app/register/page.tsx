@@ -1,3 +1,6 @@
+// app/register/page.tsx
+// Página /register: cadastro com email e senha. Valida os campos no cliente (as mesmas regras da
+// API) e chama /api/register, que envia o email de verificação.
 'use client';
 
 import { useState } from 'react';
@@ -16,6 +19,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
+/** Formulário de cadastro com validação por campo e redirecionamento para /login após o sucesso. */
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -28,14 +32,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   useSession();
 
-  // CONSTANTES DE VALIDAÇÃO
+  // Limites de validação (iguais aos da API)
   const MAX_NAME_LENGTH = 50;
   const MIN_NAME_LENGTH = 3;
   const MAX_USERNAME_LENGTH = 30;
   const MIN_USERNAME_LENGTH = 3;
   const MIN_PASSWORD_LENGTH = 6;
 
-  // ESTADOS DE ERRO POR CAMPO
+  // Erro de validação de cada campo
   const [fieldErrors, setFieldErrors] = useState({
     email: '',
     username: '',
@@ -44,7 +48,7 @@ export default function RegisterPage() {
     confirmPassword: '',
   });
 
-  // FUNÇÕES DE VALIDAÇÃO
+  /** Valida o formato do email. */
   const validateEmail = (value: string) => {
     if (!value) return 'Email é obrigatório';
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,6 +56,7 @@ export default function RegisterPage() {
     return '';
   };
 
+  /** Valida o username: 3–30 caracteres com letras, números e underscore. */
   const validateUsername = (value: string) => {
     if (!value) return 'Username é obrigatório';
     const trimmed = value.trim();
@@ -65,6 +70,7 @@ export default function RegisterPage() {
     return '';
   };
 
+  /** Valida o nome de exibição: 3–50 caracteres. */
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Nome é obrigatório';
@@ -75,6 +81,10 @@ export default function RegisterPage() {
     return '';
   };
 
+  /**
+   * Valida a senha: mínimo de 6 caracteres com maiúscula, minúscula, número e caractere
+   * especial.
+   */
   const validatePassword = (value: string) => {
     const errors = [];
 
@@ -94,31 +104,33 @@ export default function RegisterPage() {
     return '';
   };
 
+  /** Confere se a confirmação é igual à senha. */
   const validateConfirmPassword = (value: string) => {
     if (!value) return 'Confirmação de senha é obrigatória';
     if (value !== password) return 'As senhas não coincidem';
     return '';
   };
 
-  // Previne a digitação da tecla de espaço fisicamente
+  /** Impede digitar espaços no campo. */
   const handleKeyDownNoSpaces = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ' ') {
       e.preventDefault();
     }
   };
 
-  // Verifica se todos os campos obrigatórios estão preenchidos
+  // Todos os campos obrigatórios preenchidos
   const isFormFilled = email && username && name && password && confirmPassword;
 
-  // Verifica se há erros em algum campo (bloqueia o botão)
+  // Algum campo com erro (desabilita o botão)
   const hasErrors = Object.values(fieldErrors).some((errorMsg) => errorMsg !== '');
 
+  /** Revalida todos os campos e envia o cadastro; em sucesso redireciona para /login após 3s. */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    // VALIDAÇÃO DE TODOS OS CAMPOS ANTES DE ENVIAR
+    // Valida todos os campos antes de enviar
     const emailError = validateEmail(email);
     const usernameError = validateUsername(username);
     const nameError = validateName(name);
@@ -133,8 +145,7 @@ export default function RegisterPage() {
       confirmPassword: confirmPasswordError,
     });
 
-    // Se houver erros, apenas interrompe a submissão silenciosamente
-    // (O botão já deveria estar bloqueado, mas isso serve de dupla segurança)
+    // Com erros, não envia (os erros já aparecem nos campos)
     if (emailError || usernameError || nameError || passwordError || confirmPasswordError) {
       return;
     }
@@ -165,12 +176,12 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-slate-950 relative overflow-hidden">
-      {/* Background Aurora / Efeito de Fundo Cósmico */}
+      {/* Efeito de fundo */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
 
       <div className="max-w-md w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
-        {/* Logo / Header */}
+        {/* Logo e título */}
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="relative w-48 h-16 mb-4">
             <ClientImage
@@ -188,7 +199,7 @@ export default function RegisterPage() {
           <p className="text-slate-400 text-xs mt-1">Crie seu registro de acesso na rede</p>
         </div>
 
-        {/* Alertas de Erro (Erros de servidor/API) */}
+        {/* Erro retornado pela API */}
         {error && (
           <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs border border-red-500/20 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -196,7 +207,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Alertas de Sucesso */}
+        {/* Mensagem de sucesso */}
         {success && (
           <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl mb-4 text-xs border border-emerald-500/20 flex items-center gap-2">
             <span className="leading-relaxed">{success}</span>
@@ -399,7 +410,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Botão de Submit */}
+          {/* Botão de envio */}
           <button
             type="submit"
             disabled={loading || !isFormFilled || hasErrors}

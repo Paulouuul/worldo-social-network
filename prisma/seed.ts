@@ -1,10 +1,14 @@
+// prisma/seed.ts
+// Seed do banco (npx prisma db seed): cria ou atualiza a taxa da plataforma, os pacotes de moedas
+// e os pacotes de criação de molduras por raridade.
+
 import { PrismaClient, Rarity } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import 'dotenv/config';
 
 console.log('1. Iniciando configuração...');
-// Cria a pool de conexões com o banco de dados
+// Pool de conexões com o PostgreSQL
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
   throw new Error('DATABASE_URL não configurada no .env');
@@ -16,20 +20,19 @@ const pool = new Pool({
 });
 console.log('3. Pool criada');
 
-// Cria o adaptador para o Prisma (PASSO CRUCIAL)
+// Adapter do driver pg exigido pelo Prisma
 const adapter = new PrismaPg(pool);
 console.log('4. Adapter criado');
 
-// Instancia o PrismaClient passando o adaptador como parâmetro
+// Cliente Prisma sobre o adapter
 const prisma = new PrismaClient({ adapter });
 console.log('5. PrismaClient criado:', !!prisma);
 
+/** Insere ou atualiza os dados essenciais (idempotente). */
 async function main() {
   console.log('Starting seed...');
 
-  // ============================================
-  // 0. PLATFORM FEE (TAXA DA PLATAFORMA)
-  // ============================================
+  // Taxa da plataforma
   console.log('\n📌 Configurando plataform fee...');
 
   const existingFee = await prisma.platform_fee.findFirst({
@@ -37,7 +40,7 @@ async function main() {
   });
 
   const feeData = {
-    feeValue: 5, // 5% de taxa
+    feeValue: 5, // Percentual
     isActive: true,
   };
 
@@ -52,9 +55,7 @@ async function main() {
     console.log(`Platform fee criada: ${feeData.feeValue}%`);
   }
 
-  // ============================================
-  // 1. PACOTES DE MOEDAS (COMPRA COM DINHEIRO REAL)
-  // ============================================
+  // Pacotes de moedas (compra com dinheiro real)
   const coinPackages = [
     { name: '100 Moedas', coins: 100, priceReal: 12.0, bonusCoins: 10 },
     { name: '250 Moedas', coins: 250, priceReal: 30.0, bonusCoins: 30 },
@@ -80,11 +81,9 @@ async function main() {
     console.log(`Pacote de moedas: ${pkg.name} - ${pkg.coins} moedas por R$${pkg.priceReal}`);
   }
 
-  // ============================================
-  // 3. PACOTES DE CRIAÇÃO
-  // ============================================
+  // Pacotes de criação de molduras
   const cosmeticCreationPackages = [
-    // PACOTES PARA COMUM (base: 50)
+    // Comum (custo base: 50)
     {
       name: 'Pacote Básico',
       rarity: Rarity.COMUM,
@@ -110,7 +109,7 @@ async function main() {
       totalCost: 125,
     },
 
-    // PACOTES PARA RARO (base: 200)
+    // Raro (custo base: 200)
     {
       name: 'Pacote Básico',
       rarity: Rarity.RARO,
@@ -136,7 +135,7 @@ async function main() {
       totalCost: 500,
     },
 
-    // PACOTES PARA EPICO (base: 500)
+    // Épico (custo base: 500)
     {
       name: 'Pacote Básico',
       rarity: Rarity.EPICO,
@@ -162,7 +161,7 @@ async function main() {
       totalCost: 1250,
     },
 
-    // PACOTES PARA LENDARIO (base: 1000)
+    // Lendário (custo base: 1000)
     {
       name: 'Pacote Básico',
       rarity: Rarity.LENDARIO,

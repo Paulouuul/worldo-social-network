@@ -1,3 +1,6 @@
+// components/Header.tsx
+// Header fixo do app autenticado: logo, navegação (com menu de cosméticos), saldo de moedas,
+// carrinho, cartão do usuário e menu lateral no mobile.
 'use client';
 
 import Link from 'next/link';
@@ -14,6 +17,7 @@ import { useMe } from '@/hooks/queries/useMe';
 
 import { Home, User, Compass, Menu, X, Store, Package, Sparkles, ChevronDown } from 'lucide-react';
 
+/** Renderiza o Header apenas com sessão autenticada; nome, avatar e moldura vêm de useMe(). */
 export default function Header() {
   const { data: session, status } = useSession();
   const isLoggedIn = !!session;
@@ -24,8 +28,9 @@ export default function Header() {
   const [isCosmeticsOpen, setIsCosmeticsOpen] = useState(false);
   const cosmeticsRef = useRef<HTMLDivElement>(null);
 
-  // Detectar scroll para mudar o estilo do header
+  // Estilo do Header muda após rolar a página
   useEffect(() => {
+    /** Marca o Header como rolado após 10px para mudar o estilo. */
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
@@ -33,8 +38,9 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fechar dropdown de cosméticos ao clicar fora
+  // Fecha o menu de cosméticos ao clicar fora
   useEffect(() => {
+    /** Fecha o menu de cosméticos ao clicar fora dele. */
     const handleClickOutside = (event: MouseEvent) => {
       if (cosmeticsRef.current && !cosmeticsRef.current.contains(event.target as Node)) {
         setIsCosmeticsOpen(false);
@@ -44,7 +50,7 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Impedir scroll do body quando o menu mobile estiver aberto
+  // Trava o scroll da página com o menu mobile aberto
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -59,7 +65,7 @@ export default function Header() {
   if (status === 'loading') return null;
   if (status !== 'authenticated') return null;
 
-  // Fechar menu ao clicar em um link
+  /** Fecha o menu mobile ao navegar. */
   const handleLinkClick = () => {
     setIsMenuOpen(false);
   };

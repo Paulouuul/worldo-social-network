@@ -1,8 +1,19 @@
+// app/api/worldo/cosmetics/inventory/grouped/route.ts
+// Rota /api/worldo/cosmetics/inventory/grouped: inventário do usuário agrupado por moldura (itens
+// não anunciados) ou por anúncio (itens à venda), com filtros e paginação.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { Rarity } from '@prisma/client';
 
+/**
+ * GET /api/worldo/cosmetics/inventory/grouped — grupos do inventário com contagem, item
+ * equipado e menor preço de revenda.
+ *
+ * Query: filter (all|listed|unlisted), search (nome), rarity, sort (newest|oldest pela última
+ * atividade), page e limit. Agrupa e filtra em memória.
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -26,7 +37,6 @@ export async function GET(request: NextRequest) {
       whereCondition.isListed = false;
     }
 
-    // Buscar todos os itens com seus frames
     const items = await prisma.user_frame_item.findMany({
       where: whereCondition,
       include: {
@@ -37,7 +47,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Agrupar manualmente
+    // Grupo por anúncio (itens à venda) ou por moldura (itens livres)
     const groupedMap = new Map();
 
     items.forEach((item) => {
@@ -79,7 +89,6 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Converter para array
     let allGroupedItems = Array.from(groupedMap.values());
 
     if (search) {
@@ -96,7 +105,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Ordenar pela data mais recente
+    // Ordena pela última atividade do grupo
     allGroupedItems.sort((a, b) => {
       if (sort === 'oldest') {
         const dateA = new Date(a.lastActivityAt).getTime();
@@ -109,7 +118,6 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Paginação
     const totalCount = allGroupedItems.length;
     const totalPages = Math.ceil(totalCount / limit);
     const paginatedItems = allGroupedItems.slice(skip, skip + limit);

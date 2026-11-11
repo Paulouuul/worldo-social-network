@@ -1,3 +1,5 @@
+// components/CoinBalance.tsx
+// Saldo de moedas no Header, com link para a loja de moedas; oculto sem sessão.
 'use client';
 
 import { useSession } from 'next-auth/react';
@@ -5,20 +7,22 @@ import Link from 'next/link';
 import { Coins, Plus } from 'lucide-react';
 import { useCoinBalance } from '@/hooks/queries/useWallet';
 import { formatFullNumber } from '@/lib/format-utils';
+/** Propriedades do saldo de moedas. */
 interface CoinBalanceProps {
   onClick?: () => void;
 }
 
+/** Exibe o saldo atual de moedas formatado (pt-BR) e leva à página de compra de moedas. */
 export function CoinBalance({ onClick }: CoinBalanceProps) {
   const { status } = useSession();
   const { data: balance = 0, isPending: isLoading } = useCoinBalance();
 
-  // Se o NextAuth ainda está checando ou o usuário não está logado, não renderiza nada
+  // Sem sessão autenticada não renderiza
   if (status === 'loading' || status === 'unauthenticated') {
     return null;
   }
 
-  // Formata o número (Ex: 1500 vira 1.500)
+  // Saldo com separador de milhar (ex.: 1500 → 1.500)
   const formattedBalance = formatFullNumber(balance ?? 0);
 
   return (
@@ -34,7 +38,7 @@ export function CoinBalance({ onClick }: CoinBalanceProps) {
       </div>
 
       {isLoading && balance === 0 ? (
-        // Shimmer/Skeleton loading se for a primeiríssima carga do componente
+        // Esqueleto na primeira carga do saldo
         <div className="w-8 h-4 bg-purple-500/20 animate-pulse rounded" />
       ) : (
         <span className="font-bold text-sm text-slate-100 tracking-wide">{formattedBalance}</span>

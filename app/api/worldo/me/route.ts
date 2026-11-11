@@ -1,9 +1,14 @@
 // app/api/worldo/me/route.ts
-// Perfil do usuário logado.
+// Rota /api/worldo/me: perfil completo do usuário logado (consumido pelo hook useMe).
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
+/**
+ * GET /api/worldo/me — perfil do usuário autenticado com moldura equipada, hasPassword, isOAuth
+ * e provedor de login. 401 sem sessão, 404 se o usuário não existir.
+ */
 export async function GET() {
   try {
     const session = await auth();

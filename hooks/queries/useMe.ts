@@ -1,4 +1,5 @@
 // hooks/queries/useMe.ts
+// Hook do perfil do usuário logado (/api/worldo/me).
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
@@ -7,6 +8,7 @@ import { fetchJson } from '@/lib/fetcher';
 import { qk } from '@/lib/query-keys';
 import type { Rarity } from '@/constants/cosmeticRarity';
 
+/** Perfil do usuário logado retornado por /api/worldo/me. */
 export interface Me {
   id: string;
   publicId: string;
@@ -25,8 +27,8 @@ export interface Me {
 }
 
 /**
- * Perfil do usuário logado. Fica em cache sem expirar; é atualizado via
- * setQueryData (edição de perfil) ou invalidateQueries (equipar moldura).
+ * Perfil do usuário logado. Fica em cache sem expirar e é atualizado via setQueryData (edição
+ * de perfil) ou invalidação (equipar/desequipar moldura). Só busca com sessão autenticada.
  */
 export function useMe() {
   const { status } = useSession();

@@ -1,18 +1,22 @@
 // scripts/seed-10000-listings.ts
+// Script de carga para testes: indexa 10.000 anúncios fictícios no Elasticsearch usando um
+// vendedor e molduras existentes. Executar com: npx tsx scripts/seed-10000-listings.ts
+
 import 'dotenv/config';
 import { prisma } from '../lib/prisma';
 import { esClient, LISTINGS_INDEX } from '../lib/elasticsearch';
 
+/** Gera e indexa em bulk 10.000 documentos de anúncio e imprime alguns exemplos. */
 async function seed10000Listings() {
   console.log('Gerando 10000 listings para teste...');
   console.log('========================================');
 
   try {
-    // Buscar um seller existente
+    // Vendedor que já possui anúncios
     const seller = await prisma.users.findFirst({
       where: {
         listings: {
-          some: {}, // Usuário que já tem listings
+          some: {},
         },
       },
     });
@@ -24,7 +28,7 @@ async function seed10000Listings() {
 
     console.log(`Vendedor: ${seller.username} (${seller.id})`);
 
-    // Buscar frames existentes
+    // Molduras existentes (até 20)
     const frames = await prisma.cosmetic_frame.findMany({
       where: {
         isActive: true,
@@ -38,7 +42,7 @@ async function seed10000Listings() {
           },
         },
       },
-      take: 20, // Vamos usar 20 frames diferentes
+      take: 20,
     });
 
     if (frames.length === 0) {
@@ -48,7 +52,7 @@ async function seed10000Listings() {
 
     console.log(`${frames.length} frames disponíveis`);
 
-    // Gerar 100 listings
+    // Documentos fictícios
     const listings = [];
     const rarities = ['COMUM', 'INCOMUM', 'RARA', 'EPICO', 'LENDARIO', 'MITICO'];
     const names = [
@@ -105,7 +109,7 @@ async function seed10000Listings() {
 
     console.log(`📦 ${listings.length} listings gerados`);
 
-    // Inserir em bulk no Elasticsearch
+    // Indexação em bulk
     console.log('💾 Inserindo no Elasticsearch...');
 
     const body = listings.flatMap((doc) => [
@@ -125,11 +129,11 @@ async function seed10000Listings() {
       console.log(`${listings.length} listings inseridos com sucesso!`);
     }
 
-    // Verificar total
+    // Total no índice
     const count = await esClient.count({ index: LISTINGS_INDEX });
     console.log(`Total de documentos no Elasticsearch: ${count.count}`);
 
-    // Mostrar alguns exemplos
+    // Exemplos indexados
     const search = await esClient.search({
       index: LISTINGS_INDEX,
       size: 5,

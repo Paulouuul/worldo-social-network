@@ -1,8 +1,17 @@
-// app/api/inventory/equip/route.ts
+// app/api/worldo/cosmetics/item/equip/route.ts
+// Rota /api/worldo/cosmetics/item/equip: equipa uma moldura no perfil do usuário.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * POST /api/worldo/cosmetics/item/equip — equipa a unidade mais antiga não anunciada da moldura
+ * { frameId }.
+ *
+ * Em transação: desequipa o item atual, equipa o novo e grava equippedProfileFrameId no
+ * usuário. 404 se não houver unidade disponível.
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -18,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
 
-    // Buscar o primeiro item do frame que o usuário possui e não está listado
+    // Unidade mais antiga da moldura que não está à venda
     const itemToEquip = await prisma.user_frame_item.findFirst({
       where: {
         frameId: frameId,
@@ -29,11 +38,10 @@ export async function POST(request: NextRequest) {
         frame: true,
       },
       orderBy: {
-        createdAt: 'asc', // Pega o mais antigo primeiro
+        createdAt: 'asc',
       },
     });
 
-    // Verificar se o usuário possui pelo menos 1 item disponível
     if (!itemToEquip) {
       return NextResponse.json(
         { error: 'Você não possui unidade deste item disponível para equipar' },
@@ -41,9 +49,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Usar transação para garantir consistência
     const result = await prisma.$transaction(async (tx) => {
-      // Desequipar o frame atual
+      // Desequipa o item atual
       await tx.user_frame_item.updateMany({
         where: {
           ownerId: userId,
@@ -54,7 +61,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Equipar o novo frame
+      // Equipa a nova unidade
       const updatedItem = await tx.user_frame_item.update({
         where: {
           id: itemToEquip.id,
@@ -67,7 +74,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Atualizar o perfil do usuário com o frame equipado
+      // Moldura exibida no perfil
       await tx.users.update({
         where: {
           id: userId,

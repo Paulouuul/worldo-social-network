@@ -1,12 +1,12 @@
+// next-auth.d.ts
+// Tipos do NextAuth estendidos: usuário do adapter e sessão/JWT com a identidade do usuário (id,
+// publicId, email e provedor).
+
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { JWT as DefaultJWT } from 'next-auth/jwt';
 
-// A sessão guarda apenas identidade. Dados de perfil vêm de useMe() (/api/worldo/me).
-
 declare module 'next-auth' {
-  /**
-   * Usuário retornado pelo adapter e pelo `authorize`
-   */
+  /** Usuário retornado pelo adapter e pelo authorize. */
   interface User extends DefaultUser {
     id: string;
     publicId: string;
@@ -16,9 +16,7 @@ declare module 'next-auth' {
     coverImage?: string | null;
   }
 
-  /**
-   * Objeto `session` retornado por `useSession`, `auth()`, etc.
-   */
+  /** Sessão exposta por useSession() e auth(). */
   interface Session {
     user: {
       id: string;
@@ -30,9 +28,7 @@ declare module 'next-auth' {
 }
 
 declare module 'next-auth/jwt' {
-  /**
-   * Token compartilhado entre os callbacks `jwt` e `session`
-   */
+  /** Token compartilhado entre os callbacks jwt e session. */
   interface JWT extends DefaultJWT {
     id: string;
     publicId: string;

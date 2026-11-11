@@ -1,3 +1,6 @@
+// app/worldo/perfil/edit/page.tsx
+// Página /worldo/perfil/edit: edição do perfil (nome, username, bio, localização, site, avatar e
+// capa). Os dados iniciais vêm de useMe() e o envio vai para o backend Python.
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
@@ -26,9 +29,14 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
 
+/** Formato aceito para o site (http/https, domínio, localhost ou IP, porta e caminho opcionais). */
 const URL_REGEX =
   /^(https?:\/\/)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|[/?]\S+)$/;
 
+/**
+ * Formulário de edição com validação por campo e prévia das imagens. Após salvar, atualiza o
+ * cache do perfil (useMe) e do perfil público.
+ */
 export default function EditProfilePage() {
   const { data: session, status } = useSession();
   const { data: me } = useMe();
@@ -38,7 +46,7 @@ export default function EditProfilePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // CONSTANTES DE VALIDAÇÃO
+  // Limites de validação
   const MAX_NAME_LENGTH = 50;
   const MIN_NAME_LENGTH = 3;
   const MAX_USERNAME_LENGTH = 30;
@@ -57,7 +65,7 @@ export default function EditProfilePage() {
     coverImage: '',
   });
 
-  // ESTADOS DE ERRO POR CAMPO
+  // Erro de validação de cada campo
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     username: '',
@@ -66,7 +74,7 @@ export default function EditProfilePage() {
     website: '',
   });
 
-  // FUNÇÕES DE VALIDAÇÃO
+  /** Valida o nome de exibição: 3–50 caracteres. */
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Nome é obrigatório';
@@ -77,6 +85,7 @@ export default function EditProfilePage() {
     return '';
   };
 
+  /** Valida o username: 3–30 caracteres com letras, números e underscore. */
   const validateUsername = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Username é obrigatório';
@@ -90,17 +99,23 @@ export default function EditProfilePage() {
     return '';
   };
 
+  /** Valida a bio: até 500 caracteres. */
   const validateBio = (value: string) => {
     if (value.length > MAX_BIO_LENGTH) return `Bio deve ter no máximo ${MAX_BIO_LENGTH} caracteres`;
     return '';
   };
 
+  /** Valida a localização: até 30 caracteres. */
   const validateLocation = (value: string) => {
     if (value.length > MAX_LOCATION_LENGTH)
       return `Localização deve ter no máximo ${MAX_LOCATION_LENGTH} caracteres`;
     return '';
   };
 
+  /**
+   * Valida o site (opcional): até 200 caracteres e formato de URL, assumindo https:// quando
+   * ausente.
+   */
   const validateWebsite = (value: string) => {
     if (!value) return '';
 
@@ -118,26 +133,26 @@ export default function EditProfilePage() {
     return '';
   };
 
-  // Verifica se todos os campos obrigatórios estão preenchidos
+  // Campos obrigatórios preenchidos
   const isFormFilled = formData.name && formData.username;
 
-  // Verifica se há erros em algum campo (bloqueia o botão de salvar)
+  // Algum campo com erro (desabilita o botão de salvar)
   const hasErrors = Object.values(fieldErrors).some((errorMsg) => errorMsg !== '');
 
-  // Previne a digitação da tecla de espaço
+  /** Impede digitar espaços no campo. */
   const handleKeyDownNoSpaces = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ' ') {
       e.preventDefault();
     }
   };
 
-  // Estados para o Avatar
+  // Avatar: arquivo novo, prévia e remoção
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>('');
   const [removeAvatar, setRemoveAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  // Estados para o Cover
+  // Capa: arquivo novo, prévia e remoção
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>('');
   const [removeCover, setRemoveCover] = useState(false);
@@ -165,6 +180,7 @@ export default function EditProfilePage() {
     return <LoadingSpinner text="Carregando terminal de perfil..." withBackground fullScreen />;
   }
 
+  /** Valida o arquivo de avatar (até 5MB, GIF 3MB) ou capa (até 8MB, GIF 5MB) e mostra a prévia. */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -204,6 +220,7 @@ export default function EditProfilePage() {
     setError('');
   };
 
+  /** Marca o avatar para remoção e limpa a prévia. */
   const handleRemoveAvatar = () => {
     if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
     setAvatarFile(null);
@@ -212,6 +229,7 @@ export default function EditProfilePage() {
     if (avatarInputRef.current) avatarInputRef.current.value = '';
   };
 
+  /** Marca a capa para remoção e limpa a prévia. */
   const handleRemoveCover = () => {
     if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
     setCoverFile(null);
@@ -220,13 +238,17 @@ export default function EditProfilePage() {
     if (coverInputRef.current) coverInputRef.current.value = '';
   };
 
+  /**
+   * Valida os campos e envia o FormData para /profile/update no backend. Em erro, desfaz as
+   * prévias de imagem; em sucesso, atualiza o formulário e o cache do perfil.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     if (!session?.user.publicId) {
       router.replace('login');
     }
     e.preventDefault();
 
-    // VALIDAÇÃO ANTES DE ENVIAR
+    // Valida todos os campos antes de enviar
     const nameError = validateName(formData.name);
     const usernameError = validateUsername(formData.username);
     const bioError = validateBio(formData.bio);
@@ -276,7 +298,7 @@ export default function EditProfilePage() {
         setError(data.detail || 'Erro ao atualizar perfil');
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // REVERSÃO NA UI
+        // Desfaz as prévias de imagem enviadas
         if (avatarFile || removeAvatar) {
           if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
           setAvatarFile(null);
@@ -346,6 +368,7 @@ export default function EditProfilePage() {
     }
   };
 
+  /** Volta para o perfil público do usuário (ou para /login sem sessão). */
   const handleCancel = () => {
     if (session?.user?.publicId) {
       router.push(`/worldo/perfil/${session.user?.publicId}`);
@@ -360,7 +383,7 @@ export default function EditProfilePage() {
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
 
       <div className="max-w-2xl w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
-        {/* Header */}
+        {/* Cabeçalho */}
         <div className="flex items-center gap-3 mb-8 border-b border-slate-800/60 pb-5">
           <div className="bg-purple-500/10 p-2.5 rounded-xl border border-purple-500/20">
             <Sparkles className="w-5 h-5 text-purple-400" />
@@ -381,7 +404,7 @@ export default function EditProfilePage() {
         {success && <FeedbackMessage type="success" message={success} />}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* SEÇÃO: Imagem de Capa (Cover) */}
+          {/* Imagem de capa */}
           <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
             <label className="flex items-center gap-1.5 text-slate-300 mb-3 font-semibold text-xs tracking-wide uppercase">
               <ImageIcon className="w-3.5 h-3.5 text-purple-400" /> Capa do Perfil / Banner
@@ -440,7 +463,7 @@ export default function EditProfilePage() {
             </div>
           </div>
 
-          {/* SEÇÃO: Avatar de Rede */}
+          {/* Avatar */}
           <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
             <label className="flex items-center gap-1.5 text-slate-300 mb-3 font-semibold text-xs tracking-wide uppercase">
               Avatar de Rede
@@ -498,7 +521,7 @@ export default function EditProfilePage() {
             </div>
           </div>
 
-          {/* Grid de Inputs de Texto */}
+          {/* Campos de texto */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Username */}
             <div>
@@ -535,7 +558,7 @@ export default function EditProfilePage() {
               )}
             </div>
 
-            {/* Name */}
+            {/* Nome de exibição */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição *
@@ -619,7 +642,7 @@ export default function EditProfilePage() {
 
           {/* Localização e Website */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Location */}
+            {/* Localização */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <MapPin className="w-3.5 h-3.5 text-purple-400" /> Coordenadas / Localização
@@ -652,7 +675,7 @@ export default function EditProfilePage() {
               )}
             </div>
 
-            {/* Website */}
+            {/* Site */}
             <div>
               <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
                 <Link2 className="w-3.5 h-3.5 text-purple-400" /> Link de Hipertexto
@@ -696,7 +719,7 @@ export default function EditProfilePage() {
             </div>
           </div>
 
-          {/* Ações de Envio */}
+          {/* Ações */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-800/60">
             <button
               type="submit"

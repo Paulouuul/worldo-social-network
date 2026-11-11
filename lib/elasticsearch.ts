@@ -1,7 +1,11 @@
 // lib/elasticsearch.ts
+// Cliente do Elasticsearch e utilitários do índice de anúncios (cosmetic_listings): conexão,
+// criação do índice e indexação, busca, atualização e remoção de documentos.
+
 import { Client } from '@elastic/elasticsearch';
 import { Rarity } from '@/constants/cosmeticRarity';
 
+/** Documento de anúncio no índice cosmetic_listings. */
 export interface ElasticsearchListing {
   id: string;
   frameId: string;
@@ -26,6 +30,10 @@ const elasticsearchUrl = process.env.ELASTICSEARCH_URL || 'http://127.0.0.1:9200
 const username = process.env.ELASTICSEARCH_USERNAME || 'elastic';
 const password = process.env.ELASTICSEARCH_PASSWORD || 'StrongP@ssw0rd2024';
 
+/**
+ * Cliente configurado por ELASTICSEARCH_URL/USERNAME/PASSWORD (TLS sem verificação de
+ * certificado).
+ */
 export const esClient = new Client({
   node: elasticsearchUrl,
   auth: {
@@ -39,12 +47,12 @@ export const esClient = new Client({
   },
 });
 
+/** Nome do índice de anúncios. */
 export const LISTINGS_INDEX = 'cosmetic_listings';
 
-// Verificar conexão
+/** Testa a conexão (ping). Retorna true se o cluster respondeu. */
 export async function checkElasticsearchConnection() {
   try {
-    // Agora realmente testa a conexão
     await esClient.ping();
     console.log('Elasticsearch connected and authenticated');
     return true;
@@ -54,16 +62,14 @@ export async function checkElasticsearchConnection() {
   }
 }
 
-// Criar índice com mapeamento
+/** Cria o índice de anúncios com o mapeamento dos campos, se ainda não existir. */
 export async function setupElasticsearchIndices() {
   try {
-    // Verificar se índice existe
     const exists = await esClient.indices.exists({
       index: LISTINGS_INDEX,
     });
 
     if (!exists) {
-      // Criar índice com configuração
       await esClient.indices.create({
         index: LISTINGS_INDEX,
         mappings: {
@@ -99,11 +105,14 @@ export async function setupElasticsearchIndices() {
     }
   } catch (error) {
     console.error('Error setting up indices:', error);
-    throw error; // Adicionado throw para melhor tratamento de erro
+    throw error;
   }
 }
 
-// Versão alternativa com configurações customizadas
+/**
+ * Cria o índice de anúncios com analisador de autocomplete (minúsculas e sem acentos) no nome,
+ * se ainda não existir.
+ */
 export async function setupElasticsearchIndicesWithCustomAnalysis() {
   try {
     const exists = await esClient.indices.exists({
@@ -173,7 +182,7 @@ export async function setupElasticsearchIndicesWithCustomAnalysis() {
   }
 }
 
-// Função utilitária para indexar documentos
+/** Indexa (cria ou substitui) o documento do anúncio. */
 export async function indexListing(listing: ElasticsearchListing) {
   try {
     const document = {
@@ -192,7 +201,7 @@ export async function indexListing(listing: ElasticsearchListing) {
   }
 }
 
-// Função utilitária para buscar listings
+/** Executa uma busca no índice de anúncios com a query informada. */
 export async function searchListings(query: any) {
   try {
     const result = await esClient.search({
@@ -206,7 +215,7 @@ export async function searchListings(query: any) {
   }
 }
 
-// Função utilitária para deletar listing
+/** Remove o documento do anúncio do índice. */
 export async function deleteListing(indexId: string) {
   try {
     const result = await esClient.delete({
@@ -220,7 +229,7 @@ export async function deleteListing(indexId: string) {
   }
 }
 
-// Função utilitária para atualizar listing
+/** Atualiza parcialmente o documento do anúncio. */
 export async function updateListing(indexId: string, updates: Partial<ElasticsearchListing>) {
   try {
     const result = await esClient.update({

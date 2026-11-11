@@ -1,13 +1,18 @@
-﻿import js from '@eslint/js';
+// eslint.config.js
+// Configuração do ESLint (flat config): regras recomendadas de JS, TypeScript e Next.js,
+// compatibilizadas com o Prettier.
+
+import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import nextPlugin from '@next/eslint-plugin-next';
 import typescriptParser from '@typescript-eslint/parser';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import globals from 'globals';
 
+/** Lista de configurações aplicadas em ordem. */
 export default [
   {
-    // Ignorar pastas de build e arquivos gerados automaticamente
+    // Pastas de build, arquivos gerados e variáveis de ambiente
     ignores: [
       '**/.next/**',
       'node_modules/**',

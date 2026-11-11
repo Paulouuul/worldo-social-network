@@ -1,5 +1,10 @@
+// components/AvatarWithFrame.tsx
+// Avatar do usuário com moldura cosmética sobreposta, brilho por raridade e inicial do nome
+// quando não há foto.
+
 import { ClientImage } from '@/components/ClientImage';
 import { RARITY, Rarity } from '@/constants/cosmeticRarity';
+/** Propriedades do avatar: foto, nome (para a inicial), moldura, tamanho, raridade e brilho. */
 interface AvatarWithFrameProps {
   avatarUrl?: string | null;
   name?: string;
@@ -11,7 +16,7 @@ interface AvatarWithFrameProps {
   priority?: boolean;
 }
 
-// Cores de fundo por raridade
+/** Gradiente de fundo da inicial conforme a raridade da moldura. */
 const getInitialBgColor = (rarity?: Rarity | string) => {
   switch (rarity) {
     case RARITY.LENDARIO:
@@ -25,7 +30,7 @@ const getInitialBgColor = (rarity?: Rarity | string) => {
   }
 };
 
-// Efeito de brilho por raridade (se não tiver glowClass customizada)
+/** Brilho (drop-shadow) da moldura conforme a raridade, usado quando não há glowClass. */
 const getDefaultGlowClass = (rarity?: Rarity | string) => {
   switch (rarity) {
     case RARITY.LENDARIO:
@@ -39,6 +44,7 @@ const getDefaultGlowClass = (rarity?: Rarity | string) => {
   }
 };
 
+/** Renderiza o avatar (foto ou inicial) com a moldura por cima. */
 export const AvatarWithFrame = ({
   avatarUrl,
   name,
@@ -57,17 +63,19 @@ export const AvatarWithFrame = ({
     full: 'w-full h-full',
   };
 
+  /** Tamanho da fonte da inicial para cada tamanho de avatar. */
   const getFontSize = (size?: 'sm' | 'smsm' | 'md' | 'lg' | 'full') => {
     const sizes = {
-      smsm: '0.75rem', // 12px
-      sm: '1rem', // 16px
-      md: '2rem', // 32px
-      lg: '3rem', // 48px
-      full: 'clamp(2rem, 10vw, 6rem)', // responsivo
+      smsm: '0.75rem',
+      sm: '1rem',
+      md: '2rem',
+      lg: '3rem',
+      full: 'clamp(2rem, 10vw, 6rem)',
     };
     return sizes[size || 'md'];
   };
 
+  /** Primeira letra do nome em maiúscula, ou '?' sem nome. */
   const getInitial = () => {
     if (!name) return '?';
     return name.charAt(0).toUpperCase();
@@ -78,7 +86,7 @@ export const AvatarWithFrame = ({
 
   return (
     <div className={`relative ${size ? sizeClasses[size] : className}`}>
-      {/* 1. Avatar ou Inicial */}
+      {/* Foto do avatar ou inicial do nome */}
       <div className="absolute inset-[15%] z-0">
         {avatarUrl && avatarUrl !== 'None' && avatarUrl.startsWith('http') ? (
           <div className="relative w-full h-full rounded-full overflow-hidden">
@@ -107,7 +115,7 @@ export const AvatarWithFrame = ({
         )}
       </div>
 
-      {/* 2. Moldura */}
+      {/* Moldura sobreposta */}
       {frameUrl && (
         <div className={`absolute inset-0 z-10 ${finalGlowClass}`}>
           <ClientImage

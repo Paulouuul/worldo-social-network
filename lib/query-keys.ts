@@ -1,16 +1,22 @@
 // lib/query-keys.ts
-// Chaves centralizadas do React Query. Toda query/invalidação deve usar estas funções.
+// Chaves e políticas de cache do React Query. Toda query e invalidação usa estas funções.
 
+/** Filtros das listagens do marketplace e da loja do vendedor. */
 export interface ListingFilters {
   rarity: string;
   sort: string;
   search: string;
 }
 
+/** Filtros do inventário (inclui situação: all, listed, unlisted). */
 export interface InventoryFilters extends ListingFilters {
   filter: string;
 }
 
+/**
+ * Fábrica de chaves de query, organizada por domínio. Prefixos como ['cart'] invalidam o grupo
+ * todo.
+ */
 export const qk = {
   me: () => ['me'] as const,
   user: (identifier: string) => ['user', identifier] as const,
@@ -52,17 +58,27 @@ export const qk = {
   },
 };
 
-/**
- * Políticas de cache.
- * CRITICAL: preço/estoque/saldo/carrinho — nunca reaproveitados de cache.
- */
+/** Políticas de cache por tipo de dado. */
 export const cachePolicy = {
+  /**
+   * Preço, estoque, saldo e carrinho: sempre buscados do servidor e descartados sem
+   * observadores.
+   */
   critical: { staleTime: 0, gcTime: 0, refetchOnMount: 'always' as const },
-  /** Páginas de listagem com preço: revalidadas sempre, liberadas da memória 30s após sair da tela. */
+  /**
+   * Páginas de listagem com preço: revalidadas a cada montagem e liberadas da memória 30s após
+   * sair da tela.
+   */
   livePages: { staleTime: 0, gcTime: 30_000, refetchOnMount: 'always' as const },
-  /** Inventário do próprio usuário: invalidado a cada ação; páginas liberadas 30s após sair da tela. */
+  /**
+   * Inventário do próprio usuário: invalidado a cada ação; páginas liberadas 30s após sair da
+   * tela.
+   */
   inventory: { staleTime: 30_000, gcTime: 30_000 },
+  /** Configurações que raramente mudam (ex.: taxa da plataforma): 1h. */
   static: { staleTime: 60 * 60_000, gcTime: 60 * 60_000 },
+  /** Perfis públicos: 5 min. */
   profile: { staleTime: 5 * 60_000, gcTime: 10 * 60_000 },
+  /** Dados descritivos de molduras: 10 min. */
   frame: { staleTime: 10 * 60_000, gcTime: 30 * 60_000 },
 };

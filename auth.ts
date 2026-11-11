@@ -1,3 +1,8 @@
+// auth.ts
+// Configuração do NextAuth (Auth.js): provedores Google, GitHub e email/senha, adapter Prisma
+// personalizado (gera username único) e sessão JWT que expõe apenas a identidade do usuário (id,
+// publicId, email e provedor). Os dados de perfil vêm de /api/worldo/me.
+
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import 'dotenv/config';
@@ -17,6 +22,11 @@ const pool = new Pool({ connectionString: DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+/**
+ * Gera um username único a partir do email: user_<prefixo>_<8 hex> com no máximo 30 caracteres.
+ *
+ * Tenta até 5 sufixos aleatórios e, se todos existirem, usa user_<timestamp base36>.
+ */
 async function generateUniqueUsername(email: string): Promise<string> {
   const baseName = email
     .split('@')[0]
@@ -28,13 +38,11 @@ async function generateUniqueUsername(email: string): Promise<string> {
 
   const uuid = crypto.randomUUID().substring(0, 8);
 
-  // Calcula o espaço disponível para o baseName
-  // "user_" = 5 caracteres + "_" = 1 + uuid (8) = 14 caracteres fixos
-  const FIXED_LENGTH = 5 + 1 + 8; // "user_" + "_" + uuid = 14
+  // Espaço para o prefixo do email: 30 menos os 14 fixos de "user_" + "_" + 8 do uuid
+  const FIXED_LENGTH = 5 + 1 + 8;
   const MAX_USERNAME_LENGTH = 30;
-  const MAX_BASE_NAME_LENGTH = MAX_USERNAME_LENGTH - FIXED_LENGTH; // 30 - 14 = 16
+  const MAX_BASE_NAME_LENGTH = MAX_USERNAME_LENGTH - FIXED_LENGTH;
 
-  // Trunca o baseName se necessário
   let truncatedBase = baseName;
   if (truncatedBase.length > MAX_BASE_NAME_LENGTH) {
     truncatedBase = truncatedBase.substring(0, MAX_BASE_NAME_LENGTH);
@@ -42,12 +50,12 @@ async function generateUniqueUsername(email: string): Promise<string> {
 
   let username = `user_${truncatedBase}_${uuid}`;
 
-  // Fallback seguro: se ainda assim ultrapassar (caso raro), usa apenas user_uuid
+  // Se ainda passar do limite, usa apenas user_<uuid>
   if (username.length > MAX_USERNAME_LENGTH) {
     username = `user_${uuid}`;
   }
 
-  // Verifica duplicata (recursivo com limite para evitar loop infinito)
+  // Até 5 tentativas com sufixos diferentes
   let attempts = 0;
   const MAX_ATTEMPTS = 5;
 
@@ -61,7 +69,6 @@ async function generateUniqueUsername(email: string): Promise<string> {
       return username;
     }
 
-    // Gera novo UUID e tenta novamente
     const newUuid = crypto.randomUUID().substring(0, 8);
     username = `user_${truncatedBase}_${newUuid}`;
     if (username.length > MAX_USERNAME_LENGTH) {
@@ -70,7 +77,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
     attempts++;
   }
 
-  // Fallback final com timestamp
+  // Último recurso: timestamp em base 36
   const timestamp = Date.now().toString(36).substring(0, 6);
   username = `user_${timestamp}`;
   if (username.length > MAX_USERNAME_LENGTH) {
@@ -80,7 +87,9 @@ async function generateUniqueUsername(email: string): Promise<string> {
   return username;
 }
 
+/** Adapter do NextAuth sobre o Prisma, mapeando a tabela users (com publicId e username). */
 const customAdapter = {
+  /** Cria o usuário vindo do OAuth com username gerado e a foto do provedor como avatar. */
   async createUser(user: any) {
     const username = await generateUniqueUsername(user.email);
 
@@ -89,7 +98,7 @@ const customAdapter = {
         email: user.email,
         name: user.name,
         username,
-        avatar: user.image || user.avatar, // Provedores OAuth usam .image por padrão
+        avatar: user.image || user.avatar, // OAuth envia a foto em .image
         emailVerified: user.emailVerified,
       },
     });
@@ -103,6 +112,7 @@ const customAdapter = {
       emailVerified: newUser.emailVerified,
     };
   },
+  /** Busca o usuário pelo id. */
   async getUser(id: string) {
     const user = await prisma.users.findUnique({ where: { id } });
     return user
@@ -118,6 +128,7 @@ const customAdapter = {
         }
       : null;
   },
+  /** Busca o usuário pelo email. */
   async getUserByEmail(email: string) {
     const user = await prisma.users.findUnique({ where: { email } });
     return user
@@ -133,6 +144,7 @@ const customAdapter = {
         }
       : null;
   },
+  /** Busca o usuário vinculado à conta do provedor OAuth. */
   async getUserByAccount({ provider, providerAccountId }: any) {
     const account = await prisma.accounts.findFirst({
       where: { provider, providerAccountId },
@@ -152,9 +164,11 @@ const customAdapter = {
       emailVerified: account.users.emailVerified,
     };
   },
+  /** Apaga o usuário. */
   async deleteUser(id: string) {
     await prisma.users.delete({ where: { id } });
   },
+  /** Vincula uma conta OAuth (tokens do provedor) ao usuário. */
   async linkAccount(account: any) {
     await prisma.accounts.create({
       data: {
@@ -172,6 +186,7 @@ const customAdapter = {
       },
     });
   },
+  /** Grava um token de verificação. */
   async createVerificationToken(verificationToken: any) {
     return await prisma.verification_tokens.create({
       data: {
@@ -181,6 +196,7 @@ const customAdapter = {
       },
     });
   },
+  /** Consome (apaga e retorna) o token de verificação; null se não existir. */
   async useVerificationToken({ identifier, token }: any) {
     try {
       return await prisma.verification_tokens.delete({
@@ -192,20 +208,7 @@ const customAdapter = {
   },
 };
 
-const LEGACY_PROFILE_CLAIMS = [
-  'name',
-  'username',
-  'avatar',
-  'coverImage',
-  'bio',
-  'location',
-  'website',
-  'equippedFrame',
-  'hasPassword',
-  'isOAuth',
-  'picture',
-] as const;
-
+/** Instância do NextAuth: handlers da rota /api/auth, signIn, signOut e auth(). */
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: customAdapter,
   providers: [
@@ -224,6 +227,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Senha', type: 'password' },
       },
+      /**
+       * Login por email e senha: exige usuário com senha, email verificado e senha correta
+       * (bcrypt).
+       */
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Credenciais inválidas');
@@ -267,8 +274,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     updateAge: 24 * 60 * 60,
   },
   callbacks: {
-    // A sessão guarda apenas identidade. Dados de perfil (nome, avatar, bio, moldura...)
-    // vêm de /api/worldo/me via React Query (hook useMe), sem consultar o banco a cada auth().
+    /**
+     * Monta o JWT da sessão: no login grava id, publicId, email e provedor. Não consulta o
+     * banco.
+     */
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id as string;
@@ -277,12 +286,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.provider = account?.provider || 'credentials';
       }
 
-      // Remove campos de perfil de tokens emitidos antes desta mudança
-      for (const key of LEGACY_PROFILE_CLAIMS) delete (token as Record<string, unknown>)[key];
-
       return token;
     },
 
+    /** Expõe na sessão apenas id, publicId, email e provedor. */
     async session({ session, token }) {
       if (session.user && token) {
         session.user.id = token.id as string;

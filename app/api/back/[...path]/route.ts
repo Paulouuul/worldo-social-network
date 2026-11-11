@@ -1,21 +1,28 @@
 // app/api/back/[...path]/route.ts
+// Rota /api/back/*: proxy para o backend Python. Repassa método, query, corpo (JSON, multipart,
+// urlencoded ou texto) e headers selecionados, autenticando com o Bearer recebido ou com o JWT
+// gerado no servidor a partir da sessão.
+
 import { NextRequest, NextResponse } from 'next/server';
 import { backendApiServerCall } from '@/lib/backendApiClient';
 import { serverTokenManager } from '@/lib/serverBackendTokenManager';
 
-// Tipos para evitar erros
+// Valores aceitos em cache do fetch
 type CacheType = 'default' | 'force-cache' | 'no-cache' | 'no-store' | 'only-if-cached' | 'reload';
+// Valores aceitos em credentials do fetch
 type CredentialsType = 'include' | 'omit' | 'same-origin';
+// Valores aceitos em mode do fetch
 type ModeType = 'cors' | 'no-cors' | 'same-origin' | 'navigate';
+// Opções do fetch
 type FetchOptions = Parameters<typeof fetch>[1];
 
-// Tipo para os headers da resposta
+// Headers repassados na resposta
 type ResponseHeaders = Record<string, string>;
 
-// Tipo para os headers que serão forwardados
+// Lista de nomes de headers repassados
 type ForwardHeaders = readonly string[];
 
-// Constante com os headers a serem forwardados
+// Headers da requisição repassados ao backend
 const FORWARD_HEADERS: ForwardHeaders = [
   'x-user-id',
   'x-tenant-id',
@@ -31,7 +38,7 @@ const FORWARD_HEADERS: ForwardHeaders = [
   'expires',
 ] as const;
 
-// Constante com os headers da resposta a serem forwardados
+// Headers da resposta do backend repassados ao cliente
 const FORWARD_RESPONSE_HEADERS: ForwardHeaders = [
   'cache-control',
   'etag',
@@ -46,7 +53,10 @@ const FORWARD_RESPONSE_HEADERS: ForwardHeaders = [
 // Métodos HTTP que podem ter body
 const METHODS_WITH_BODY: readonly string[] = ['POST', 'PUT', 'PATCH', 'DELETE'] as const;
 
-// No Next.js 15+, 'params' é uma Promise.
+/**
+ * Encaminha a requisição para `<BACKEND_URL>/<path>` e devolve status, corpo e headers relevantes da
+ * resposta. Retorna 504 em timeout e 500 em outros erros.
+ */
 async function handler(
   request: NextRequest,
   context: { params: Promise<{ path?: string[] }> },
@@ -65,12 +75,11 @@ async function handler(
 
     const method: string = request.method;
 
-    // Construir URL completa com query params
+    // Caminho + query string originais
     const searchParams: URLSearchParams = request.nextUrl.searchParams;
     const queryString: string = searchParams.toString();
     const endpoint: string = queryString ? `${path}?${queryString}` : path;
 
-    // Preparar opções da requisição inicializando os Headers como objeto limpo
     const requestHeaders: Record<string, string> = {};
     const options: FetchOptions = {
       method,
@@ -89,7 +98,7 @@ async function handler(
       } else if (incomingContentType.includes('multipart/form-data')) {
         const formData: FormData = await request.formData();
         options.body = formData;
-        // Não definir Content-Type manual aqui, o fetch nativo gerará o boundary correto
+        // Content-Type (com boundary) é definido pelo fetch
       } else if (incomingContentType.includes('application/x-www-form-urlencoded')) {
         const body: string = await request.text();
         options.body = body;
@@ -108,8 +117,6 @@ async function handler(
       }
     }
 
-    // Forward de cabeçalhos úteis do sistema
-
     for (const header of FORWARD_HEADERS) {
       const value: string | null = request.headers.get(header);
       if (value) {
@@ -117,7 +124,7 @@ async function handler(
       }
     }
 
-    // Suporte para cache (GET)
+    // Cache, credentials e mode vindos dos headers, quando válidos
     if (method === 'GET') {
       const cacheControl: string | null = request.headers.get('cache-control');
       if (cacheControl && isValidCacheType(cacheControl)) {
@@ -125,26 +132,22 @@ async function handler(
       }
     }
 
-    // Credentials
     const credentials: string | null = request.headers.get('credentials');
     if (credentials && isValidCredentialsType(credentials)) {
       options.credentials = credentials as CredentialsType;
     }
 
-    // Mode
     const mode: string | null = request.headers.get('mode');
     if (mode && isValidModeType(mode)) {
       options.mode = mode as ModeType;
     }
 
-    // Fazer a chamada para o backend através do SEU cliente estruturado
     const response: Response = await backendApiServerCall(endpoint, options, token);
 
-    // Processar resposta bruta (suporta JSON, Textos planos ou Binários vazios)
+    // Corpo repassado como texto (JSON, texto ou vazio)
     const responseData: string = await response.text();
     const responseContentType: string = response.headers.get('content-type') || 'application/json';
 
-    // Preservar headers importantes da resposta do Python
     const responseHeaders: ResponseHeaders = {
       'Content-Type': responseContentType,
     };
@@ -163,7 +166,6 @@ async function handler(
   } catch (error: unknown) {
     console.error('API Proxy Error:', error);
 
-    // Tratamento específico para timeout
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json(
         {
@@ -184,7 +186,7 @@ async function handler(
   }
 }
 
-// Funções helper para validação de tipos
+/** Indica se o valor é um modo de cache aceito pelo fetch. */
 function isValidCacheType(value: string): value is CacheType {
   const validValues: CacheType[] = [
     'default',
@@ -197,17 +199,19 @@ function isValidCacheType(value: string): value is CacheType {
   return validValues.includes(value as CacheType);
 }
 
+/** Indica se o valor é um modo de credentials aceito pelo fetch. */
 function isValidCredentialsType(value: string): value is CredentialsType {
   const validValues: CredentialsType[] = ['include', 'omit', 'same-origin'];
   return validValues.includes(value as CredentialsType);
 }
 
+/** Indica se o valor é um modo (mode) aceito pelo fetch. */
 function isValidModeType(value: string): value is ModeType {
   const validValues: ModeType[] = ['cors', 'no-cors', 'same-origin', 'navigate'];
   return validValues.includes(value as ModeType);
 }
 
-// Exportar para todos os métodos HTTP mapeados corretamente
+/** Mesmo handler para todos os métodos HTTP. */
 export {
   handler as GET,
   handler as POST,

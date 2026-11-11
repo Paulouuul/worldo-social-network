@@ -1,3 +1,7 @@
+// app/api/register/route.ts
+// Rota /api/register: cadastro com email e senha. Cria o usuário não verificado e envia o email
+// de verificação via Resend.
+
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
@@ -7,19 +11,26 @@ import crypto from 'crypto';
 const resend = new Resend(process.env.RESEND_API_KEY);
 const resend_email = process.env.RESEND_EMAIL;
 
-// CONSTANTES DE VALIDAÇÃO
+// Limites de validação
 const MAX_NAME_LENGTH = 50;
 const MIN_NAME_LENGTH = 3;
 const MAX_USERNAME_LENGTH = 30;
 const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 6;
 
+/**
+ * POST /api/register — cadastra um usuário com email e senha.
+ *
+ * Normaliza e valida email, username (3–30, [a-z0-9_]), nome (3–50) e senha forte; recusa email ou
+ * username em uso; cria usuário e token de verificação (24h) em transação e envia o email. Se o
+ * envio falhar, apaga o usuário e o token criados.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password, name, username } = body;
 
-    // 1. Validações Rápidas (Fail Fast)
+    // Campos obrigatórios
     if (!email || !password || !username || !name) {
       return NextResponse.json(
         { success: false, error: 'Email, senha, nome e nome de usuário são obrigatórios' },
@@ -27,10 +38,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ==========================================
-    // 2. FORMATAÇÃO E SANITIZAÇÃO
-    // ==========================================
-
+    // Normalização
     const formattedEmail = email.trim().toLowerCase();
 
     // Username: lower, trim, apenas letras, números e underscore
@@ -42,17 +50,13 @@ export async function POST(request: NextRequest) {
     // Name: trim e espaços duplos removidos
     const formattedName = name.trim().replace(/\s+/g, ' ');
 
-    // ==========================================
-    // 3. VALIDAÇÕES ESTRITAS
-    // ==========================================
-
-    // VALIDAÇÃO DE EMAIL
+    // Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formattedEmail)) {
       return NextResponse.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    // VALIDAÇÃO DE USERNAME
+    // Nome de usuário
     if (
       !formattedUsername ||
       formattedUsername.length < MIN_USERNAME_LENGTH ||
@@ -67,7 +71,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // VALIDAÇÃO DE NOME
+    // Nome de exibição
     if (!formattedName || formattedName.length < MIN_NAME_LENGTH) {
       return NextResponse.json(
         {
@@ -87,7 +91,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // VALIDAÇÃO DE SENHA
+    /**
+     * Lista os requisitos de senha não atendidos (tamanho, maiúscula, minúscula, número e caractere
+     * especial).
+     */
     const validatePassword = (pass: string) => {
       const errors = [];
       if (pass.length < MIN_PASSWORD_LENGTH) {
@@ -113,9 +120,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ==========================================
-    // 4. CONSULTA UNIFICADA (Evita Race Conditions)
-    // ==========================================
+    // Email ou username já cadastrados (uma única consulta)
     const existingUser = await prisma.users.findFirst({
       where: {
         OR: [{ email: formattedEmail }, { username: formattedUsername }],
@@ -123,7 +128,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      // Mensagem de erro igual ao Python
       const field = existingUser.email === formattedEmail ? 'Email' : 'Nome de Usuário';
       return NextResponse.json(
         {
@@ -134,17 +138,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ==========================================
-    // 5. PREPARAÇÃO DOS DADOS
-    // ==========================================
+    // Hash da senha e token de verificação válido por 24h
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const userPublicId = crypto.randomUUID();
 
-    // ==========================================
-    // 6. EXECUÇÃO ATÔMICA NO BANCO (Transaction)
-    // ==========================================
+    // Usuário e token criados na mesma transação
     await prisma.$transaction(async (tx) => {
       await tx.users.create({
         data: {
@@ -166,9 +166,7 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // ==========================================
-    // 7. ENVIO DO E-MAIL DE VERIFICAÇÃO
-    // ==========================================
+    // Email de verificação
     const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-email?token=${verificationToken}`;
 
     try {
@@ -203,7 +201,7 @@ export async function POST(request: NextRequest) {
         emailError,
       );
 
-      // Rollback em caso de falha no email
+      // Sem email enviado, desfaz o cadastro
       await prisma
         .$transaction([
           prisma.verification_tokens.deleteMany({

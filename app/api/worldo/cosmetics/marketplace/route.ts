@@ -1,12 +1,23 @@
-// app/api/cosmetics/marketplace/route.ts
+// app/api/worldo/cosmetics/marketplace/route.ts
+// Rota /api/worldo/cosmetics/marketplace: busca paginada de anúncios ativos no Elasticsearch,
+// excluindo os anúncios do próprio usuário.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { esClient, LISTINGS_INDEX } from '@/lib/elasticsearch';
 import { NextRequest, NextResponse } from 'next/server';
 import { Rarity } from '@prisma/client';
 
+/** Maior posição paginável com from/size (max_result_window padrão do Elasticsearch). */
 const ES_MAX_RESULT_WINDOW = 10_000;
 
+/**
+ * GET /api/worldo/cosmetics/marketplace — anúncios ativos com estoque.
+ *
+ * Query: rarity, search (prefixo do nome, descrição, criador e vendedor), sort
+ * (newest|oldest|price_asc|price_desc), page e limit (1–100). Retorna listings, total (limitado
+ * a 10.000), hasMore e ownedFrameIds (molduras da página que o usuário já possui).
+ */
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -18,7 +29,7 @@ export async function GET(req: NextRequest) {
       if (validRarities.includes(rarityParam as Rarity)) {
         rarityFilter = rarityParam as Rarity;
       }
-      // Se for inválido, pode ignorar ou retornar erro
+      // Raridade inválida é ignorada
     }
     const sort = searchParams.get('sort') || 'newest';
     const search = searchParams.get('search') || '';
@@ -34,10 +45,10 @@ export async function GET(req: NextRequest) {
     // Fora da janela, busca só o total (size 0) e devolve a página vazia.
     const size = Math.max(0, Math.min(limit, ES_MAX_RESULT_WINDOW - from));
 
-    // Construir query do Elasticsearch
+    // Filtros: ativos e com estoque
     const must: any[] = [{ term: { isActive: true } }, { range: { quantity: { gt: 0 } } }];
 
-    // Excluir itens do próprio usuário
+    // Exclui anúncios do próprio usuário
     if (session?.user?.id) {
       must.push({
         bool: {
@@ -111,7 +122,6 @@ export async function GET(req: NextRequest) {
         sortField = [{ createdAt: { order: 'desc' } }];
     }
 
-    // Buscar no Elasticsearch
     const response = await esClient.search({
       index: LISTINGS_INDEX,
       from: size > 0 ? from : 0,
@@ -130,7 +140,7 @@ export async function GET(req: NextRequest) {
     const total = Math.min(realTotal, ES_MAX_RESULT_WINDOW);
     const hasMore = from + limit < total;
 
-    // Mapear resultados para o formato esperado
+    // Converte os documentos do índice para o formato da API
     const listings = hits.map((hit: any) => ({
       id: hit._id,
       frameId: hit._source.frameId,
@@ -165,7 +175,7 @@ export async function GET(req: NextRequest) {
       },
     }));
 
-    // Verificar se o usuário já possui cada item
+    // Molduras da página que o usuário já possui
     let ownedFrameIds: string[] = [];
     if (session?.user?.id && listings.length > 0) {
       const ownedItems = await prisma.user_frame_item.findMany({
@@ -188,7 +198,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Erro ao buscar marketplace:', error);
-    // Fallback para PostgreSQL em caso de erro
     return NextResponse.json({ error: 'Erro ao carregar marketplace' }, { status: 500 });
   }
 }

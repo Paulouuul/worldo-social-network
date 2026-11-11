@@ -1,4 +1,6 @@
 // app/worldo/cosmetics/inventory/page.tsx
+// Página /worldo/cosmetics/inventory: inventário de cosméticos do usuário com filtros (situação,
+// raridade, busca e ordenação), contadores e modal de ações por item.
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -22,17 +24,24 @@ import { fetchJson, toQueryString } from '@/lib/fetcher';
 import { invalidate } from '@/lib/invalidate';
 import { cachePolicy, qk } from '@/lib/query-keys';
 
+/** Situação dos itens exibidos: todos, à venda ou livres. */
 type FilterType = 'all' | 'listed' | 'unlisted';
+/** Modo em que o modal de ações abre. */
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
 
+/** Itens por página buscada. */
 const PAGE_SIZE = 56;
 
+/**
+ * Inventário paginado sob demanda; contadores e páginas são invalidados após cada ação do
+ * modal.
+ */
 export default function MyCosmeticsPage() {
   const { status } = useSession();
   const queryClient = useQueryClient();
   const { data: me } = useMe();
 
-  // Estados de Filtros
+  // Filtros
   const [activeFilter, setActiveFilter] = useState<FilterType>('unlisted');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -40,7 +49,7 @@ export default function MyCosmeticsPage() {
   const [sort, setSort] = useState('newest');
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
 
-  // Estados do Modal
+  // Modal de ações
   const [selectedItem, setSelectedItem] = useState<GroupedItem | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
 
@@ -71,24 +80,24 @@ export default function MyCosmeticsPage() {
     };
   }, [activeFilter, searchTerm, rarityFilter, sort, status]);
 
-  // Ações do Modal
+  /** Abre o modal do item: visualização do anúncio para itens à venda, equipar para os demais. */
   const handleOpenItem = (item: GroupedItem) => {
     setSelectedItem(item);
     setModalMode(item.isListed ? 'view' : 'equip');
   };
 
+  /** Invalida inventário e listagens após uma ação do modal. */
   const handleModalSuccess = () => {
     invalidate.inventory(queryClient);
   };
 
-  // Telas de Carregamento e Não Autenticado
   if (status === 'loading') {
     return <LoadingSpinner text="Acessando cofre de cosméticos..." />;
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 pt-4 sm:pt-6 flex flex-col h-screen overflow-hidden">
-      {/* Header */}
+      {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-slate-800/60 shrink-0">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-linear-to-r from-white via-slate-200 to-slate-400 tracking-wide flex items-center gap-3">
@@ -155,7 +164,7 @@ export default function MyCosmeticsPage() {
         </div>
       </div>
 
-      {/* Filtros de Status */}
+      {/* Filtros de situação */}
       <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-4 bg-slate-900/60 border border-slate-800/80 rounded-xl p-1.5 w-full sm:w-fit shadow-inner backdrop-blur-sm shrink-0">
         <button
           onClick={() => setActiveFilter('unlisted')}
@@ -223,12 +232,12 @@ export default function MyCosmeticsPage() {
         </button>
       </div>
 
-      {/* Componente Virtualizado */}
+      {/* Grade virtualizada */}
       <div className="flex-1 min-h-0">
         <InventoryVirtualized source={source} onItemClick={handleOpenItem} />
       </div>
 
-      {/* Modal */}
+      {/* Modal de ações */}
       {selectedItem && modalMode && (
         <CosmeticActionModal
           item={selectedItem}

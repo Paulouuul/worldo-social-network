@@ -1,3 +1,5 @@
+// app/auth/error/page.tsx
+// Página /auth/error: mensagem amigável para erros de login do NextAuth (?error=...).
 'use client';
 
 import { Suspense } from 'react';
@@ -6,11 +8,12 @@ import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
 import { AlertCircle, ArrowLeft, LifeBuoy } from 'lucide-react';
 
-// Componente separado que usa useSearchParams
+/** Conteúdo da página de erro; lê o código de erro da URL. */
 function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
+  /** Mensagem exibida para cada código de erro do NextAuth. */
   const getErrorMessage = (error: string) => {
     switch (error) {
       case 'CredentialsSignin':
@@ -67,7 +70,7 @@ function AuthErrorContent() {
         Voltar para o Login
       </Link>
 
-      {/* Footer / Suporte */}
+      {/* Rodapé de suporte */}
       <div className="mt-6 pt-6 border-t border-white/[0.04] text-center">
         <Link
           href="/support"
@@ -81,7 +84,7 @@ function AuthErrorContent() {
   );
 }
 
-// Loader Skeleton com tema Dark/Premium
+/** Esqueleto exibido enquanto os parâmetros da URL carregam. */
 function AuthErrorSkeleton() {
   return (
     <div className="relative z-10 w-full max-w-md bg-slate-900/50 border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]">
@@ -104,13 +107,13 @@ function AuthErrorSkeleton() {
   );
 }
 
-// Página principal com Suspense e Elementos de Background
+/** Página de erro com fundo decorativo e Suspense para o useSearchParams. */
 export default function AuthErrorPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative antialiased selection:bg-purple-500/30 bg-[#020617]">
       {' '}
-      {/* bg-slate-950 */}
-      {/* Background Glows (Tema de Erro + Identidade Visual) */}
+      {/* Cor de fundo equivalente a bg-slate-950 */}
+      {/* Brilhos de fundo */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
       <div className="fixed top-1/3 right-1/4 w-[300px] h-[300px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none z-0" />
       <Suspense fallback={<AuthErrorSkeleton />}>

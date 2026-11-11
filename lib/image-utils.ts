@@ -1,6 +1,12 @@
-// lib/image-converter.ts
+// lib/image-utils.ts
+// Conversão de imagens para WebP com sharp (estático ou animado a partir de GIF).
+
 import sharp from 'sharp';
 
+/**
+ * Opções de conversão: formato, qualidade (1–100), dimensões máximas, transparência e modo de
+ * ajuste.
+ */
 export interface ConvertOptions {
   format: 'webp' | 'webp-animated';
   quality: number; // 1-100 (recomendado: 70-85)
@@ -10,6 +16,7 @@ export interface ConvertOptions {
   fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
 }
 
+/** Resultado da conversão: buffer WebP, tamanhos, redução percentual, se é animado e metadados. */
 export interface ConvertResult {
   buffer: Buffer;
   format: string;
@@ -24,6 +31,7 @@ export interface ConvertResult {
   };
 }
 
+/** Acrescenta '-animated' antes da extensão quando a origem é GIF. */
 export function addAnimatedSuffix(filename: string, isGif: boolean): string {
   if (!isGif) return filename;
 
@@ -36,8 +44,8 @@ export function addAnimatedSuffix(filename: string, isGif: boolean): string {
   return `${name}-animated${extension}`;
 }
 
+/** Trata image/jfif como image/jpeg. */
 function normalizeMimeType(mimeType: string): string {
-  // JFIF é essencialmente JPEG
   if (mimeType === 'image/jfif') {
     return 'image/jpeg';
   }
@@ -45,10 +53,9 @@ function normalizeMimeType(mimeType: string): string {
 }
 
 /**
- * Converte imagem para WebP (estático ou animado)
- * @param inputBuffer - Buffer da imagem original
- * @param originalType - Tipo original (image/gif, image/png, etc)
- * @param options - Opções de conversão
+ * Converte a imagem para WebP, redimensionando sem ampliar.
+ *
+ * GIF gera WebP animado em loop mantendo os delays; PNG usa near-lossless com qualidade ≥ 80.
  */
 export async function convertToWebP(
   inputBuffer: Buffer,
@@ -60,7 +67,6 @@ export async function convertToWebP(
   const isAnimated = options.format === 'webp-animated' || isGif;
   const quality = Math.min(100, Math.max(1, options.quality));
 
-  // Obter metadados originais
   let metadata: any = {};
   try {
     metadata = await sharp(inputBuffer, { animated: isGif }).metadata();
@@ -70,43 +76,39 @@ export async function convertToWebP(
 
   let pipeline = sharp(inputBuffer, {
     animated: isAnimated,
-    limitInputPixels: false, // Previne erro de imagem muito grande
+    limitInputPixels: false, // Sem limite de pixels de entrada
   });
 
-  // Redimensionar se necessário
   if (options.width || options.height) {
     pipeline = pipeline.resize(options.width, options.height, {
       fit: options.fit || 'inside',
-      withoutEnlargement: true, // Não aumenta imagens menores
+      withoutEnlargement: true,
     });
   }
 
-  // Configurações específicas por tipo
   let webpOptions: any = {
     quality: quality,
-    effort: 6, // Máximo esforço de compressão (0-6)
+    effort: 6, // Esforço máximo de compressão
     smartSubsample: true,
   };
 
-  // Configurações para GIF animado
+  // GIF animado: loop infinito e delays originais
   if (isGif && isAnimated) {
     webpOptions = {
       ...webpOptions,
-      loop: 0, // Loop infinito
-      delay: metadata.delay || [100], // Mantém timing original
+      loop: 0,
+      delay: metadata.delay || [100],
       force: true,
     };
   }
 
-  // Configurações para PNG com transparência
+  // PNG com transparência: near-lossless em qualidade alta
   if (originalType === 'image/png' && options.preserveTransparency !== false) {
     webpOptions.nearLossless = quality >= 80;
   }
 
-  // Executar conversão
   const optimizedBuffer = await pipeline.webp(webpOptions).toBuffer();
 
-  // Calcular redução
   const originalSize = inputBuffer.length;
   const optimizedSize = optimizedBuffer.length;
   const reductionPercent = (((originalSize - optimizedSize) / originalSize) * 100).toFixed(1);

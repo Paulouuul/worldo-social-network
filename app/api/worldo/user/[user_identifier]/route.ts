@@ -1,7 +1,14 @@
+// app/api/worldo/user/[user_identifier]/route.ts
+// Rota /api/worldo/user/[user_identifier]: perfil público de um usuário.
+
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * GET /api/worldo/user/:publicIdOuUsername — perfil público (nome, bio, avatar, capa, local,
+ * site, moldura equipada e contadores). Username é comparado em minúsculas.
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ user_identifier: string }> },
@@ -14,17 +21,14 @@ export async function GET(
 
     const { user_identifier } = await params;
 
-    // 1. Descodificar e normalizar a entrada
+    // Decodifica e normaliza o identificador
     const decodedUserIdentifier = decodeURIComponent(user_identifier).trim();
     const sanitizedIdentifier = decodedUserIdentifier.toLowerCase();
 
-    // 2. Buscar no banco (Garantindo case-insensitive para o username)
+    // Busca por publicId (exato) ou username (minúsculo)
     const user = await prisma.users.findFirst({
       where: {
-        OR: [
-          { publicId: decodedUserIdentifier }, // O ID original (mantém case original caso seja UUID/Cuid)
-          { username: sanitizedIdentifier }, // O username normalizado em caixa baixa
-        ],
+        OR: [{ publicId: decodedUserIdentifier }, { username: sanitizedIdentifier }],
       },
       select: {
         id: true,

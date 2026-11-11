@@ -1,4 +1,6 @@
 // app/worldo/cosmetics/marketplace/checkout/page.tsx
+// Página /worldo/cosmetics/marketplace/checkout: revisão final do carrinho e do saldo e
+// finalização da compra.
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -22,6 +24,7 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
 
+/** Item do carrinho com dados do anúncio. */
 interface CartItem {
   id: string;
   listing_id: string;
@@ -43,6 +46,7 @@ interface CartItem {
   in_stock: boolean;
 }
 
+/** Carrinho com itens e totais. */
 interface CartData {
   user_id: string;
   total_items: number;
@@ -51,8 +55,13 @@ interface CartData {
   items: CartItem[];
 }
 
+/** Estilos por raridade na variante estática. */
 const rarityDesigns = getRarityDesigns('static');
 
+/**
+ * Checkout com carrinho e saldo sempre buscados do servidor. Após a compra o carrinho deixa de
+ * ser buscado para a tela não esvaziar antes do redirecionamento.
+ */
 export default function CheckoutPage() {
   const router = useRouter();
 
@@ -62,8 +71,6 @@ export default function CheckoutPage() {
   const [actionError, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Saldo e carrinho: dados críticos, sempre buscados do servidor.
-  // Após a compra o carrinho para de ser buscado para não "esvaziar" a tela antes do redirecionamento.
   const balanceQuery = useCoinBalance();
   const cartQuery = useCartDetail<CartData>({ enabled: !success });
   const userBalance = balanceQuery.data ?? 0;
@@ -74,7 +81,7 @@ export default function CheckoutPage() {
 
   const isInitialLoad = useRef(true);
 
-  // Redirecionamento silencioso caso o carrinho esteja vazio na primeira carga
+  // Carrinho vazio na primeira carga redireciona para /worldo
   useEffect(() => {
     if (!cartQuery.isSuccess || !isInitialLoad.current) return;
     isInitialLoad.current = false;
@@ -84,6 +91,11 @@ export default function CheckoutPage() {
     }
   }, [cartQuery.isSuccess, cart, router]);
 
+  /**
+   * Confere o saldo e envia a compra para /api/worldo/cosmetics/marketplace/checkout. Sem
+   * estoque, volta ao carrinho; em sucesso invalida saldo, carrinho, listagens e inventário e
+   * navega para /worldo/cosmetics/orders/success, rota que não existe no projeto.
+   */
   const handleFinalize = async () => {
     if (!cart) return;
 
@@ -137,11 +149,12 @@ export default function CheckoutPage() {
     }
   };
 
+  /** Estilos da raridade do item (COMUM como padrão). */
   const getItemConfig = (rarity: string | undefined) => {
     return rarityDesigns[rarity?.toUpperCase() || ''] || rarityDesigns.COMUM;
   };
 
-  // UI consolidada para Loading e Redirecionamento
+  // Carregando ou redirecionando
   if (loading || redirecting || !cart) {
     return <LoadingSpinner text="Carregando Checkout..." />;
   }
@@ -150,7 +163,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 relative">
-      {/* Header */}
+      {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
           <Link
@@ -197,9 +210,9 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {/* Grid: Items + Resumo */}
+      {/* Itens e resumo */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Lista de Itens */}
+        {/* Lista de itens */}
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map((item) => {
             const config = getItemConfig(item.frame?.rarity);
@@ -218,7 +231,7 @@ export default function CheckoutPage() {
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none z-0" />
 
                 <div className="relative z-10 flex flex-col sm:flex-row gap-5 sm:items-center">
-                  {/* Imagem + Badge */}
+                  {/* Imagem e selo de raridade */}
                   <div className="shrink-0 flex flex-col items-center">
                     <div
                       className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center shadow-xl transition-transform duration-500 sm:group-hover:scale-105 ${config.borderClass || 'border-slate-700'}`}

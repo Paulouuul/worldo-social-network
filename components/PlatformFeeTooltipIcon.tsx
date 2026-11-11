@@ -1,3 +1,7 @@
+// components/PlatformFeeTooltipIcon.tsx
+// Ícone "?" com tooltip explicando a taxa da plataforma nas vendas.
+
+/** Ícone com tooltip exibido ao passar o mouse. */
 export function PlatformFeeTooltipIcon() {
   return (
     <span className="group relative cursor-help inline-flex items-center justify-center w-3 h-3 rounded-full bg-slate-700 text-[8px] text-slate-300 font-bold">

@@ -1,3 +1,7 @@
+// app/worldo/perfil/[user_identifier]/page.tsx
+// Página /worldo/perfil/[user_identifier]: perfil público (server component) com capa, avatar e
+// moldura, dados do usuário, métricas e bio; o próprio usuário vê o botão de editar.
+
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { ClientImage } from '@/components/ClientImage';
@@ -22,12 +26,14 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 
+/** Parâmetros da rota: publicId ou username. */
 interface ProfilePageProps {
   params: Promise<{
     user_identifier: string;
   }>;
 }
 
+/** Busca o usuário por publicId ou username no banco e renderiza o perfil; 404 se não existir. */
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const session = await auth();
   const { user_identifier } = await params;
@@ -71,9 +77,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 antialiased text-slate-100 selection:bg-purple-500/30">
-      {/* Card Principal do Perfil */}
+      {/* Card do perfil */}
       <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl relative">
-        {/* Imagem de Capa (Cover Image) */}
+        {/* Imagem de capa */}
         <div className="relative h-40 sm:h-52 md:h-64 w-full bg-linear-to-r from-slate-950 via-purple-950/40 to-slate-950 border-b border-slate-800/50 overflow-hidden">
           {user.coverImage ? (
             <ClientImage
@@ -96,10 +102,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           )}
         </div>
 
-        {/* Conteúdo de Informações e Foto */}
+        {/* Informações e foto */}
         <div className="relative px-4 sm:px-6 pb-6 sm:pb-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-12 sm:-mt-16 md:-mt-20 mb-4 sm:mb-6 gap-3 sm:gap-4">
-            {/* Bloco do Avatar */}
+            {/* Avatar com moldura */}
             <div className="relative shrink-0">
               <AvatarWithFrame
                 avatarUrl={user.avatar && user.avatar !== 'None' ? user.avatar : null}
@@ -111,7 +117,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               />
             </div>
 
-            {/* Ações (Editar Perfil) */}
+            {/* Botão de editar perfil (apenas no próprio perfil) */}
             <div className="pt-1 sm:pt-0 self-start sm:self-end">
               {isOwnProfile && (
                 <Link
@@ -126,7 +132,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             </div>
           </div>
 
-          {/* Dados Textuais do Usuário */}
+          {/* Nome, username e email */}
           <div className="space-y-4 sm:space-y-6">
             <div className="space-y-1.5 sm:space-y-2">
               <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-white flex items-center gap-2 wrap-break-word">
@@ -153,7 +159,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               </div>
             </div>
 
-            {/* Cards de Métricas e Estatísticas */}
+            {/* Métricas */}
             <div className="flex flex-wrap gap-2 sm:gap-4">
               <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl px-3 sm:px-5 py-2.5 sm:py-3 text-center min-w-20 sm:min-w-27.5 flex-1 sm:flex-initial backdrop-blur-sm shadow-inner transition-colors hover:border-slate-800">
                 <span className="block font-black text-lg sm:text-2xl text-purple-400 tracking-tight">
@@ -189,14 +195,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               </div>
             </div>
 
-            {/* Caixa de Biografia Interativa */}
+            {/* Bio expansível */}
             {user.bio && (
               <div className="pt-1">
                 <ProfileBio bio={user.bio} />
               </div>
             )}
 
-            {/* Localização, Website e Data de Criação */}
+            {/* Localização, site e data de cadastro */}
             <div className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3 pt-1 sm:pt-2 text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wide">
               {user.location && (
                 <div className="flex items-start gap-1.5 sm:gap-2 bg-slate-950/30 border border-slate-800/40 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg max-w-full">
@@ -232,7 +238,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         </div>
       </div>
 
-      {/* Navegação por Abas do Painel */}
+      {/* Abas do perfil */}
       <div className="mt-6 sm:mt-8 space-y-4">
         <div className="flex gap-1 border-b border-slate-800/80 overflow-x-auto scrollbar-hide">
           <button className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 sm:py-3 text-purple-400 border-b-2 border-purple-500 font-bold text-xs sm:text-sm tracking-wide whitespace-nowrap">
@@ -251,7 +257,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           </button>
         </div>
 
-        {/* Placeholder de Funcionalidades Futuras */}
+        {/* Conteúdo das abas ainda não implementado */}
         <div className="rounded-2xl border border-dashed border-slate-800 p-8 sm:p-12 text-center bg-slate-900/5">
           <p className="text-xs sm:text-sm font-medium text-slate-500 tracking-wide">
             Novas abas de customização e histórico serão liberadas em breve...

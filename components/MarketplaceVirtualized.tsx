@@ -1,4 +1,6 @@
 // components/MarketplaceVirtualized.tsx
+// Grade virtualizada de anúncios do marketplace (usada no marketplace e na loja do vendedor), com
+// preço, estoque e selo de "adquirido".
 'use client';
 
 import Link from 'next/link';
@@ -8,6 +10,7 @@ import { formatItemCount } from '@/lib/format-utils';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
 import { VirtualizedPagedGrid, type PagedSource } from '@/components/VirtualizedPagedGrid';
 
+/** Anúncio exibido na grade. */
 export interface MarketplaceListing {
   id: string;
   frameId: string;
@@ -25,20 +28,22 @@ export interface MarketplaceListing {
   seller: { publicId: string; name: string; username: string; avatar: string | null };
 }
 
-/** Formato mínimo de uma página de listagens (marketplace e loja do vendedor). */
+/** Formato mínimo de uma página de anúncios (marketplace e loja do vendedor). */
 export interface ListingsPage<L extends MarketplaceListing = MarketplaceListing> {
   listings: L[];
   total: number;
   ownedFrameIds?: string[];
 }
 
+/** Extrai anúncios e total de uma página para a grade. */
 export const selectListings = <L extends MarketplaceListing>(page: ListingsPage<L>) => ({
   items: page.listings || [],
   total: page.total || 0,
 });
 
-// Set de itens adquiridos por página, calculado uma vez por resposta
+/** Set de molduras já adquiridas por página, calculado uma vez por resposta. */
 const ownedCache = new WeakMap<object, Set<string>>();
+/** Retorna (e memoriza) o Set de ownedFrameIds da página. */
 function ownedSet(page: ListingsPage<any>) {
   let set = ownedCache.get(page);
   if (!set) {
@@ -48,6 +53,7 @@ function ownedSet(page: ListingsPage<any>) {
   return set;
 }
 
+/** Colunas da grade conforme a largura da janela (2 a 7). */
 const columnsForWidth = (width: number) => {
   if (width < 480) return 2;
   if (width < 640) return 3;
@@ -57,11 +63,16 @@ const columnsForWidth = (width: number) => {
   return 7;
 };
 
-// Card: h-62.5 = 250px (mobile) | h-67.5 = 270px; +16px de espaçamento vertical
+/** Altura da linha: card h-62.5/h-67.5 (250/270px) + 16px de espaçamento. */
 const rowHeight = (isMobile: boolean) => (isMobile ? 250 : 270) + 16;
 
+/** Estilos por raridade com o selo posicionado abaixo da imagem. */
 const rarityDesigns = getRarityDesigns('bottom-2');
 
+/**
+ * Card do anúncio com preço, quantidade (ou selo de adquirido) e vendedor; leva ao detalhe do
+ * anúncio.
+ */
 const MarketplaceItem = ({
   listing,
   isOwned,
@@ -124,15 +135,18 @@ const MarketplaceItem = ({
   );
 };
 
+/** Card de esqueleto para anúncios de páginas ainda não carregadas. */
 const ListingSkeleton = () => (
   <div className="h-62.5 sm:h-67.5 rounded-2xl bg-slate-900/50 border border-slate-800 animate-pulse" />
 );
 
+/** Propriedades da grade: fonte paginada e mensagem do estado vazio. */
 interface Props<L extends MarketplaceListing, P extends ListingsPage<L>> {
   source: PagedSource<L, P>;
   emptyMessage?: string;
 }
 
+/** Grade de anúncios sobre o VirtualizedPagedGrid, com spinner inicial e estado vazio. */
 export function MarketplaceVirtualized<L extends MarketplaceListing, P extends ListingsPage<L>>({
   source,
   emptyMessage = 'Não há molduras disponíveis no mercado no momento. Tente buscar por algo diferente!',

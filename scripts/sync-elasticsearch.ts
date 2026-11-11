@@ -1,20 +1,24 @@
 // scripts/sync-elasticsearch.ts
+// Script de manutenção: reindexa no Elasticsearch todos os anúncios ativos do PostgreSQL.
+// Executar com: npx tsx scripts/sync-elasticsearch.ts
+
 import 'dotenv/config';
 import { prisma } from '../lib/prisma';
 import { esClient, LISTINGS_INDEX, setupElasticsearchIndices } from '../lib/elasticsearch';
 
+/** Garante o índice, lê os anúncios ativos com moldura, criador e vendedor e indexa cada um. */
 async function syncExistingListings() {
   console.log('Starting Elasticsearch sync...');
 
   try {
-    // Testar conexão com PostgreSQL
+    // Testa a conexão com o PostgreSQL
     const userCount = await prisma.users.count();
     console.log(`Connected to PostgreSQL. Users: ${userCount}`);
 
-    // Setup Elasticsearch
+    // Garante que o índice existe
     await setupElasticsearchIndices();
 
-    // Buscar todas as listagens ativas
+    // Anúncios ativos
     const listings = await prisma.cosmetic_listing.findMany({
       where: {
         isActive: true,
@@ -49,11 +53,10 @@ async function syncExistingListings() {
       return;
     }
 
-    // Indexar cada listing no Elasticsearch
     let indexedCount = 0;
     for (const listing of listings) {
       try {
-        // Usar a mesma função do sync automático para consistência
+        // Mesmo formato de documento do sync automático (lib/prisma-sync.ts)
         await esClient.index({
           index: LISTINGS_INDEX,
           id: listing.id,
@@ -66,19 +69,19 @@ async function syncExistingListings() {
             isActive: listing.isActive,
             createdAt: listing.createdAt,
             updatedAt: listing.updatedAt,
-            // Frame data
+            // Moldura
             frameName: listing.frame.name,
             frameRarity: listing.frame.rarity,
             frameDescription: listing.frame.description || '',
             frameImage: listing.frame.imageUrl,
             frameImageUrl: listing.frame.imageUrl,
             frameThumbnailUrl: listing.frame.thumbnailUrl,
-            // Creator data
+            // Criador
             creatorId: listing.frame.createdBy,
             creatorName: listing.frame.creator?.name,
             creatorUsername: listing.frame.creator?.username,
             creatorAvatar: listing.frame.creator?.avatar,
-            // Seller data
+            // Vendedor
             sellerName: listing.seller.name,
             sellerUsername: listing.seller.username,
             sellerAvatar: listing.seller.avatar,
@@ -86,7 +89,7 @@ async function syncExistingListings() {
         });
         indexedCount++;
 
-        // Log a cada 10 itens
+        // Progresso a cada 10 itens
         if (indexedCount % 10 === 0) {
           console.log(`   Indexed ${indexedCount}/${listings.length} listings`);
         }
@@ -97,7 +100,7 @@ async function syncExistingListings() {
 
     console.log(`Synced ${indexedCount}/${listings.length} listings to Elasticsearch`);
 
-    // Verificar total no Elasticsearch
+    // Total no índice
     const count = await esClient.count({ index: LISTINGS_INDEX });
     console.log(`Total documents in Elasticsearch: ${count.count}`);
   } catch (error) {
@@ -107,5 +110,4 @@ async function syncExistingListings() {
   }
 }
 
-// Executar
 syncExistingListings();

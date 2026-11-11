@@ -1,3 +1,6 @@
+// app/login/page.tsx
+// Página /login: login com email e senha (NextAuth credentials) ou Google/GitHub, com mensagens
+// de email verificado e erros de autenticação.
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
@@ -9,6 +12,7 @@ import Link from 'next/link';
 import { Sparkles, Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
 
+/** Formulário de login. Lê ?verified e ?error da URL para exibir mensagens. */
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -35,12 +39,17 @@ function LoginContent() {
     }
   }, [searchParams]);
 
+  /** Impede digitar espaços no campo. */
   const handleKeyDownNoSpaces = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ' ') {
       e.preventDefault();
     }
   };
 
+  /**
+   * Valida os campos, faz signIn por credenciais e redireciona para /worldo ou exibe o erro
+   * traduzido.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -93,12 +102,12 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-slate-950 relative overflow-hidden">
-      {/* Background Aurora / Efeito de Fundo Cósmico */}
+      {/* Efeito de fundo */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
 
       <div className="max-w-md w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
-        {/* Espaço para a Logo / Header */}
+        {/* Logo e título */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="relative w-48 h-16 mb-4">
             <ClientImage
@@ -268,6 +277,7 @@ function LoginContent() {
   );
 }
 
+/** Página de login com Suspense para o useSearchParams. */
 export default function LoginPage() {
   return (
     <Suspense fallback={<LoadingSpinner text="Carregando portal..." withBackground fullScreen />}>

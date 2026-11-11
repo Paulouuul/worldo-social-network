@@ -1,3 +1,6 @@
+// app/worldo/cosmetics/marketplace/page.tsx
+// Página /worldo/cosmetics/marketplace: catálogo de anúncios com busca, filtro de raridade,
+// ordenação e grade virtualizada paginada sob demanda.
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -14,8 +17,13 @@ import type { PagedSource } from '@/components/VirtualizedPagedGrid';
 import { fetchJson, toQueryString } from '@/lib/fetcher';
 import { cachePolicy, qk } from '@/lib/query-keys';
 
+/** Anúncios por página buscada. */
 const PAGE_SIZE = 56;
 
+/**
+ * Catálogo do marketplace. Páginas com preço/estoque são revalidadas sempre e liberadas da
+ * memória ao sair da tela.
+ */
 export default function MarketplacePage() {
   const { data: session, status } = useSession();
 
@@ -26,7 +34,7 @@ export default function MarketplacePage() {
 
   const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
 
-  // Preço/estoque: páginas revalidadas sempre e liberadas da memória ao sair da tela
+  // Fonte paginada da grade, recriada quando os filtros mudam
   const source = useMemo<PagedSource<ListingsPage['listings'][number], ListingsPage>>(() => {
     const filters = { rarity: rarityFilter, sort, search: searchTerm };
     return {
@@ -43,6 +51,7 @@ export default function MarketplacePage() {
     };
   }, [rarityFilter, sort, searchTerm, status]);
 
+  /** Limpa o campo e o termo de busca. */
   const handleClearSearch = () => {
     setSearchInput('');
     setSearchTerm('');
@@ -50,7 +59,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 pt-4 sm:pt-6 flex flex-col h-screen overflow-hidden">
-      {/* Header */}
+      {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-slate-800/60 shrink-0">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-400 tracking-wide flex items-center gap-3">
@@ -137,7 +146,7 @@ export default function MarketplacePage() {
         ))}
       </div>
 
-      {/* Componente Virtualizado */}
+      {/* Grade virtualizada */}
       <div className="flex-1 min-h-0">
         <MarketplaceVirtualized source={source} />
       </div>

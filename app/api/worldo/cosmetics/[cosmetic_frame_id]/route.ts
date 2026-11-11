@@ -1,7 +1,14 @@
+// app/api/worldo/cosmetics/[cosmetic_frame_id]/route.ts
+// Rota /api/worldo/cosmetics/[cosmetic_frame_id]: detalhes de uma moldura cosmética.
+
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * GET /api/worldo/cosmetics/:id — moldura com criador, anúncios ativos, últimas 10 avaliações e
+ * compras, estatísticas (vendidas, em circulação, equipadas, notas) e o anúncio mais barato.
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { cosmetic_frame_id: string } },
@@ -79,7 +86,6 @@ export async function GET(
       return NextResponse.json({ error: 'Moldura não encontrada' }, { status: 404 });
     }
 
-    // Calcular estatísticas adicionais
     const stats = {
       totalSold: frame.soldCount,
       totalInCirculation: frame.items.length,
@@ -95,7 +101,7 @@ export async function GET(
       },
     };
 
-    // Buscar anúncio mais barato (se houver vários)
+    // Anúncio ativo de menor preço
     const cheapestListing =
       frame.listings.length > 0
         ? frame.listings.reduce(

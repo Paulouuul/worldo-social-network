@@ -1,26 +1,30 @@
-// worldo-social-network/app/debug/api-test/page.tsx
+// app/debug/api-test/page.tsx
+// Página /debug/api-test: ferramenta de desenvolvimento que chama as rotas de diagnóstico de JWT
+// do backend Python (localhost:8000) e exibe as respostas.
 'use client';
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 
+/** Exibe o resultado dos testes de token; exige sessão. */
 export default function ApiTestPage() {
   const { data: session } = useSession();
   const [results, setResults] = useState<any>({});
 
+  /** Busca o JWT do backend e chama debug-token e debug-jwt com ele. */
   const testDebug = async () => {
-    // 1. Buscar token
+    // Busca o JWT do backend
     const tokenRes = await fetch('/api/auth/back/token');
     const data = await tokenRes.json();
     const token = data.token || '';
 
-    // 2. Testar endpoint debug-token
+    // Testa o endpoint debug-token
     const debugRes = await fetch('http://localhost:8000/api/py/auth_test/test/auth/debug-token', {
       headers: { Authorization: `Bearer ${token}` },
     });
     const debugData = await debugRes.json();
 
-    // 3. Testar endpoint debug-jwt
+    // Testa o endpoint debug-jwt
     const jwtRes = await fetch('http://localhost:8000/api/py/auth_test/test/auth/debug-jwt', {
       headers: { Authorization: `Bearer ${token}` },
     });

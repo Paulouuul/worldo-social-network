@@ -1,5 +1,5 @@
 // hooks/queries/useCatalog.ts
-// Pacotes e configurações da plataforma.
+// Hooks de dados de catálogo da plataforma: taxa de venda e pacotes de moedas e de criação.
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { fetchJson } from '@/lib/fetcher';
 import { cachePolicy, qk } from '@/lib/query-keys';
 
-/** Percentual de taxa da plataforma. Configuração que raramente muda: cache de 1h. */
+/** Percentual da taxa da plataforma. Configuração que raramente muda: cache de 1h. */
 export function usePlatformFee() {
   return useQuery({
     queryKey: qk.cosmetics.platformFee(),
@@ -22,7 +22,7 @@ export function usePlatformFee() {
   });
 }
 
-/** Pacotes de moedas: exibem preço cobrado em seguida, por isso sem cache. */
+/** Pacotes de moedas. Exibem preços cobrados em seguida, por isso sem cache. */
 export function useCoinPackages<T>() {
   const { status } = useSession();
   return useQuery({
@@ -33,7 +33,7 @@ export function useCoinPackages<T>() {
   });
 }
 
-/** Pacotes de criação por raridade: exibem custo cobrado em seguida, por isso sem cache. */
+/** Pacotes de criação da raridade. Exibem custos cobrados em seguida, por isso sem cache. */
 export function useCreationPackages<T>(rarity: string) {
   return useQuery({
     queryKey: qk.cosmetics.creationPackages(rarity),

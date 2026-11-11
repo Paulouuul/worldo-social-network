@@ -1,3 +1,6 @@
+// app/worldo/coins/page.tsx
+// Página /worldo/coins: loja de pacotes de moedas com saldo atual, destaques (mais popular e
+// melhor custo-benefício) e compra via Stripe Checkout.
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -20,6 +23,7 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
 
+/** Pacote de moedas exibido na loja. */
 interface CoinPackage {
   id: string;
   name: string;
@@ -30,6 +34,10 @@ interface CoinPackage {
   bestValue?: boolean;
 }
 
+/**
+ * Lista os pacotes (sem cache, pois exibem preço) e o saldo atual; a compra redireciona ao
+ * Stripe.
+ */
 export default function CoinsPage() {
   const { status } = useSession();
 
@@ -43,6 +51,7 @@ export default function CoinsPage() {
   const packages = useMemo<CoinPackage[]>(() => {
     if (!Array.isArray(rawPackages) || rawPackages.length === 0) return [];
 
+    // Moedas (com bônus) por real
     const valueOf = (pkg: CoinPackage) => (pkg.coins + pkg.bonusCoins) / pkg.priceReal;
     const bestValueIds = [...rawPackages]
       .sort((a, b) => valueOf(b) - valueOf(a))
@@ -57,11 +66,13 @@ export default function CoinsPage() {
     }));
   }, [rawPackages]);
 
+  /** Abre a confirmação de compra do pacote. */
   const handleBuyClick = (pkg: CoinPackage) => {
     setSelectedPackage(pkg);
     setShowConfirmModal(true);
   };
 
+  /** Cria a sessão de checkout do Stripe e redireciona para a URL de pagamento. */
   const confirmPurchase = async () => {
     if (!selectedPackage) return;
 
@@ -86,27 +97,28 @@ export default function CoinsPage() {
     }
   };
 
+  /** Moedas (com bônus) por real do pacote. */
   const getCoinsPerReal = (pkg: CoinPackage) => {
     const totalCoins = pkg.coins + pkg.bonusCoins;
     return pkg.priceReal > 0 ? (totalCoins / pkg.priceReal).toFixed(0) : '0';
   };
 
+  /** Ícone de moeda com cor fixa para os 5 primeiros pacotes e cor gerada (HSL) para os demais. */
   const getPackageIcon = (index: number) => {
-    // Cores especiais para os primeiros pacotes
+    // Cores fixas dos primeiros pacotes
     const specialColors = [
-      'text-amber-400', // 0 - Amarelo (padrão)
-      'text-blue-400', // 1 - Azul
-      'text-red-400', // 2 - Vermelho
-      'text-purple-400', // 3 - Roxo
-      'text-emerald-400', // 4 - Verde
+      'text-amber-400',
+      'text-blue-400',
+      'text-red-400',
+      'text-purple-400',
+      'text-emerald-400',
     ];
 
-    // Se for um dos primeiros, usa cor especial
     if (index < specialColors.length) {
       return <Coins className={`w-12 h-12 ${specialColors[index]}`} />;
     }
 
-    // Para os demais, progressão infinita
+    // Demais pacotes: cor HSL derivada do índice
     const hue = (index * 37) % 360;
     const saturation = 75 + (index % 15);
     const lightness = 55 + (index % 10);
@@ -128,7 +140,7 @@ export default function CoinsPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 px-4 py-12 antialiased selection:bg-blue-500/30">
       <div className="max-w-7xl mx-auto space-y-16">
-        {/* Header Hero Card */}
+        {/* Cabeçalho */}
         <div className="relative rounded-3xl border border-slate-800 bg-slate-900/50 p-8 md:p-12 text-center overflow-hidden backdrop-blur-md shadow-2xl">
           <div className="absolute inset-0 opacity-20 pointer-events-none">
             <div className="absolute -top-12 -right-12 w-96 h-96 bg-purple-600 rounded-full blur-[120px]"></div>
@@ -270,7 +282,7 @@ export default function CoinsPage() {
           ))}
         </div>
 
-        {/* Seção de Benefícios Extra */}
+        {/* Benefícios */}
         <div className="rounded-2xl border border-slate-800/80 bg-slate-900/20 p-8 md:p-12 backdrop-blur-sm">
           <h3 className="text-xl font-bold text-center text-white mb-10 flex items-center justify-center gap-2.5 tracking-tight">
             <ShieldCheck className="w-5 h-5 text-blue-400" />
@@ -316,7 +328,7 @@ export default function CoinsPage() {
         </div>
       </div>
 
-      {/* Modal de Confirmação Modernizado */}
+      {/* Modal de confirmação */}
       {showConfirmModal && selectedPackage && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl transition-all">
@@ -359,7 +371,7 @@ export default function CoinsPage() {
                 </div>
               </div>
 
-              {/* Actions do Modal */}
+              {/* Ações do modal */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   onClick={() => setShowConfirmModal(false)}

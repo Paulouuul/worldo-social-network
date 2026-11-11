@@ -1,8 +1,20 @@
+// app/api/worldo/cosmetics/listings/remove/route.ts
+// Rota /api/worldo/cosmetics/listings/remove: retira unidades de um anúncio do marketplace e as
+// devolve ao inventário livre do vendedor.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { syncToListing, removeFromElasticsearch } from '@/lib/prisma-sync';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * POST /api/worldo/cosmetics/listings/remove — retira { quantity } unidades do anúncio {
+ * listingId } do próprio usuário.
+ *
+ * Em transação, libera as unidades e reduz a quantidade do anúncio (ou o apaga ao zerar).
+ * Depois atualiza ou remove o documento no Elasticsearch; falhas de sincronização são
+ * registradas sem afetar a resposta.
+ */
 export async function POST(request: NextRequest) {
   try {
     console.log('[REMOVE] Iniciando remoção de listing...');
@@ -37,7 +49,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Buscar o anúncio
     console.log('[REMOVE] Buscando listing no banco...');
     const listing = await prisma.cosmetic_listing.findUnique({
       where: { id: listingId },
@@ -82,7 +93,6 @@ export async function POST(request: NextRequest) {
     const result = await prisma.$transaction(async (tx) => {
       console.log('[REMOVE] Buscando itens listados...');
 
-      // Buscar itens listados deste anúncio
       const listedItems = await tx.user_frame_item.findMany({
         where: {
           listingId: listingId,
@@ -101,7 +111,7 @@ export async function POST(request: NextRequest) {
         throw new Error('Nenhum item encontrado para remover');
       }
 
-      // Desmarcar os itens como listados
+      // Devolve as unidades ao inventário livre
       console.log('[REMOVE] Atualizando itens para não listados...');
       const updateResult = await tx.user_frame_item.updateMany({
         where: {
@@ -116,7 +126,7 @@ export async function POST(request: NextRequest) {
 
       console.log('[REMOVE] Itens atualizados:', updateResult.count);
 
-      // Atualizar ou deletar o listing
+      // Reduz o anúncio ou o apaga quando zera
       const newQuantity = listing.quantity - quantity;
       console.log('[REMOVE] Nova quantidade:', newQuantity);
 
@@ -152,7 +162,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (esError) {
       console.error('[REMOVE] ERRO ao sincronizar com Elasticsearch:', esError);
-      // Não lançar erro para não quebrar a resposta
+      // A operação no banco já foi concluída; a falha no índice só é registrada
     }
 
     console.log('[REMOVE] Operação concluída com sucesso:', result);

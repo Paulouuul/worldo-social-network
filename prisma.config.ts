@@ -1,3 +1,7 @@
+// prisma.config.ts
+// Configuração do Prisma CLI: schema, migrations, comando de seed e URL do banco (DATABASE_URL
+// obrigatória).
+
 import { defineConfig } from 'prisma/config';
 import 'dotenv/config';
 

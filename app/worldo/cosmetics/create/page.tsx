@@ -1,4 +1,9 @@
+// app/worldo/cosmetics/create/page.tsx
+// Página /worldo/cosmetics/create: criação de moldura cosmética paga com moedas. O usuário
+// escolhe raridade e pacote (quantidade × custo), envia imagem e miniatura e vê a prévia no
+// próprio avatar; o envio vai para o backend Python.
 'use client';
+
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -27,12 +32,14 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
+/** Campos do formulário de criação. */
 interface FormData {
   name: string;
   description: string;
   rarity: Rarity;
   stock: number;
 }
+/** Pacote de criação retornado por /api/worldo/cosmetics/creation/packages. */
 interface CreationPackage {
   id: string;
   name: string;
@@ -44,13 +51,17 @@ interface CreationPackage {
   isActive: boolean;
 }
 
+/**
+ * Formulário de criação com validação local (nome, descrição, arquivos e saldo) antes de enviar
+ * ao backend.
+ */
 export default function CreateCosmeticPage() {
   const { status } = useSession();
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const router = useRouter();
 
-  // Saldo de moedas (Sempre buscado do servidor)
+  // Saldo de moedas (sempre buscado do servidor)
   const { data: userCoins = 0 } = useCoinBalance();
 
   const [loading, setLoading] = useState(false);
@@ -88,6 +99,7 @@ export default function CreateCosmeticPage() {
     description: '',
   });
 
+  /** Valida o nome da moldura: 3–50 caracteres. */
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.length === 0) {
@@ -102,6 +114,7 @@ export default function CreateCosmeticPage() {
     return '';
   };
 
+  /** Valida a descrição: até 500 caracteres. */
   const validateDescription = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.length > MAX_DESCRIPTION_LENGTH) {
@@ -110,16 +123,16 @@ export default function CreateCosmeticPage() {
     return '';
   };
 
-  // Verifica se há erros em algum campo
+  // Algum campo com erro
   const hasErrors = errors.name !== '' || errors.description !== '';
 
-  // Verifica se os campos obrigatórios estão preenchidos e válidos
+  // Campos obrigatórios preenchidos e válidos
   const isFormValid =
     formData.name.trim().length >= 3 &&
     formData.name.trim().length <= MAX_NAME_LENGTH &&
     imageFile !== null &&
     selectedPackageId !== '' &&
-    !hasErrors; // ← Verifica se não há erros
+    !hasErrors;
 
   // Pacotes de criação (custo cobrado em seguida: sem cache)
   const { data: packagesData } = useCreationPackages<CreationPackage>(formData.rarity);
@@ -145,7 +158,6 @@ export default function CreateCosmeticPage() {
     return currentPackage?.totalCost || 0;
   }, [currentPackage]);
 
-  // Checagem de saldo insuficiente
   const hasInsufficientCoins = userCoins < creationCost;
 
   const activePackageColor = useMemo(() => {
@@ -159,6 +171,7 @@ export default function CreateCosmeticPage() {
   }, [formData.rarity]);
 
   useEffect(() => {
+    /** Impede seleção de texto por duplo clique na página. */
     const handleDoubleClick = (e: MouseEvent) => {
       e.preventDefault();
     };
@@ -180,6 +193,7 @@ export default function CreateCosmeticPage() {
     };
   }, [imagePreview, thumbnailPreview]);
 
+  /** Valida e define a imagem principal (JPG, PNG, GIF ou JFIF; até 5MB, GIF até 3MB). */
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -209,6 +223,7 @@ export default function CreateCosmeticPage() {
     setError('');
   }, []);
 
+  /** Valida e define a miniatura opcional (até 2MB, GIF até 1MB). */
   const handleThumbnailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -238,6 +253,7 @@ export default function CreateCosmeticPage() {
     setError('');
   }, []);
 
+  /** Remove a miniatura escolhida e libera a URL de prévia. */
   const handleRemoveThumbnail = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -255,6 +271,10 @@ export default function CreateCosmeticPage() {
     [thumbnailPreview],
   );
 
+  /**
+   * Valida o formulário e o saldo e envia o FormData ao backend; em sucesso invalida saldo e
+   * inventário e vai para o inventário.
+   */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -267,7 +287,6 @@ export default function CreateCosmeticPage() {
         return;
       }
 
-      // Validação da descrição
       const descError = validateDescription(formData.description);
       if (descError) {
         setError(descError);
@@ -279,7 +298,7 @@ export default function CreateCosmeticPage() {
       setError('');
       setSuccess('');
 
-      // Validação de saldo imediata no front-end
+      // Saldo insuficiente bloqueia o envio
       if (hasInsufficientCoins) {
         setError(
           `Saldo insuficiente. Você precisa de ${creationCost} moedas, mas possui apenas ${userCoins}.`,
@@ -353,6 +372,7 @@ export default function CreateCosmeticPage() {
     ],
   );
 
+  /** Seleciona o pacote e ajusta a quantidade (estoque) da moldura. */
   const handlePackageSelect = useCallback(
     (id: string, quantity: number) => () => {
       setSelectedPackageId(id);
@@ -403,7 +423,7 @@ export default function CreateCosmeticPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-7">
-              {/* Nome da Moldura */}
+              {/* Nome da moldura */}
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                   <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Nome da Moldura *
@@ -443,7 +463,7 @@ export default function CreateCosmeticPage() {
                 )}
               </div>
 
-              {/* Descrição do Artefato */}
+              {/* Descrição */}
               <div>
                 <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
                   <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Descrição do Artefato
@@ -562,7 +582,7 @@ export default function CreateCosmeticPage() {
                 </div>
               </div>
 
-              {/* Uploads de Arquivos Dinâmicos */}
+              {/* Upload da imagem e da miniatura */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
@@ -645,7 +665,7 @@ export default function CreateCosmeticPage() {
                 </div>
               </div>
 
-              {/* Tabela de Custos Atualizada */}
+              {/* Resumo de custos */}
               <div
                 className={`bg-slate-950/60 rounded-xl p-5 border ${currentStyle.borderClass} space-y-3 transition-all duration-500`}
               >
@@ -668,7 +688,7 @@ export default function CreateCosmeticPage() {
                   </span>
                 </div>
 
-                {/* Linha separadora + Saldo do Usuário vs Custo Final */}
+                {/* Saldo do usuário e custo final */}
                 <div className="border-t border-slate-800/80 my-2 pt-3 flex flex-col gap-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold text-slate-400">Seu Saldo</span>

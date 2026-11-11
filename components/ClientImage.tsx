@@ -1,8 +1,11 @@
 // components/ClientImage.tsx
+// Imagem que usa <img> para GIFs e imagens animadas (preservando a animação) e next/image para as
+// demais.
 'use client';
 
 import Image from 'next/image';
 
+/** Propriedades da imagem; aceita as props do next/image. */
 interface ClientImageProps {
   src: string;
   alt: string;
@@ -18,6 +21,10 @@ interface ClientImageProps {
   [key: string]: any;
 }
 
+/**
+ * Renderiza <img> para .gif ou arquivos com '-animated' no nome e next/image para o resto.
+ * Imagens não são arrastáveis.
+ */
 export function ClientImage({
   src,
   alt,
@@ -32,12 +39,12 @@ export function ClientImage({
   isAnimated: forcedAnimated = false,
   ...props
 }: ClientImageProps) {
-  // Verifica a extensão e se o sufixo "animated" está no nome do arquivo
+  // GIF pela extensão; animada pelo sufixo "-animated" no nome do arquivo
   const lowerSrc = src.toLowerCase();
   const isGif = lowerSrc.endsWith('.gif');
   const isAnimated = forcedAnimated || lowerSrc.includes('-animated');
 
-  // Utiliza a tag <img> padrão para GIFs e imagens animadas
+  // <img> preserva a animação de GIF/WebP animado
   if (isGif || isAnimated) {
     const imgStyle = fill
       ? {
@@ -64,7 +71,7 @@ export function ClientImage({
     );
   }
 
-  // Caso contrário, usa o componente otimizado do Next.js
+  // Demais imagens usam o componente otimizado do Next.js
   return (
     <Image
       src={src}

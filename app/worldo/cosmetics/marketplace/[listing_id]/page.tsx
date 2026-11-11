@@ -1,3 +1,6 @@
+// app/worldo/cosmetics/marketplace/[listing_id]/page.tsx
+// Página /worldo/cosmetics/marketplace/[listing_id]: detalhe de um anúncio com prévia da moldura
+// no avatar do usuário, vendedor e criador, seleção de quantidade e adição ao carrinho.
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -32,6 +35,7 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 
+/** Anúncio retornado por /api/worldo/cosmetics/listings/[id]. */
 interface ListingData {
   id: string;
   priceCoins: number;
@@ -84,8 +88,13 @@ interface ListingData {
   }[];
 }
 
+/** Estilos por raridade na variante estática. */
 const rarityDesigns = getRarityDesigns('static');
 
+/**
+ * Detalhe do anúncio. Preço, estoque e quantidade já no carrinho são buscados sem cache; a
+ * quantidade disponível é o estoque menos o que já está no carrinho.
+ */
 export default function ListingDetailPage() {
   const { data: session } = useSession();
   const params = useParams();
@@ -132,18 +141,24 @@ export default function ListingDetailPage() {
     setBuyQuantity(availableQuantity > 0 ? 1 : 0);
   }, [availableQuantity]);
 
+  /** Aumenta a quantidade até o disponível (máximo 99). */
   const handleIncrement = () => {
     if (buyQuantity < availableQuantity && buyQuantity < MAX_QUANTITY_PER_ITEM) {
       setBuyQuantity((prev) => prev + 1);
     }
   };
 
+  /** Diminui a quantidade até 1. */
   const handleDecrement = () => {
     if (buyQuantity > 1) {
       setBuyQuantity((prev) => prev - 1);
     }
   };
 
+  /**
+   * Adiciona a quantidade escolhida ao carrinho no backend, invalida o carrinho e abre a página
+   * do carrinho.
+   */
   const handleAddToCart = async () => {
     if (!session) {
       router.replace('/login');
@@ -254,7 +269,7 @@ export default function ListingDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-        {/* Lado Esquerdo: Preview com AvatarWithFrame */}
+        {/* Prévia da moldura no avatar do usuário */}
         <div className="lg:col-span-2">
           <div
             className={`relative rounded-3xl border overflow-hidden flex flex-col items-center justify-center p-8 min-h-100 h-full shadow-2xl ${config.cardClass}`}
@@ -284,9 +299,9 @@ export default function ListingDetailPage() {
           </div>
         </div>
 
-        {/* Lado Direito: Informações do Anúncio */}
+        {/* Informações do anúncio */}
         <div className="lg:col-span-3 flex flex-col gap-8">
-          {/* Header do Item - Ajustado para nomes/descrições longos */}
+          {/* Nome e descrição */}
           <div className="pb-6 border-b border-slate-800/60">
             <h1
               className={`text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tight drop-shadow-sm wrap-break-word ${config.textClass}`}
@@ -294,7 +309,7 @@ export default function ListingDetailPage() {
               {listing.frame.name}
             </h1>
 
-            {/* Scroll Container para a descrição de até 500 caracteres */}
+            {/* Descrição com rolagem (até 500 caracteres) */}
             <div className="max-h-48 overflow-y-auto pr-4 custom-scrollbar">
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl font-medium wrap-break-word whitespace-pre-wrap">
                 {listing.frame.description}
@@ -302,7 +317,7 @@ export default function ListingDetailPage() {
             </div>
           </div>
 
-          {/* Cards de Perfil (Vendedor & Criador) */}
+          {/* Vendedor e criador */}
           {!listing.isOwnListing && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
@@ -350,9 +365,9 @@ export default function ListingDetailPage() {
               </Link>
             </div>
           )}
-          {/* Área de Compra Glassmorphic */}
+          {/* Área de compra */}
           <div className="p-6 sm:p-8 bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-700/50 shadow-2xl mt-auto relative overflow-hidden">
-            {/* Background Accent Glow */}
+            {/* Brilho de fundo */}
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 pb-6 border-b border-slate-800/80 gap-4 relative z-10">
@@ -392,7 +407,7 @@ export default function ListingDetailPage() {
             </div>
 
             <div className="space-y-6 relative z-10">
-              {/* Se for anúncio do próprio usuário */}
+              {/* Anúncio do próprio usuário */}
               {listing.isOwnListing ? (
                 <div className="flex flex-col items-center justify-center gap-4 py-8">
                   <div className="bg-purple-500/20 p-4 rounded-full">
@@ -411,7 +426,7 @@ export default function ListingDetailPage() {
                   </Link>
                 </div>
               ) : isAllInCart ? (
-                // 1. TUDO JÁ ADICIONADO AO CARRINHO
+                // Todo o estoque disponível já está no carrinho
                 <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center justify-center gap-3 text-emerald-400 font-medium">
                     <div className="bg-emerald-500/20 p-1.5 rounded-full">
@@ -429,16 +444,16 @@ export default function ListingDetailPage() {
                   </Link>
                 </div>
               ) : isEsgotado ? (
-                // 2. ESGOTADO GERAL
+                // Anúncio esgotado
                 <div className="w-full bg-slate-900 border border-slate-800 text-slate-500 font-black text-sm uppercase tracking-wider py-4 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
                   <AlertTriangle className="w-5 h-5" />
                   Produto Esgotado
                 </div>
               ) : (
-                // 3. NORMAL - SELETOR DE QUANTIDADE E BOTÃO DE COMPRAR
+                // Seletor de quantidade e botão de adicionar
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
                   <div className="flex flex-col sm:flex-row gap-4">
-                    {/* Controle Customizado de Quantidade */}
+                    {/* Controle de quantidade */}
                     <div className="w-full sm:w-2/5">
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                         Quantidade
@@ -483,13 +498,13 @@ export default function ListingDetailPage() {
                     </div>
                   </div>
 
-                  {/* Botão de Ação */}
+                  {/* Botão de adicionar ao carrinho */}
                   <button
                     onClick={handleAddToCart}
                     disabled={buying || loadingCart || availableQuantity === 0}
                     className="w-full relative group overflow-hidden bg-slate-800 text-white font-black text-sm uppercase tracking-wider py-4 rounded-xl transition-all hover:shadow-[0_10px_30px_rgba(147,51,234,0.3)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
                   >
-                    {/* Efeito Hover animado de gradiente */}
+                    {/* Gradiente animado no hover */}
                     <div className="absolute inset-0 w-full h-full bg-linear-to-r from-purple-600 to-indigo-600 transition-opacity duration-300 opacity-90 group-hover:opacity-100" />
 
                     <span className="relative z-10 flex items-center gap-2 group-hover:-translate-y-0.5 transition-transform">
@@ -509,7 +524,7 @@ export default function ListingDetailPage() {
                 </div>
               )}
 
-              {/* Mensagem de Erro */}
+              {/* Mensagem de erro */}
               {error && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-bold p-4 rounded-xl flex items-center gap-3 justify-center animate-in fade-in zoom-in-95 duration-300">
                   <AlertTriangle className="w-5 h-5 shrink-0" /> {error}

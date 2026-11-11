@@ -1,7 +1,14 @@
+// app/api/worldo/cosmetics/inventory/stats/route.ts
+// Rota /api/worldo/cosmetics/inventory/stats: contagem de itens do inventário por situação.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * GET /api/worldo/cosmetics/inventory/stats — retorna { all, listed, unlisted } com o total de
+ * itens do usuário. Aceita ?filter=listed|unlisted.
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -20,7 +27,7 @@ export async function GET(request: NextRequest) {
       whereCondition.isListed = false;
     }
 
-    // Versão eficiente com groupBy
+    // Contagem agrupada por isListed em uma consulta
     const result = await prisma.user_frame_item.groupBy({
       by: ['isListed'],
       where: whereCondition,

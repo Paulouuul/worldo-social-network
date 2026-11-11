@@ -1,11 +1,16 @@
+// components/Loading.tsx
+// Indicadores de carregamento: spinner de página e indicador de "carregando mais".
+
 import { Loader2 } from 'lucide-react';
 
+/** Propriedades do spinner de página. */
 interface LoadingSpinnerProps {
   text?: string;
   withBackground?: boolean;
-  fullScreen?: boolean; // Opcional: tela cheia
+  fullScreen?: boolean;
 }
 
+/** Spinner centralizado com texto, opcionalmente com fundo e em tela cheia. */
 export function LoadingSpinner({
   text = 'Carregando...',
   withBackground = false,
@@ -24,10 +29,12 @@ export function LoadingSpinner({
   );
 }
 
+/** Propriedades do indicador de "carregando mais". */
 interface LoadingMoreProps {
   text?: string;
 }
 
+/** Spinner pequeno com texto opcional, usado ao carregar mais itens. */
 export function LoadingMore({ text }: LoadingMoreProps) {
   return (
     <div className="flex justify-center py-8">

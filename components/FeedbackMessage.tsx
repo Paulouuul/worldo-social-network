@@ -1,9 +1,14 @@
 // components/FeedbackMessage.tsx
+// Mensagem de feedback (sucesso, erro, aviso ou informação) com ícone e botão opcional de fechar.
+
 import { AlertTriangle, CheckCircle, Info, AlertCircle } from 'lucide-react';
 
+/** Tipos de mensagem suportados. */
 type FeedbackType = 'success' | 'error' | 'info' | 'warning';
+/** Alinhamento vertical do ícone em relação ao texto. */
 type AlignType = 'start' | 'center' | 'end';
 
+/** Propriedades da mensagem de feedback. */
 interface FeedbackMessageProps {
   type: FeedbackType;
   message: string;
@@ -12,6 +17,7 @@ interface FeedbackMessageProps {
   align?: AlignType;
 }
 
+/** Cores e ícone de cada tipo de mensagem. */
 const variants = {
   success: {
     bg: 'bg-emerald-500/10',
@@ -39,13 +45,14 @@ const variants = {
   },
 };
 
-// Mapeamento de alinhamento
+/** Classe de alinhamento para cada opção. */
 const alignClasses = {
   start: 'items-start',
   center: 'items-center',
   end: 'items-end',
 };
 
+/** Renderiza a mensagem estilizada pelo tipo; não renderiza nada com mensagem vazia. */
 export function FeedbackMessage({
   type,
   message,

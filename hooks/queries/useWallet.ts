@@ -1,5 +1,6 @@
 // hooks/queries/useWallet.ts
-// Saldo de moedas e resumo do carrinho: dados críticos, sem cache.
+// Hooks de saldo de moedas e carrinho. São dados críticos: sempre buscados do servidor, sem
+// cache.
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
@@ -7,12 +8,14 @@ import { useSession } from 'next-auth/react';
 import { backendJson, fetchJson } from '@/lib/fetcher';
 import { cachePolicy, qk } from '@/lib/query-keys';
 
+/** Totais do carrinho retornados pelo backend. */
 export interface CartSummary {
   total_items: number;
   total_price: number;
   unique_items_count: number;
 }
 
+/** Saldo de moedas do usuário, revalidado a cada 30s com a aba visível e ao focar a janela. */
 export function useCoinBalance() {
   const { status } = useSession();
 
@@ -24,12 +27,16 @@ export function useCoinBalance() {
     },
     enabled: status === 'authenticated',
     ...cachePolicy.critical,
-    // Observado pelo Header o tempo todo; gcTime 0 só vale quando não há observadores.
+    // O Header mantém a query observada, então o polling roda em todas as páginas
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
   });
 }
 
+/**
+ * Resumo do carrinho (backend Python), revalidado a cada 30s com a aba visível e ao focar a
+ * janela.
+ */
 export function useCartSummary() {
   const { status } = useSession();
 
@@ -53,7 +60,7 @@ export function useCartSummary() {
   });
 }
 
-/** Carrinho completo (preços/estoque): sempre buscado do servidor, sem cache. */
+/** Carrinho completo com preço e estoque atuais. `enabled: false` congela o último valor. */
 export function useCartDetail<T>({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: qk.cart.detail(),

@@ -1,7 +1,14 @@
+// app/api/worldo/cosmetics/inventory/route.ts
+// Rota /api/worldo/cosmetics/inventory: itens individuais do inventário do usuário, paginados.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * GET /api/worldo/cosmetics/inventory — itens do usuário (com a moldura), mais recentes
+ * primeiro. Query: filter (all|listed|unlisted), page e limit.
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -12,7 +19,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter');
 
-    // Parâmetros de paginação
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = (page - 1) * limit;
@@ -25,7 +31,6 @@ export async function GET(request: NextRequest) {
       whereCondition.isListed = false;
     }
 
-    // Buscar items com paginação
     const items = await prisma.user_frame_item.findMany({
       where: whereCondition,
       include: {
@@ -36,14 +41,12 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
-    // Contar total de items (sem paginação)
     const totalCount = await prisma.user_frame_item.count({
       where: whereCondition,
     });
 
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Retornar os items + metadados de paginação
     return NextResponse.json({
       items,
       pagination: {

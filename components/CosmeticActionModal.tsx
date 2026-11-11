@@ -1,3 +1,6 @@
+// components/CosmeticActionModal.tsx
+// Modal de ações sobre um grupo de itens do inventário: equipar/desequipar, anunciar à venda, ver
+// o anúncio, alterar preço e retirar unidades do mercado.
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -27,9 +30,9 @@ import {
   Circle,
 } from 'lucide-react';
 
-// TIPAGENS
-
+/** Modos do modal. */
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
+/** Preço sugerido por raridade ao anunciar pela primeira vez. */
 const SUGGESTED_PRICE_BY_RARITY = {
   COMUM: 5,
   RARO: 20,
@@ -37,6 +40,7 @@ const SUGGESTED_PRICE_BY_RARITY = {
   LENDARIO: 100,
 };
 
+/** Grupo do inventário (mesma moldura livre ou mesmo anúncio) exibido no modal. */
 interface GroupedItem {
   id: string;
   frameId: string;
@@ -57,6 +61,7 @@ interface GroupedItem {
   };
 }
 
+/** Propriedades do modal: item, modo inicial, callbacks e avatar para pré-visualização. */
 interface CosmeticActionModalProps {
   item: GroupedItem;
   mode: NonNullable<ModalMode>;
@@ -67,8 +72,10 @@ interface CosmeticActionModalProps {
 
 const rarityDesigns = getRarityDesigns('bottom-10');
 
-// COMPONENTE PRINCIPAL
-
+/**
+ * Modal de gerenciamento do item. Após cada ação chama onSuccess (o inventário é invalidado
+ * pela tela) e, ao fechar após equipar/desequipar, revalida o perfil (useMe).
+ */
 export function CosmeticActionModal({
   item,
   mode,
@@ -112,7 +119,7 @@ export function CosmeticActionModal({
     return localIsEquipped ? localItem.count - 1 : localItem.count;
   }, [localIsEquipped, localItem.count]);
 
-  // Limpa mensagens de sucesso sozinhas
+  // Mensagem de sucesso some após 3s
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(''), 3000);
@@ -120,12 +127,10 @@ export function CosmeticActionModal({
     }
   }, [successMessage]);
 
-  // FUNÇÕES DE API
-
-  // Equipar/Desequipar
+  /** Equipa a moldura (não permitido para itens à venda) ou desequipa a atual. */
   const handleEquip = async () => {
     if (localIsEquipped) {
-      // Desequipar
+      // Desequipa
       setSubmitting(true);
       setErrorMessage('');
       try {
@@ -148,7 +153,7 @@ export function CosmeticActionModal({
         setSubmitting(false);
       }
     } else {
-      // Equipar
+      // Equipa
       if (item.isListed) {
         setErrorMessage('Não é possível equipar um item que está à venda.');
         return;
@@ -178,6 +183,7 @@ export function CosmeticActionModal({
     }
   };
 
+  /** Fecha o modal, revalidando o perfil se a moldura equipada mudou. */
   const handleClose = async () => {
     if (hasEquipChanged) {
       await invalidate.me(queryClient);
@@ -185,6 +191,7 @@ export function CosmeticActionModal({
     onClose();
   };
 
+  /** Anuncia a quantidade escolhida ao preço informado; fecha se vender todas as unidades. */
   const handleSell = async (e: React.FormEvent) => {
     e.preventDefault();
     if (quantity > maxAvailable) {
@@ -226,6 +233,7 @@ export function CosmeticActionModal({
     }
   };
 
+  /** Atualiza o preço do anúncio. */
   const handleUpdatePrice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!item.listingId) return;
@@ -254,6 +262,7 @@ export function CosmeticActionModal({
     }
   };
 
+  /** Retira a quantidade escolhida do anúncio; fecha se retirar todas as unidades. */
   const handleRemoveItems = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!item.listingId) return;
@@ -287,13 +296,12 @@ export function CosmeticActionModal({
     }
   };
 
-  // RENDERIZAÇÃO
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-200">
       <div
         className={`bg-slate-900 border ${rarityConfig.borderClass} rounded-2xl max-w-md w-full shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]`}
       >
-        {/* HEADER */}
+        {/* Cabeçalho */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800/60 flex items-center justify-between bg-slate-950/40 shrink-0">
           <div className="flex items-center gap-2">
             {currentMode === 'sell' && (
@@ -346,15 +354,15 @@ export function CosmeticActionModal({
           </button>
         </div>
 
-        {/* CONTEÚDO SCROLLÁVEL */}
+        {/* Conteúdo rolável */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5">
-          {/* MENSAGENS DE FEEDBACK */}
+          {/* Mensagens de feedback */}
           {errorMessage && <FeedbackMessage type="error" message={errorMessage} align="start" />}
           {successMessage && (
             <FeedbackMessage type="success" message={successMessage} align="start" />
           )}
 
-          {/* IMAGEM E INFOS BASE */}
+          {/* Imagem e informações da moldura */}
           <div className="flex flex-col items-center justify-center w-full mb-6">
             <AvatarWithFrame
               avatarUrl={avatarUrl}
@@ -378,7 +386,7 @@ export function CosmeticActionModal({
             </p>
           </div>
 
-          {/* MODO: EQUIPAR (EQUIP) - ATUA COMO VISÃO GERAL PARA ITENS NÃO LISTADOS */}
+          {/* Modo equip: visão geral de itens não anunciados */}
           {currentMode === 'equip' && (
             <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-left-4 duration-200">
               <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex justify-between items-center shadow-inner">
@@ -430,7 +438,7 @@ export function CosmeticActionModal({
             </div>
           )}
 
-          {/* MODO: VER (VIEW) */}
+          {/* Modo view: anúncio ativo */}
           {currentMode === 'view' && (
             <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-right-4 duration-200">
               <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex flex-col gap-2 sm:gap-3 shadow-inner">
@@ -548,7 +556,7 @@ export function CosmeticActionModal({
             </div>
           )}
 
-          {/* MODO: VENDER (SELL) */}
+          {/* Modo sell: anunciar à venda */}
           {currentMode === 'sell' && (
             <form
               onSubmit={handleSell}
@@ -660,7 +668,7 @@ export function CosmeticActionModal({
             </form>
           )}
 
-          {/* MODO: EDITAR (EDIT) */}
+          {/* Modo edit: alterar preço */}
           {currentMode === 'edit' && (
             <form
               onSubmit={handleUpdatePrice}
@@ -704,7 +712,7 @@ export function CosmeticActionModal({
             </form>
           )}
 
-          {/* MODO: REMOVER (REMOVE) */}
+          {/* Modo remove: retirar do mercado */}
           {currentMode === 'remove' && (
             <form
               onSubmit={handleRemoveItems}

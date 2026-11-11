@@ -1,4 +1,7 @@
-// app/api/cosmetics/marketplace/checkout/route.ts
+// app/api/worldo/cosmetics/marketplace/checkout/route.ts
+// Rota /api/worldo/cosmetics/marketplace/checkout: finaliza a compra dos itens do carrinho no
+// marketplace, transferindo moedas e unidades entre comprador e vendedores.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
@@ -6,17 +9,28 @@ import { serverTokenManager } from '@/lib/serverBackendTokenManager';
 import { backendApiServerCall } from '@/lib/backendApiClient';
 import { syncToListing } from '@/lib/prisma-sync';
 
+/** Item enviado pelo checkout: anúncio, quantidade e preço unitário esperado. */
 interface CheckoutItem {
   listing_id: string;
   quantity: number;
   price: number;
 }
 
+/** Corpo do POST: itens e total esperado. */
 interface CheckoutRequest {
   items: CheckoutItem[];
   total_price: number;
 }
 
+/**
+ * POST /api/worldo/cosmetics/marketplace/checkout — compra os itens informados.
+ *
+ * Valida cada anúncio (ativo, mesmo preço, estoque, não ser do comprador), o total e o saldo.
+ * Em uma transação: debita o comprador, transfere as unidades, reduz o estoque do anúncio,
+ * sincroniza o Elasticsearch, soma vendas na moldura, credita cada vendedor descontando a taxa
+ * da plataforma (padrão 5%) e registra as coin_transactions e cosmetic_purchases. Por fim pede
+ * ao backend Python para limpar o carrinho. Erros de validação retornam 400 com error_type.
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -287,6 +301,8 @@ export async function POST(request: NextRequest) {
             },
           },
         });
+        // Limpeza do carrinho no backend Python; falhas não desfazem a compra.
+        // O DELETE em /cart/sync não corresponde a uma rota do backend (que expõe /sync como POST).
         const token = await serverTokenManager.getToken();
         try {
           await backendApiServerCall(

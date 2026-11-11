@@ -1,8 +1,14 @@
+// constants/cosmeticRarity.tsx
+// Raridades de cosméticos e seus estilos visuais (cores, brilho, gradientes e selo) para cada
+// variante de layout.
+
 import React from 'react';
 import { Sparkles, Orbit, Shield, Layers } from 'lucide-react';
 
+/** Variantes de posicionamento do selo: abaixo com margem grande, pequena ou estático. */
 export type RarityLayoutVariant = 'bottom-10' | 'bottom-2' | 'static';
 
+/** Raridades disponíveis. */
 export const RARITY = {
   COMUM: 'COMUM',
   RARO: 'RARO',
@@ -10,10 +16,13 @@ export const RARITY = {
   LENDARIO: 'LENDARIO',
 } as const;
 
+/** Tipo de uma raridade. */
 export type Rarity = (typeof RARITY)[keyof typeof RARITY];
 
+/** Lista das raridades válidas. */
 export const VALID_RARITIES = Object.values(RARITY);
 
+/** Classes e elementos visuais de uma raridade. */
 export type RarityDesign = {
   cardClass: string;
   borderClass: string;
@@ -28,12 +37,13 @@ export type RarityDesign = {
   bgDecoration?: React.ReactNode;
 };
 
+/** Retorna os estilos de cada raridade para a variante de layout informada. */
 export const getRarityDesigns = (variant: RarityLayoutVariant): Record<string, RarityDesign> => {
-  // Helpers para lidar com as diferenças de tamanho e posição
+  // Diferenças de tamanho e posição entre as variantes
   const isStatic = variant === 'static';
   const pointerEvents = isStatic ? ' pointer-events-none' : '';
 
-  // Classes base das badges que mudam dependendo da variante
+  /** Classes de posição do selo conforme a variante. */
   const getPositionClass = () => {
     if (variant === 'bottom-10')
       return 'flex items-center justify-center whitespace-nowrap z-20 mt-10';
@@ -44,7 +54,7 @@ export const getRarityDesigns = (variant: RarityLayoutVariant): Record<string, R
 
   const positionBase = getPositionClass();
 
-  // Tamanhos que diferem entre as versões absolutas e a versão estática
+  // Ícones e textos do selo são maiores na variante estática
   const iconLg = isStatic ? 'w-3 h-3' : 'w-2.5 h-2.5';
   const iconSm = isStatic ? 'w-3 h-3' : 'w-2 h-2';
 

@@ -1,6 +1,13 @@
+// app/api/auth/verify-email/route.ts
+// Rota /api/auth/verify-email: confirma o email do cadastro a partir do token enviado por email.
+
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * GET /api/auth/verify-email?token=... — valida o token de verificação, marca o email como
+ * verificado, apaga o token e redireciona para /login?verified=true. Tokens expirados são apagados.
+ */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -10,7 +17,6 @@ export async function GET(request: NextRequest) {
       return new Response('Token não fornecido', { status: 400 });
     }
 
-    // Buscar token no banco
     const verificationToken = await prisma.verification_tokens.findUnique({
       where: { token },
     });
@@ -19,22 +25,20 @@ export async function GET(request: NextRequest) {
       return new Response('Token inválido', { status: 400 });
     }
 
-    // Verificar se token expirou
+    // Token expirado é descartado
     if (verificationToken.expires < new Date()) {
       await prisma.verification_tokens.delete({ where: { token } });
       return new Response('Token expirado. Solicite um novo link de verificação.', { status: 400 });
     }
 
-    // Atualizar usuário como verificado
     await prisma.users.update({
       where: { email: verificationToken.identifier },
       data: { emailVerified: new Date() },
     });
 
-    // Remover token usado
+    // Token é de uso único
     await prisma.verification_tokens.delete({ where: { token } });
 
-    // Redirecionar para página de login com mensagem de sucesso
     const loginUrl = new URL('/login', process.env.NEXT_PUBLIC_APP_URL);
     loginUrl.searchParams.set('verified', 'true');
 

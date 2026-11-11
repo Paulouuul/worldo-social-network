@@ -1,11 +1,18 @@
-// app/api/cosmetics/listings/platform_fee/route.ts
+// app/api/worldo/cosmetics/listings/platform_fee/route.ts
+// Rota /api/worldo/cosmetics/listings/platform_fee: taxa percentual cobrada pela plataforma nas
+// vendas.
+
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
+/**
+ * GET /api/worldo/cosmetics/listings/platform_fee — retorna { platform_fee } da taxa ativa (5%
+ * quando não há taxa cadastrada).
+ */
 export async function GET() {
   try {
-    // 1. Autenticação
+    // Exige sessão
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
