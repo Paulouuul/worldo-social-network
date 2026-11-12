@@ -1,0 +1,112 @@
+/* styles/base.css
+ * Estilos globais de elementos: fundo galáctico do body, cursor em elementos clicáveis e proteção
+ * de imagens e vídeos contra arraste, seleção e download.
+ */
+
+@layer base {
+  /* Fundo galáctico fixo (nebulosas + gradiente escuro) */
+  body {
+    background:
+      radial-gradient(
+        ellipse at 50% 50%,
+        rgba(138, 43, 226, 0.35) 0%,
+        rgba(75, 0, 130, 0.25) 30%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse at 20% 60%,
+        rgba(255, 0, 128, 0.2) 0%,
+        rgba(138, 43, 226, 0.15) 25%,
+        rgba(25, 25, 112, 0.05) 50%,
+        transparent 80%
+      ),
+      radial-gradient(
+        ellipse at 85% 30%,
+        rgba(0, 102, 204, 0.2) 0%,
+        rgba(102, 0, 204, 0.15) 30%,
+        rgba(25, 25, 112, 0.05) 55%,
+        transparent 85%
+      ),
+      linear-gradient(145deg, #05000a 0%, #0d001f 15%, #15002a 40%, #1f003d 70%, #05000a 100%);
+    background-attachment: fixed;
+    background-blend-mode: overlay, overlay, overlay, normal;
+    color: var(--color-foreground);
+    position: relative;
+    min-height: 100vh;
+  }
+
+  /* Estrelas fixas sobre o fundo */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(2px 2px at 10% 20%, #ffffff, transparent),
+      radial-gradient(1px 1px at 25% 45%, #ffffff, transparent),
+      radial-gradient(3px 3px at 40% 10%, rgba(255, 255, 255, 0.8), transparent),
+      radial-gradient(1px 1px at 55% 70%, #ffffff, transparent),
+      radial-gradient(2px 2px at 70% 30%, #ffffff, transparent),
+      radial-gradient(1px 1px at 85% 55%, #ffffff, transparent),
+      radial-gradient(2px 2px at 15% 85%, rgba(255, 255, 255, 0.9), transparent),
+      radial-gradient(1px 1px at 45% 90%, #ffffff, transparent),
+      radial-gradient(3px 3px at 75% 85%, #ffffff, transparent),
+      radial-gradient(1px 1px at 95% 15%, #ffffff, transparent),
+      radial-gradient(2px 2px at 5% 50%, #ffffff, transparent),
+      radial-gradient(1px 1px at 35% 35%, #ffffff, transparent),
+      radial-gradient(2px 2px at 65% 65%, #ffffff, transparent),
+      radial-gradient(1px 1px at 90% 80%, #ffffff, transparent);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* Cursor de clique em todo elemento interativo */
+  button,
+  a[href],
+  [role='button'],
+  input[type='submit'],
+  input[type='button'] {
+    cursor: pointer;
+  }
+
+  /* Sem destaque azul ao tocar em elementos no mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Imagens não podem ser arrastadas nem selecionadas (exceto draggable="true") */
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  img[draggable='true'] {
+    -webkit-user-drag: element;
+  }
+
+  img::selection {
+    background: none;
+    color: transparent;
+  }
+
+  /* Vídeos sem arraste, seleção ou botão de download */
+  video {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  video::-internal-media-controls-download-button {
+    display: none;
+  }
+
+  video::-webkit-media-controls-enclosure {
+    overflow: hidden;
+  }
+
+  video::-webkit-media-controls-panel {
+    width: calc(100% + 30px);
+  }
+}

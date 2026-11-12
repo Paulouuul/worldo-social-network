@@ -1,0 +1,18 @@
+/* styles/theme.css
+ * Tokens de cor do app. Tokens só entram no CSS final quando alguma classe ou estilo os usa.
+ */
+
+@theme {
+  /* Cores base do app */
+  --color-background: #1e1f22;
+  --color-foreground: #dbdee1;
+
+  /* Azul do app (substitui o blue-600/700 padrão do Tailwind) */
+  --color-blue-600: #5865f2;
+  --color-blue-700: #4752c4;
+
+  /* Paleta galáctica (gradiente do logo e textos de destaque) */
+  --color-galaxy-primary: #667eea;
+  --color-galaxy-secondary: #764ba2;
+  --color-galaxy-accent: #f093fb;
+}

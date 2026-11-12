@@ -4,17 +4,13 @@
 
 import Link from 'next/link';
 import { XCircle, RefreshCcw, Home } from 'lucide-react';
+import { StatusCard, StatusPage } from '@/components/ui/StatusPage';
 
 /** Informa que nenhuma cobrança foi feita e oferece voltar à loja de moedas ou ao início. */
 export default function CancelPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative antialiased selection:bg-purple-500/30 bg-[#020617]">
-      {/* Brilhos de fundo */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-rose-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="fixed top-1/3 right-1/4 w-75 h-75 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none z-0" />
-
-      {/* Card principal */}
-      <div className="relative z-10 w-full max-w-md bg-slate-900/50 border border-white/6 rounded-2xl p-8 md:p-10 backdrop-blur-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] text-center">
+    <StatusPage glowClassName="bg-rose-600/10">
+      <StatusCard className="md:p-10 text-center">
         {/* Ícone de cancelamento */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center border border-rose-500/20 relative">
@@ -58,7 +54,7 @@ export default function CancelPage() {
             <span>Voltar para o Início</span>
           </Link>
         </div>
-      </div>
-    </div>
+      </StatusCard>
+    </StatusPage>
   );
 }

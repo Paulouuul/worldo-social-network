@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
+import { LoadingSpinner } from '@/components/Loading';
 
 /** Confirmação do pagamento com contagem regressiva até voltar para /worldo/coins. */
 function SuccessPageContent() {
@@ -36,8 +37,8 @@ function SuccessPageContent() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 relative overflow-hidden">
       {/* Efeitos de fundo */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
+      <div className="glow-backdrop" />
+      <div className="hairline-top" />
 
       <div className="max-w-md w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 text-center relative z-10">
         {/* Ícone Animado */}
@@ -81,12 +82,7 @@ function SuccessPageContent() {
 export default function SuccessPage() {
   return (
     <Suspense
-      fallback={
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mb-4"></div>
-          <p className="text-sm font-medium text-purple-300">Autenticando transação...</p>
-        </div>
-      }
+      fallback={<LoadingSpinner text="Autenticando transação..." withBackground fullScreen />}
     >
       <SuccessPageContent />
     </Suspense>

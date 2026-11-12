@@ -8,7 +8,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ClientImage } from '@/components/ClientImage';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
 import { backendApiCall } from '@/lib/backendApiClient';
@@ -16,7 +15,7 @@ import { backendJson, fetchJson } from '@/lib/fetcher';
 import { invalidate } from '@/lib/invalidate';
 import { useMe } from '@/hooks/queries/useMe';
 import { cachePolicy, qk } from '@/lib/query-keys';
-import { formatItemCount, formatFullNumber } from '@/lib/format-utils';
+import { formatFullNumber } from '@/lib/format-utils';
 import {
   Coins,
   User,
@@ -27,13 +26,18 @@ import {
   Sparkles,
   Calendar,
   AlertTriangle,
-  Loader2,
   ChevronRight,
   Minus,
   Plus,
   CheckCircle2,
   ShoppingBag,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
+import { LoadingSpinner } from '@/components/Loading';
+import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { CosmeticCard } from '@/components/catalog/CosmeticCard';
+import { PriceTag, QuantityTag } from '@/components/ui/PriceTag';
 
 /** Anúncio retornado por /api/worldo/cosmetics/listings/[id]. */
 interface ListingData {
@@ -218,14 +222,7 @@ export default function ListingDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-        <p className="text-purple-400 text-sm font-bold uppercase tracking-widest animate-pulse">
-          Buscando Oferta...
-        </p>
-      </div>
-    );
+    return <LoadingSpinner text="Buscando oferta..." />;
   }
 
   if (error && !listing) {
@@ -255,18 +252,7 @@ export default function ListingDetailPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mb-6 uppercase tracking-wider">
-        <Link
-          href="/worldo/cosmetics/marketplace"
-          className="hover:text-purple-400 transition flex items-center gap-1 shrink-0"
-        >
-          <Store className="w-3.5 h-3.5" /> Marketplace
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5 opacity-50 shrink-0" />
-        <span className={`${config.textClass} truncate`} title={listing.frame.name}>
-          {listing.frame.name}
-        </span>
-      </div>
+      <Breadcrumb current={listing.frame.name} currentClassName={config.textClass} />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
         {/* Prévia da moldura no avatar do usuário */}
@@ -275,7 +261,7 @@ export default function ListingDetailPage() {
             className={`relative rounded-3xl border overflow-hidden flex flex-col items-center justify-center p-8 min-h-100 h-full shadow-2xl ${config.cardClass}`}
           >
             {config.bgDecoration}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none" />
+            <div className="grid-overlay" />
 
             <div className="z-10 relative flex flex-col items-center mt-auto mb-auto w-full">
               <div className="mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
@@ -391,7 +377,7 @@ export default function ListingDetailPage() {
                   <p className="text-lg font-bold text-slate-200 flex items-center gap-2 justify-start sm:justify-end">
                     <Package className="w-4 h-4 text-slate-400" />
                     {loadingCart ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+                      <Spinner className="text-slate-500" />
                     ) : (
                       <span>{formatFullNumber(listing.quantity)} em estoque</span>
                     )}
@@ -427,13 +413,10 @@ export default function ListingDetailPage() {
                 </div>
               ) : isAllInCart ? (
                 // Todo o estoque disponível já está no carrinho
-                <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center justify-center gap-3 text-emerald-400 font-medium">
-                    <div className="bg-emerald-500/20 p-1.5 rounded-full">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    </div>
+                <div className="flex flex-col gap-4 animate-slide-up">
+                  <FeedbackMessage type="success">
                     Você já adicionou todo o estoque disponível ao seu carrinho.
-                  </div>
+                  </FeedbackMessage>
 
                   <Link
                     href="/worldo/cosmetics/marketplace/cart"
@@ -451,7 +434,7 @@ export default function ListingDetailPage() {
                 </div>
               ) : (
                 // Seletor de quantidade e botão de adicionar
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                <div className="animate-slide-up space-y-6">
                   <div className="flex flex-col sm:flex-row gap-4">
                     {/* Controle de quantidade */}
                     <div className="w-full sm:w-2/5">
@@ -510,7 +493,7 @@ export default function ListingDetailPage() {
                     <span className="relative z-10 flex items-center gap-2 group-hover:-translate-y-0.5 transition-transform">
                       {buying ? (
                         <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <Spinner size="sm" />
                           Processando...
                         </>
                       ) : (
@@ -525,11 +508,7 @@ export default function ListingDetailPage() {
               )}
 
               {/* Mensagem de erro */}
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-bold p-4 rounded-xl flex items-center gap-3 justify-center animate-in fade-in zoom-in-95 duration-300">
-                  <AlertTriangle className="w-5 h-5 shrink-0" /> {error}
-                </div>
-              )}
+              <FeedbackMessage type="error" message={error} />
             </div>
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-6 mt-6 border-t border-slate-800/80 relative z-10">
@@ -558,56 +537,18 @@ export default function ListingDetailPage() {
           </div>
 
           <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6">
-            {listing.sellerOtherListings.map((item) => {
-              const itemConfig =
-                rarityDesigns[item.frame.rarity?.toUpperCase()] || rarityDesigns.COMUM;
-
-              return (
-                <Link
-                  key={item.id}
-                  href={`/worldo/cosmetics/marketplace/${item.id}`}
-                  className={`group relative flex flex-col items-center justify-between p-3 sm:p-4 h-60 sm:h-65 rounded-2xl border overflow-hidden transition-all duration-300 ease-out cursor-pointer hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] ${itemConfig.cardClass}`}
-                >
-                  {itemConfig.bgDecoration}
-                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-size-[0.4rem_0.4rem] opacity-[0.05] pointer-events-none" />
-
-                  <div className="w-full flex justify-between items-start z-20 mb-2 gap-2">
-                    <span className="flex items-center gap-1 text-[10px] font-black text-amber-400 bg-amber-950/90 border border-amber-500/40 px-2 py-1 rounded-md shadow-[0_0_10px_rgba(245,158,11,0.2)] tracking-wider backdrop-blur-sm">
-                      <Coins className="w-3 h-3" /> {formatItemCount(item.priceCoins)}
-                    </span>
-                    <span className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 text-slate-300 font-black text-[10px] px-2 py-1 rounded-md shadow-lg shrink-0">
-                      x{formatItemCount(item.quantity)}
-                    </span>
-                  </div>
-
-                  <div
-                    className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-slate-900/90 flex items-center justify-center z-10 transition-transform duration-500 group-hover:scale-110 shadow-xl ${itemConfig.borderClass}`}
-                  >
-                    <ClientImage
-                      src={item.frame.thumbnailUrl || item.frame.imageUrl}
-                      alt={item.frame.name}
-                      fill
-                      className="object-cover drop-shadow-2xl"
-                      sizes="(max-width: 640px) 96px, 112px"
-                      unoptimized
-                    />
-                  </div>
-
-                  <div className="relative w-full flex justify-center z-20 mt-2 h-6">
-                    <div className="scale-75 origin-top">{itemConfig.badge}</div>
-                  </div>
-
-                  <div className="mt-auto w-full z-10 pt-3 border-t border-slate-800/40">
-                    <span
-                      className={`block text-xs sm:text-sm text-center px-1 truncate font-bold drop-shadow-md ${itemConfig.textClass}`}
-                      title={item.frame.name}
-                    >
-                      {item.frame.name}
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
+            {listing.sellerOtherListings.map((item) => (
+              <CosmeticCard
+                key={item.id}
+                href={`/worldo/cosmetics/marketplace/${item.id}`}
+                name={item.frame.name}
+                rarity={item.frame.rarity}
+                imageUrl={item.frame.thumbnailUrl || item.frame.imageUrl}
+                imageSizes="(max-width: 640px) 96px, 112px"
+                topLeft={<PriceTag value={item.priceCoins} />}
+                topRight={<QuantityTag value={item.quantity} />}
+              />
+            ))}
           </div>
         </div>
       )}

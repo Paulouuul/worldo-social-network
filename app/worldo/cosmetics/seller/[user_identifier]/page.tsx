@@ -9,13 +9,21 @@ import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { AvatarWithFrame } from '@/components/AvatarWithFrame';
-import { RARITY, Rarity } from '@/constants/cosmeticRarity';
-import { ArrowLeft, Package, Store, Search, X, Sparkles, Calendar } from 'lucide-react';
+import type { Rarity } from '@/constants/cosmeticRarity';
+import { CatalogLayout } from '@/components/catalog/CatalogLayout';
+import {
+  CatalogFilters,
+  LISTING_SORT_OPTIONS,
+  SortSelector,
+  type RarityFilterValue,
+} from '@/components/catalog/CatalogFilters';
+import { ArrowLeft, Package, Store, Sparkles, Calendar } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
 import { MarketplaceVirtualized, selectListings } from '@/components/MarketplaceVirtualized';
 import { pageQueryOptions, type PagedSource } from '@/components/VirtualizedPagedGrid';
 import { fetchJson, HttpError, toQueryString } from '@/lib/fetcher';
 import { cachePolicy, qk } from '@/lib/query-keys';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 /** Dados públicos do vendedor. */
 interface SellerData {
@@ -83,10 +91,9 @@ export default function SellerPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [rarityFilter, setRarityFilter] = useState<'all' | Rarity>('all');
+  const [rarityFilter, setRarityFilter] = useState<RarityFilterValue>('all');
   const [sort, setSort] = useState('newest');
 
-  const rarityOptions = ['all', RARITY.COMUM, RARITY.RARO, RARITY.EPICO, RARITY.LENDARIO];
   const ITEMS_PER_PAGE = 56;
 
   const source = useMemo<PagedSource<ListingData, ApiResponse>>(() => {
@@ -116,17 +123,6 @@ export default function SellerPage() {
       : 'Erro ao carregar dados do vendedor'
     : '';
   const loading = firstPage.isPending;
-
-  /** Aplica o termo de busca digitado. */
-  const handleSearch = () => {
-    setSearchTerm(searchInput);
-  };
-
-  /** Limpa o campo e o termo de busca. */
-  const clearSearch = () => {
-    setSearchInput('');
-    setSearchTerm('');
-  };
 
   if (loading && !seller) {
     return <LoadingSpinner text="Carregando vendedor..." />;
@@ -159,172 +155,79 @@ export default function SellerPage() {
   const isOwnStore = session?.user?.publicId === seller.id;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 pt-4 sm:pt-6 flex flex-col h-screen overflow-hidden">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-slate-500 mb-4 sm:mb-6 uppercase tracking-wider shrink-0">
-        <Link
-          href="/worldo/cosmetics/marketplace"
-          className="hover:text-purple-400 transition flex items-center gap-1 shrink-0"
-        >
-          <Store className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-          <span className="hidden xs:inline">Marketplace</span>
-        </Link>
-        <span className="text-slate-600">/</span>
-        <span
-          className="text-slate-300 truncate max-w-32 xs:max-w-48 sm:max-w-md"
-          title={seller.name}
-        >
-          {seller.name}
-        </span>
-      </div>
+    <CatalogLayout
+      top={
+        <>
+          {/* Breadcrumb */}
+          <Breadcrumb current={seller.name} />
 
-      {/* Perfil do vendedor */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 backdrop-blur-xl shadow-2xl relative overflow-hidden shrink-0">
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
+          {/* Perfil do vendedor */}
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 backdrop-blur-xl shadow-2xl relative overflow-hidden shrink-0">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 sm:gap-6 relative z-10">
-          <AvatarWithFrame
-            avatarUrl={seller.avatar}
-            name={seller.name}
-            frameUrl={seller.equippedFrame?.imageUrl}
-            rarity={seller.equippedFrame?.rarity}
-            className="w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 lg:w-32 lg:h-32"
-            priority
-          />
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 sm:gap-6 relative z-10">
+              <AvatarWithFrame
+                avatarUrl={seller.avatar}
+                name={seller.name}
+                frameUrl={seller.equippedFrame?.imageUrl}
+                rarity={seller.equippedFrame?.rarity}
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 lg:w-32 lg:h-32"
+                priority
+              />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-              <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-200 wrap-break-word">
-                {seller.name}
-              </h1>
-              {isOwnStore && (
-                <span className="inline-flex items-center gap-1.5 bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shrink-0 w-fit">
-                  <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  <span className="hidden xs:inline">Sua Loja</span>
-                  <span className="xs:hidden">Loja</span>
-                </span>
-              )}
-            </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                  <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-200 wrap-break-word">
+                    {seller.name}
+                  </h1>
+                  {isOwnStore && (
+                    <span className="inline-flex items-center gap-1.5 bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shrink-0 w-fit">
+                      <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span className="hidden xs:inline">Sua Loja</span>
+                      <span className="xs:hidden">Loja</span>
+                    </span>
+                  )}
+                </div>
 
-            <p className="text-slate-400 text-xs sm:text-sm mb-2 sm:mb-3">@{seller.username}</p>
+                <p className="text-slate-400 text-xs sm:text-sm mb-2 sm:mb-3">@{seller.username}</p>
 
-            {seller.bio && (
-              <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed wrap-break-word">
-                {seller.bio}
-              </p>
-            )}
+                {seller.bio && (
+                  <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed wrap-break-word">
+                    {seller.bio}
+                  </p>
+                )}
 
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 sm:mt-4 text-[10px] sm:text-xs text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                Membro desde {new Date(seller.memberSince).toLocaleDateString('pt-BR')}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                {totalItems} {totalItems === 1 ? 'item' : 'itens'} à venda
-              </span>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 sm:mt-4 text-[10px] sm:text-xs text-slate-500">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    Membro desde {new Date(seller.memberSince).toLocaleDateString('pt-BR')}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    {totalItems} {totalItems === 1 ? 'item' : 'itens'} à venda
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-4 shrink-0">
-        <div className="flex-1 relative">
-          <button
-            onClick={handleSearch}
-            className="absolute left-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-700 transition z-10"
-          >
-            <Search className="w-4 h-4 text-slate-500" />
-          </button>
-          <input
-            type="text"
-            placeholder="Buscar itens deste vendedor..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="w-full pl-10 pr-10 py-2.5 bg-slate-900/50 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition text-slate-200 placeholder:text-slate-500 text-sm"
+          <CatalogFilters
+            searchInput={searchInput}
+            onSearchInputChange={setSearchInput}
+            onSearch={setSearchTerm}
+            searchPlaceholder="Buscar itens deste vendedor..."
+            rarity={rarityFilter}
+            onRarityChange={setRarityFilter}
           />
-          {searchInput && (
-            <button
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-700 transition z-10"
-            >
-              <X className="w-4 h-4 text-slate-500" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-          {rarityOptions.map((rarity) => (
-            <button
-              key={rarity}
-              onClick={() => setRarityFilter(rarity as 'all' | Rarity)}
-              className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                rarityFilter === rarity
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
-              }`}
-            >
-              {rarity === 'all' ? 'Todos' : rarity}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Ordenação */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap shrink-0">
-        <span className="text-xs text-slate-500 font-medium mr-2">Ordenar por:</span>
-        <button
-          onClick={() => setSort('newest')}
-          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-            sort === 'newest'
-              ? 'bg-slate-700 text-white'
-              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
-          }`}
-        >
-          Mais recentes
-        </button>
-        <button
-          onClick={() => setSort('oldest')}
-          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-            sort === 'oldest'
-              ? 'bg-slate-700 text-white'
-              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
-          }`}
-        >
-          Mais antigos
-        </button>
-        <button
-          onClick={() => setSort('price_asc')}
-          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-            sort === 'price_asc'
-              ? 'bg-slate-700 text-white'
-              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
-          }`}
-        >
-          Menor preço
-        </button>
-        <button
-          onClick={() => setSort('price_desc')}
-          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-            sort === 'price_desc'
-              ? 'bg-slate-700 text-white'
-              : 'bg-slate-800 text-slate-500 hover:text-slate-300'
-          }`}
-        >
-          Maior preço
-        </button>
-      </div>
-
-      {/* Grade virtualizada */}
-      <div className="flex-1 min-h-0">
-        <MarketplaceVirtualized
-          source={source}
-          emptyMessage="Este vendedor não possui itens à venda com esses filtros."
-        />
-      </div>
-    </div>
+          <SortSelector options={LISTING_SORT_OPTIONS} value={sort} onChange={setSort} />
+        </>
+      }
+    >
+      <MarketplaceVirtualized
+        source={source}
+        emptyMessage="Este vendedor não possui itens à venda com esses filtros."
+      />
+    </CatalogLayout>
   );
 }

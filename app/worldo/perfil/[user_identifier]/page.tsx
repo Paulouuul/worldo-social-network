@@ -91,7 +91,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center relative">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950"></div>
+              <div className="glow-backdrop"></div>
               <div className="relative z-10 flex flex-col items-center gap-2 opacity-30">
                 <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
                 <p className="text-[10px] sm:text-xs font-medium tracking-widest uppercase">

@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
 import Link from 'next/link';
 import { AlertCircle, ArrowLeft, LifeBuoy } from 'lucide-react';
+import { StatusCard, StatusPage } from '@/components/ui/StatusPage';
 
 /** Conteúdo da página de erro; lê o código de erro da URL. */
 function AuthErrorContent() {
@@ -30,7 +31,7 @@ function AuthErrorContent() {
   };
 
   return (
-    <div className="relative z-10 w-full max-w-md bg-slate-900/50 border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]">
+    <StatusCard>
       {/* Logo */}
       <div className="flex justify-center mb-8 pb-6 border-b border-white/[0.04]">
         <ClientImage
@@ -80,14 +81,14 @@ function AuthErrorContent() {
           <span>Precisa de ajuda? Contate o suporte</span>
         </Link>
       </div>
-    </div>
+    </StatusCard>
   );
 }
 
 /** Esqueleto exibido enquanto os parâmetros da URL carregam. */
 function AuthErrorSkeleton() {
   return (
-    <div className="relative z-10 w-full max-w-md bg-slate-900/50 border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]">
+    <StatusCard>
       <div className="flex justify-center mb-8 pb-6 border-b border-white/[0.04]">
         <div className="w-[172px] h-[62px] bg-slate-800/50 rounded-lg animate-pulse" />
       </div>
@@ -103,22 +104,17 @@ function AuthErrorSkeleton() {
       <div className="mt-6 pt-6 border-t border-white/[0.04] flex justify-center">
         <div className="w-1/2 h-4 bg-slate-800/50 rounded animate-pulse" />
       </div>
-    </div>
+    </StatusCard>
   );
 }
 
 /** Página de erro com fundo decorativo e Suspense para o useSearchParams. */
 export default function AuthErrorPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative antialiased selection:bg-purple-500/30 bg-[#020617]">
-      {' '}
-      {/* Cor de fundo equivalente a bg-slate-950 */}
-      {/* Brilhos de fundo */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="fixed top-1/3 right-1/4 w-[300px] h-[300px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none z-0" />
+    <StatusPage glowClassName="bg-red-600/10">
       <Suspense fallback={<AuthErrorSkeleton />}>
         <AuthErrorContent />
       </Suspense>
-    </div>
+    </StatusPage>
   );
 }

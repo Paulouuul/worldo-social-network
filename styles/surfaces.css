@@ -1,0 +1,45 @@
+/* styles/surfaces.css
+ * Camadas decorativas reutilizadas em cards e páginas. Cada classe só entra no CSS final quando
+ * usada. Todas ocupam o elemento pai (que precisa ser relative) e ignoram cliques.
+ */
+
+/* Brilho radial roxo ao centro sobre fundo escuro (páginas de formulário e capas vazias) */
+@utility glow-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    ellipse at center,
+    color-mix(in oklab, var(--color-purple-900) 10%, transparent),
+    var(--color-slate-950),
+    var(--color-slate-950)
+  );
+}
+
+/* Linha fina iluminada no topo do elemento */
+@utility hairline-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  pointer-events: none;
+  background-image: linear-gradient(
+    to right in oklab,
+    transparent,
+    color-mix(in oklab, var(--color-purple-500) 20%, transparent),
+    transparent
+  );
+}
+
+/* Quadriculado sutil sobre cards de cosméticos */
+@utility grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image:
+    linear-gradient(to right, #0f172a 1px, transparent 1px),
+    linear-gradient(to bottom, #0f172a 1px, transparent 1px);
+  background-size: 0.4rem 0.4rem;
+}

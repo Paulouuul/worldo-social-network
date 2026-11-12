@@ -11,7 +11,7 @@ import { qk } from '@/lib/query-keys';
 import { useRouter } from 'next/navigation';
 import { ClientImage } from '@/components/ClientImage';
 import { backendApiCall } from '@/lib/backendApiClient';
-import { FeedbackMessage } from '@/components/FeedbackMessage';
+import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
 
 import {
   Sparkles,
@@ -25,9 +25,10 @@ import {
   Save,
   X,
   Image as ImageIcon,
-  AlertTriangle,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
+import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/FormField';
 
 /** Formato aceito para o site (http/https, domínio, localhost ou IP, porta e caminho opcionais). */
 const URL_REGEX =
@@ -379,8 +380,8 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-950 py-12 px-4 relative overflow-hidden flex items-center justify-center">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
+      <div className="glow-backdrop" />
+      <div className="hairline-top" />
 
       <div className="max-w-2xl w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
         {/* Cabeçalho */}
@@ -399,16 +400,16 @@ export default function EditProfilePage() {
         </div>
 
         {/* Alertas */}
-        {error && <FeedbackMessage type="error" message={error} />}
+        <FeedbackMessage type="error" message={error} className="mb-6" />
 
-        {success && <FeedbackMessage type="success" message={success} />}
+        <FeedbackMessage type="success" message={success} className="mb-6" />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Imagem de capa */}
           <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
-            <label className="flex items-center gap-1.5 text-slate-300 mb-3 font-semibold text-xs tracking-wide uppercase">
-              <ImageIcon className="w-3.5 h-3.5 text-purple-400" /> Capa do Perfil / Banner
-            </label>
+            <FieldLabel icon={ImageIcon} loose>
+              Capa do Perfil / Banner
+            </FieldLabel>
 
             <div className="space-y-4">
               <div className="relative w-full h-36 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center group shadow-inner">
@@ -465,9 +466,7 @@ export default function EditProfilePage() {
 
           {/* Avatar */}
           <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
-            <label className="flex items-center gap-1.5 text-slate-300 mb-3 font-semibold text-xs tracking-wide uppercase">
-              Avatar de Rede
-            </label>
+            <FieldLabel loose>Avatar de Rede</FieldLabel>
             <div className="flex items-center gap-5">
               <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-purple-500/30 bg-slate-950 shrink-0 shadow-inner">
                 {avatarPreview && avatarPreview !== 'None' ? (
@@ -525,13 +524,13 @@ export default function EditProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Username */}
             <div>
-              <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <AtSign className="w-3.5 h-3.5 text-purple-400" /> Nome de Usuário *
-                <span className="text-[10px] text-slate-500 font-normal ml-auto">
-                  {formData.username.length}/{MAX_USERNAME_LENGTH}
-                </span>
-              </label>
-              <input
+              <FieldLabel
+                icon={AtSign}
+                counter={{ value: formData.username.length, max: MAX_USERNAME_LENGTH }}
+              >
+                Nome de Usuário *
+              </FieldLabel>
+              <TextInput
                 type="text"
                 value={formData.username}
                 onKeyDown={handleKeyDownNoSpaces}
@@ -540,33 +539,24 @@ export default function EditProfilePage() {
                   setFormData({ ...formData, username: value });
                   setFieldErrors({ ...fieldErrors, username: validateUsername(value) });
                 }}
-                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                  fieldErrors.username
-                    ? 'border-red-500/50 focus:ring-red-500/50'
-                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-                }`}
+                hasError={!!fieldErrors.username}
                 required
                 disabled={loading}
                 placeholder="usuario_123"
                 maxLength={MAX_USERNAME_LENGTH}
               />
-              {fieldErrors.username && (
-                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {fieldErrors.username}
-                </p>
-              )}
+              <FieldError message={fieldErrors.username} />
             </div>
 
             {/* Nome de exibição */}
             <div>
-              <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição *
-                <span className="text-[10px] text-slate-500 font-normal ml-auto">
-                  {formData.name.length}/{MAX_NAME_LENGTH}
-                </span>
-              </label>
-              <input
+              <FieldLabel
+                icon={User}
+                counter={{ value: formData.name.length, max: MAX_NAME_LENGTH }}
+              >
+                Nome de Exibição *
+              </FieldLabel>
+              <TextInput
                 type="text"
                 value={formData.name}
                 onChange={(e) => {
@@ -581,45 +571,32 @@ export default function EditProfilePage() {
                     setFieldErrors({ ...fieldErrors, name: validateName(trimmed) });
                   }
                 }}
-                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                  fieldErrors.name
-                    ? 'border-red-500/50 focus:ring-red-500/50'
-                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-                }`}
+                hasError={!!fieldErrors.name}
                 required
                 disabled={loading}
                 placeholder="Seu nome"
                 maxLength={MAX_NAME_LENGTH}
               />
-              {fieldErrors.name && (
-                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {fieldErrors.name}
-                </p>
-              )}
+              <FieldError message={fieldErrors.name} />
             </div>
           </div>
 
           {/* Biografia */}
           <div>
-            <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-              <FileText className="w-3.5 h-3.5 text-purple-400" /> Biografia da Entidade
-              <span className="text-[10px] text-slate-500 font-normal ml-auto">
-                {formData.bio.length}/{MAX_BIO_LENGTH}
-              </span>
-            </label>
-            <textarea
+            <FieldLabel
+              icon={FileText}
+              counter={{ value: formData.bio.length, max: MAX_BIO_LENGTH }}
+            >
+              Biografia da Entidade
+            </FieldLabel>
+            <TextArea
               value={formData.bio}
               onChange={(e) => {
                 const value = e.target.value;
                 setFormData({ ...formData, bio: value });
                 setFieldErrors({ ...fieldErrors, bio: validateBio(value) });
               }}
-              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm resize-none ${
-                fieldErrors.bio
-                  ? 'border-red-500/50 focus:ring-red-500/50'
-                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-              }`}
+              hasError={!!fieldErrors.bio}
               onBlur={() => {
                 const trimmed = formData.bio.trim();
                 if (trimmed !== formData.bio) {
@@ -632,25 +609,20 @@ export default function EditProfilePage() {
               placeholder="Fale um pouco sobre sua trajetória na rede..."
               maxLength={MAX_BIO_LENGTH}
             />
-            {fieldErrors.bio && (
-              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" />
-                {fieldErrors.bio}
-              </p>
-            )}
+            <FieldError message={fieldErrors.bio} />
           </div>
 
           {/* Localização e Website */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Localização */}
             <div>
-              <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <MapPin className="w-3.5 h-3.5 text-purple-400" /> Coordenadas / Localização
-                <span className="text-[10px] text-slate-500 font-normal ml-auto">
-                  {formData.location.length}/{MAX_LOCATION_LENGTH}
-                </span>
-              </label>
-              <input
+              <FieldLabel
+                icon={MapPin}
+                counter={{ value: formData.location.length, max: MAX_LOCATION_LENGTH }}
+              >
+                Coordenadas / Localização
+              </FieldLabel>
+              <TextInput
                 type="text"
                 value={formData.location}
                 onChange={(e) => {
@@ -658,32 +630,23 @@ export default function EditProfilePage() {
                   setFormData({ ...formData, location: value });
                   setFieldErrors({ ...fieldErrors, location: validateLocation(value) });
                 }}
-                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                  fieldErrors.location
-                    ? 'border-red-500/50 focus:ring-red-500/50'
-                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-                }`}
+                hasError={!!fieldErrors.location}
                 disabled={loading}
                 placeholder="Cidade, Estado ou Planeta"
                 maxLength={MAX_LOCATION_LENGTH}
               />
-              {fieldErrors.location && (
-                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {fieldErrors.location}
-                </p>
-              )}
+              <FieldError message={fieldErrors.location} />
             </div>
 
             {/* Site */}
             <div>
-              <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <Link2 className="w-3.5 h-3.5 text-purple-400" /> Link de Hipertexto
-                <span className="text-[10px] text-slate-500 font-normal ml-auto">
-                  {formData.website.length}/{MAX_WEBSITE_LENGTH}
-                </span>
-              </label>
-              <input
+              <FieldLabel
+                icon={Link2}
+                counter={{ value: formData.website.length, max: MAX_WEBSITE_LENGTH }}
+              >
+                Link de Hipertexto
+              </FieldLabel>
+              <TextInput
                 type="text"
                 value={formData.website}
                 onKeyDown={handleKeyDownNoSpaces}
@@ -701,43 +664,27 @@ export default function EditProfilePage() {
                     setFieldErrors({ ...fieldErrors, website: validateWebsite(value) });
                   }
                 }}
-                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                  fieldErrors.website
-                    ? 'border-red-500/50 focus:ring-red-500/50'
-                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-                }`}
+                hasError={!!fieldErrors.website}
                 disabled={loading}
                 placeholder="https://seusite.com"
                 maxLength={MAX_WEBSITE_LENGTH}
               />
-              {fieldErrors.website && (
-                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {fieldErrors.website}
-                </p>
-              )}
+              <FieldError message={fieldErrors.website} />
             </div>
           </div>
 
           {/* Ações */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-800/60">
-            <button
+            <PrimaryButton
               type="submit"
               disabled={loading || !isFormFilled || hasErrors}
-              className="flex-1 order-2 sm:order-1 font-semibold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 tracking-wide bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={loading}
+              loadingText="Atualizando Cadeia..."
+              icon={Save}
+              className="flex-1 order-2 sm:order-1"
             >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                  <span>Atualizando Cadeia...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span>Salvar Sincronização</span>
-                </>
-              )}
-            </button>
+              Salvar Sincronização
+            </PrimaryButton>
 
             <button
               type="button"

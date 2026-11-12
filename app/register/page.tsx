@@ -5,19 +5,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ClientImage } from '@/components/ClientImage';
 import { useSession } from 'next-auth/react';
-import {
-  Sparkles,
-  User,
-  AtSign,
-  Mail,
-  Lock,
-  UserPlus,
-  ArrowLeft,
-  AlertTriangle,
-} from 'lucide-react';
+import { User, AtSign, Mail, Lock, UserPlus, ArrowLeft } from 'lucide-react';
+import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
+import { FieldError, FieldLabel, TextInput } from '@/components/ui/FormField';
+import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { AuthShell } from '@/components/auth/AuthShell';
 
 /** Formulário de cadastro com validação por campo e redirecionamento para /login após o sucesso. */
 export default function RegisterPage() {
@@ -175,273 +168,176 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-slate-950 relative overflow-hidden">
-      {/* Efeito de fundo */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-purple-900/10 via-slate-950 to-slate-950 pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/20 to-transparent" />
+    <AuthShell
+      title="Forjar Identidade"
+      subtitle="Crie seu registro de acesso na rede"
+      footerText="Já possui cadastro?"
+      footerLink={{
+        href: '/login',
+        label: (
+          <>
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" /> Faça
+            login
+          </>
+        ),
+      }}
+    >
+      {/* Erro retornado pela API */}
+      <FeedbackMessage type="error" size="sm" message={error} className="mb-4" />
 
-      <div className="max-w-md w-full bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-8 relative z-10">
-        {/* Logo e título */}
-        <div className="flex flex-col items-center justify-center mb-6">
-          <div className="relative w-48 h-16 mb-4">
-            <ClientImage
-              src="/worldo_logo.png"
-              alt="Logo Worldo"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-          <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-purple-400 via-pink-400 to-indigo-400 flex items-center gap-2 tracking-wide uppercase">
-            <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
-            FORJAR IDENTIDADE
-          </h1>
-          <p className="text-slate-400 text-xs mt-1">Crie seu registro de acesso na rede</p>
+      {/* Mensagem de sucesso */}
+      <FeedbackMessage type="success" size="sm" message={success} className="mb-4" />
+
+      {/* Formulário */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Username */}
+        <div>
+          <FieldLabel icon={AtSign} counter={{ value: username.length, max: MAX_USERNAME_LENGTH }}>
+            Nome de usuário *
+          </FieldLabel>
+          <TextInput
+            type="text"
+            value={username}
+            onKeyDown={handleKeyDownNoSpaces}
+            onChange={(e) => {
+              const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+              setUsername(value);
+              setFieldErrors({ ...fieldErrors, username: validateUsername(value) });
+            }}
+            hasError={!!fieldErrors.username}
+            required
+            placeholder="usuario_123"
+            maxLength={MAX_USERNAME_LENGTH}
+          />
+          <FieldError message={fieldErrors.username} />
+          <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+            Apenas letras, números e underline. De {MIN_USERNAME_LENGTH} a {MAX_USERNAME_LENGTH}{' '}
+            caracteres.
+          </p>
         </div>
 
-        {/* Erro retornado pela API */}
-        {error && (
-          <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs border border-red-500/20 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span className="leading-relaxed">{error}</span>
-          </div>
-        )}
+        {/* Nome de Exibição */}
+        <div>
+          <FieldLabel icon={User} counter={{ value: name.length, max: MAX_NAME_LENGTH }}>
+            Nome de Exibição *
+          </FieldLabel>
+          <TextInput
+            type="text"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setFieldErrors({ ...fieldErrors, name: validateName(e.target.value) });
+            }}
+            onBlur={() => {
+              const trimmed = name.trim().replace(/\s+/g, ' ');
+              if (trimmed !== name) {
+                setName(trimmed);
+                setFieldErrors({ ...fieldErrors, name: validateName(trimmed) });
+              }
+            }}
+            hasError={!!fieldErrors.name}
+            required
+            placeholder="Seu nome real ou apelido"
+            maxLength={MAX_NAME_LENGTH}
+          />
+          <FieldError message={fieldErrors.name} />
+          <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+            De {MIN_NAME_LENGTH} a {MAX_NAME_LENGTH} caracteres.
+          </p>
+        </div>
 
-        {/* Mensagem de sucesso */}
-        {success && (
-          <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl mb-4 text-xs border border-emerald-500/20 flex items-center gap-2">
-            <span className="leading-relaxed">{success}</span>
-          </div>
-        )}
+        {/* Email */}
+        <div>
+          <FieldLabel icon={Mail}>Endereço de Email *</FieldLabel>
+          <TextInput
+            type="email"
+            value={email}
+            onKeyDown={handleKeyDownNoSpaces}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\s/g, '');
+              setEmail(value);
+              setFieldErrors({ ...fieldErrors, email: validateEmail(value) });
+            }}
+            hasError={!!fieldErrors.email}
+            required
+            placeholder="seu@email.com"
+          />
+          <FieldError message={fieldErrors.email} />
+        </div>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username */}
+        {/* Senha e Confirmação */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Senha */}
           <div>
-            <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-              <AtSign className="w-3.5 h-3.5 text-purple-400" /> Nome de usuário *
-              <span className="text-[10px] text-slate-500 font-normal ml-auto">
-                {username.length}/{MAX_USERNAME_LENGTH}
-              </span>
-            </label>
-            <input
-              type="text"
-              value={username}
-              onKeyDown={handleKeyDownNoSpaces}
-              onChange={(e) => {
-                const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                setUsername(value);
-                setFieldErrors({ ...fieldErrors, username: validateUsername(value) });
-              }}
-              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                fieldErrors.username
-                  ? 'border-red-500/50 focus:ring-red-500/50'
-                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-              }`}
-              required
-              placeholder="usuario_123"
-              maxLength={MAX_USERNAME_LENGTH}
-            />
-            {fieldErrors.username && (
-              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" />
-                {fieldErrors.username}
-              </p>
-            )}
-            <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-              Apenas letras, números e underline. De {MIN_USERNAME_LENGTH} a {MAX_USERNAME_LENGTH}{' '}
-              caracteres.
-            </p>
-          </div>
-
-          {/* Nome de Exibição */}
-          <div>
-            <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-              <User className="w-3.5 h-3.5 text-purple-400" /> Nome de Exibição *
-              <span className="text-[10px] text-slate-500 font-normal ml-auto">
-                {name.length}/{MAX_NAME_LENGTH}
-              </span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setFieldErrors({ ...fieldErrors, name: validateName(e.target.value) });
-              }}
-              onBlur={() => {
-                const trimmed = name.trim().replace(/\s+/g, ' ');
-                if (trimmed !== name) {
-                  setName(trimmed);
-                  setFieldErrors({ ...fieldErrors, name: validateName(trimmed) });
-                }
-              }}
-              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                fieldErrors.name
-                  ? 'border-red-500/50 focus:ring-red-500/50'
-                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-              }`}
-              required
-              placeholder="Seu nome real ou apelido"
-              maxLength={MAX_NAME_LENGTH}
-            />
-            {fieldErrors.name && (
-              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" />
-                {fieldErrors.name}
-              </p>
-            )}
-            <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-              De {MIN_NAME_LENGTH} a {MAX_NAME_LENGTH} caracteres.
-            </p>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-              <Mail className="w-3.5 h-3.5 text-purple-400" /> Endereço de Email *
-            </label>
-            <input
-              type="email"
-              value={email}
+            <FieldLabel icon={Lock}>Senha *</FieldLabel>
+            <TextInput
+              type="password"
+              value={password}
               onKeyDown={handleKeyDownNoSpaces}
               onChange={(e) => {
                 const value = e.target.value.replace(/\s/g, '');
-                setEmail(value);
-                setFieldErrors({ ...fieldErrors, email: validateEmail(value) });
+                setPassword(value);
+                setFieldErrors({ ...fieldErrors, password: validatePassword(value) });
+
+                if (confirmPassword) {
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    confirmPassword: validateConfirmPassword(confirmPassword),
+                  }));
+                }
               }}
-              className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                fieldErrors.email
-                  ? 'border-red-500/50 focus:ring-red-500/50'
-                  : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-              }`}
+              hasError={!!fieldErrors.password}
               required
-              placeholder="seu@email.com"
+              placeholder="Mín. 6 dígitos"
             />
-            {fieldErrors.email && (
-              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" />
-                {fieldErrors.email}
-              </p>
-            )}
+            <FieldError message={fieldErrors.password} />
+            <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+              Mín. {MIN_PASSWORD_LENGTH} caracteres. Letras maiúsculas, minúsculas, números e
+              especial.
+            </p>
           </div>
 
-          {/* Senha e Confirmação */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Senha */}
-            <div>
-              <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <Lock className="w-3.5 h-3.5 text-purple-400" /> Senha *
-              </label>
-              <input
-                type="password"
-                value={password}
-                onKeyDown={handleKeyDownNoSpaces}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\s/g, '');
-                  setPassword(value);
-                  setFieldErrors({ ...fieldErrors, password: validatePassword(value) });
+          {/* Confirmar Senha */}
+          <div>
+            <FieldLabel icon={Lock}>Confirmar *</FieldLabel>
+            <TextInput
+              type="password"
+              value={confirmPassword}
+              onKeyDown={handleKeyDownNoSpaces}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\s/g, '');
+                setConfirmPassword(value);
 
-                  if (confirmPassword) {
-                    setFieldErrors((prev) => ({
-                      ...prev,
-                      confirmPassword: validateConfirmPassword(confirmPassword),
-                    }));
-                  }
-                }}
-                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                  fieldErrors.password
-                    ? 'border-red-500/50 focus:ring-red-500/50'
-                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-                }`}
-                required
-                placeholder="Mín. 6 dígitos"
-              />
-              {fieldErrors.password && (
-                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {fieldErrors.password}
-                </p>
-              )}
-              <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-                Mín. {MIN_PASSWORD_LENGTH} caracteres. Letras maiúsculas, minúsculas, números e
-                especial.
-              </p>
-            </div>
+                const errorMsg = !value
+                  ? 'Confirmação de senha é obrigatória'
+                  : value !== password
+                    ? 'As senhas não coincidem'
+                    : '';
 
-            {/* Confirmar Senha */}
-            <div>
-              <label className="flex items-center gap-1.5 text-slate-300 mb-1.5 font-semibold text-xs tracking-wide uppercase">
-                <Lock className="w-3.5 h-3.5 text-purple-400" /> Confirmar *
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onKeyDown={handleKeyDownNoSpaces}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\s/g, '');
-                  setConfirmPassword(value);
-
-                  const errorMsg = !value
-                    ? 'Confirmação de senha é obrigatória'
-                    : value !== password
-                      ? 'As senhas não coincidem'
-                      : '';
-
-                  setFieldErrors({
-                    ...fieldErrors,
-                    confirmPassword: errorMsg,
-                  });
-                }}
-                className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all text-sm ${
-                  fieldErrors.confirmPassword
-                    ? 'border-red-500/50 focus:ring-red-500/50'
-                    : 'border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-                }`}
-                required
-                placeholder="Repita a senha"
-              />
-              {fieldErrors.confirmPassword && (
-                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {fieldErrors.confirmPassword}
-                </p>
-              )}
-            </div>
+                setFieldErrors({
+                  ...fieldErrors,
+                  confirmPassword: errorMsg,
+                });
+              }}
+              hasError={!!fieldErrors.confirmPassword}
+              required
+              placeholder="Repita a senha"
+            />
+            <FieldError message={fieldErrors.confirmPassword} />
           </div>
+        </div>
 
-          {/* Botão de envio */}
-          <button
-            type="submit"
-            disabled={loading || !isFormFilled || hasErrors}
-            className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide"
-          >
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                <span>Inicializando Conta...</span>
-              </>
-            ) : (
-              <>
-                <UserPlus className="w-4 h-4" />
-                <span>Registrar Identidade</span>
-              </>
-            )}
-          </button>
-        </form>
-
-        {/* Link para o Login */}
-        <p className="text-center text-slate-400 mt-6 text-xs tracking-wide">
-          Já possui cadastro?{' '}
-          <Link
-            href="/login"
-            className="text-purple-400 hover:text-purple-300 font-semibold inline-flex items-center gap-1 group transition-colors"
-          >
-            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" /> Faça
-            login
-          </Link>
-        </p>
-      </div>
-    </div>
+        {/* Botão de envio */}
+        <PrimaryButton
+          type="submit"
+          disabled={loading || !isFormFilled || hasErrors}
+          loading={loading}
+          loadingText="Inicializando Conta..."
+          icon={UserPlus}
+        >
+          Registrar Identidade
+        </PrimaryButton>
+      </form>
+    </AuthShell>
   );
 }

@@ -4,6 +4,8 @@
 'use client';
 
 import { useState } from 'react';
+import { PrimaryButton, buttonClass } from '@/components/ui/PrimaryButton';
+import { SelectInput, TextInput } from '@/components/ui/FormField';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJson } from '@/lib/fetcher';
 import { cachePolicy, qk } from '@/lib/query-keys';
@@ -11,8 +13,10 @@ import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClientImage } from '@/components/ClientImage';
-import { RARITY, getRarityDesigns } from '@/constants/cosmeticRarity';
 import { Star, ShoppingBag, Users, Coins, User } from 'lucide-react';
+import { LoadingSpinner } from '@/components/Loading';
+import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 /** Moldura retornada por /api/worldo/cosmetics/[id]. */
 interface FrameData {
@@ -70,6 +74,9 @@ export default function CosmeticDetailPage() {
   const router = useRouter();
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [selectedListing, setSelectedListing] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
+    null,
+  );
 
   const frameId = params.cosmetic_frame_id as string;
 
@@ -99,13 +106,13 @@ export default function CosmeticDetailPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Compra realizada com sucesso!');
+        setFeedback({ type: 'success', message: 'Compra realizada com sucesso!' });
         router.push('/inventory');
       } else {
-        alert(data.error || 'Erro na compra');
+        setFeedback({ type: 'error', message: data.error || 'Erro na compra' });
       }
     } catch (_err) {
-      alert('Erro ao processar compra');
+      setFeedback({ type: 'error', message: 'Erro ao processar compra' });
     }
   };
 
@@ -156,18 +163,17 @@ export default function CosmeticDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-      </div>
-    );
+    return <LoadingSpinner text="Carregando moldura..." />;
   }
 
   if (!frame) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-400">Moldura não encontrada</p>
-        <Link href="/worldo/cosmetics/marketplace" className="btn-primary inline-block mt-4">
+        <Link
+          href="/worldo/cosmetics/marketplace"
+          className={`${buttonClass.primary} w-fit mx-auto mt-4`}
+        >
           Voltar ao Marketplace
         </Link>
       </div>
@@ -181,13 +187,7 @@ export default function CosmeticDetailPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link href="/worldo/cosmetics/marketplace" className="hover:text-white transition">
-          Marketplace
-        </Link>
-        <span>/</span>
-        <span className="text-white">{frame.name}</span>
-      </div>
+      <Breadcrumb current={frame.name} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Imagem */}
@@ -262,6 +262,9 @@ export default function CosmeticDetailPage() {
             </div>
           </div>
 
+          {/* Resultado da compra */}
+          {feedback && <FeedbackMessage type={feedback.type} message={feedback.message} />}
+
           {/* Preço e compra */}
           {cheapest && (
             <div className="p-6 bg-linear-to-r from-purple-900/20 to-indigo-900/20 rounded-2xl border border-purple-500/30">
@@ -284,10 +287,9 @@ export default function CosmeticDetailPage() {
 
               {session ? (
                 <div className="space-y-3">
-                  <select
+                  <SelectInput
                     value={selectedListing || ''}
                     onChange={(e) => setSelectedListing(e.target.value)}
-                    className="input w-full"
                   >
                     <option value="">Selecione um vendedor</option>
                     {frame.listings.map((listing) => (
@@ -295,21 +297,18 @@ export default function CosmeticDetailPage() {
                         {listing.seller.name} - {listing.priceCoins} 🪙 ({listing.quantity} unid.)
                       </option>
                     ))}
-                  </select>
-                  <input
+                  </SelectInput>
+                  <TextInput
                     type="number"
                     min="1"
                     value={buyQuantity}
                     onChange={(e) => setBuyQuantity(parseInt(e.target.value) || 1)}
-                    className="input w-full"
                     placeholder="Quantidade"
                   />
-                  <button onClick={handleBuy} className="btn-primary w-full">
-                    Comprar agora
-                  </button>
+                  <PrimaryButton onClick={handleBuy}>Comprar agora</PrimaryButton>
                 </div>
               ) : (
-                <Link href="/login" className="btn-primary w-full block text-center">
+                <Link href="/login" className={`${buttonClass.primary} w-full`}>
                   Entre para comprar
                 </Link>
               )}
@@ -321,7 +320,7 @@ export default function CosmeticDetailPage() {
               <p className="text-gray-400">Nenhum anúncio disponível no momento</p>
               <Link
                 href="/worldo/cosmetics/marketplace"
-                className="btn-secondary inline-block mt-3"
+                className={`${buttonClass.secondary} w-fit mx-auto mt-3`}
               >
                 Ver outras molduras
               </Link>

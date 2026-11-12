@@ -13,7 +13,7 @@ import { AvatarWithFrame } from '@/components/AvatarWithFrame';
 import { PlatformFeeTooltipIcon } from '@/components/PlatformFeeTooltipIcon';
 import { getRarityDesigns, RARITY, Rarity } from '@/constants/cosmeticRarity';
 import { formatFullNumber, formatPrice } from '@/lib/format-utils';
-import { FeedbackMessage } from '@/components/FeedbackMessage';
+import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
 
 import {
   Tag,
@@ -21,7 +21,6 @@ import {
   Edit2,
   MinusCircle,
   X,
-  Loader2,
   Coins,
   Box,
   ExternalLink,
@@ -29,6 +28,10 @@ import {
   CheckCircle,
   Circle,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
+import { Modal } from '@/components/ui/Modal';
+import { buttonClass } from '@/components/ui/PrimaryButton';
+import { SummaryRow } from '@/components/ui/SummaryRow';
 
 /** Modos do modal. */
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
@@ -297,186 +300,200 @@ export function CosmeticActionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-200">
-      <div
-        className={`bg-slate-900 border ${rarityConfig.borderClass} rounded-2xl max-w-md w-full shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] sm:max-h-[90vh]`}
-      >
-        {/* Cabeçalho */}
-        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800/60 flex items-center justify-between bg-slate-950/40 shrink-0">
-          <div className="flex items-center gap-2">
-            {currentMode === 'sell' && (
-              <>
-                <Tag className="w-4 h-4 text-purple-400 shrink-0" />
-                <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
-                  Criar Ordem de Venda
-                </h2>
-              </>
-            )}
-            {currentMode === 'view' && (
-              <>
-                <Store className="w-4 h-4 text-emerald-400 shrink-0" />
-                <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
-                  Detalhes do Anúncio
-                </h2>
-              </>
-            )}
-            {currentMode === 'edit' && (
-              <>
-                <Edit2 className="w-4 h-4 text-indigo-400 shrink-0" />
-                <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
-                  Editar Preço
-                </h2>
-              </>
-            )}
-            {currentMode === 'remove' && (
-              <>
-                <MinusCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
-                  Retirar do Mercado
-                </h2>
-              </>
-            )}
-            {currentMode === 'equip' && (
-              <>
-                <Box className="w-4 h-4 text-purple-400" />
-                <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
-                  Detalhes do Item
-                </h2>
-              </>
-            )}
-          </div>
-          <button
-            onClick={() => handleClose()}
-            className="text-slate-500 hover:text-slate-300 transition p-1 shrink-0"
-            disabled={submitting}
-          >
-            <X className="w-5 h-5" />
-          </button>
+    <Modal
+      borderClassName={rarityConfig.borderClass}
+      panelClassName="max-w-md overflow-hidden relative flex flex-col max-h-[95vh] sm:max-h-[90vh]"
+    >
+      {/* Cabeçalho */}
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800/60 flex items-center justify-between bg-slate-950/40 shrink-0">
+        <div className="flex items-center gap-2">
+          {currentMode === 'sell' && (
+            <>
+              <Tag className="w-4 h-4 text-purple-400 shrink-0" />
+              <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
+                Criar Ordem de Venda
+              </h2>
+            </>
+          )}
+          {currentMode === 'view' && (
+            <>
+              <Store className="w-4 h-4 text-emerald-400 shrink-0" />
+              <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
+                Detalhes do Anúncio
+              </h2>
+            </>
+          )}
+          {currentMode === 'edit' && (
+            <>
+              <Edit2 className="w-4 h-4 text-indigo-400 shrink-0" />
+              <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
+                Editar Preço
+              </h2>
+            </>
+          )}
+          {currentMode === 'remove' && (
+            <>
+              <MinusCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
+                Retirar do Mercado
+              </h2>
+            </>
+          )}
+          {currentMode === 'equip' && (
+            <>
+              <Box className="w-4 h-4 text-purple-400" />
+              <h2 className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider truncate">
+                Detalhes do Item
+              </h2>
+            </>
+          )}
+        </div>
+        <button
+          onClick={() => handleClose()}
+          className="text-slate-500 hover:text-slate-300 transition p-1 shrink-0"
+          disabled={submitting}
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Conteúdo rolável */}
+      <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5">
+        {/* Mensagens de feedback */}
+        <FeedbackMessage type="error" size="sm" message={errorMessage} className="mb-6" />
+        {successMessage && (
+          <FeedbackMessage type="success" size="sm" message={successMessage} className="mb-6" />
+        )}
+
+        {/* Imagem e informações da moldura */}
+        <div className="flex flex-col items-center justify-center w-full mb-6">
+          <AvatarWithFrame
+            avatarUrl={avatarUrl}
+            name={me?.name || 'Usuário'}
+            frameUrl={item.frame.imageUrl}
+            rarity={item.frame.rarity || RARITY.COMUM}
+            priority
+          />
         </div>
 
-        {/* Conteúdo rolável */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5">
-          {/* Mensagens de feedback */}
-          {errorMessage && <FeedbackMessage type="error" message={errorMessage} align="start" />}
-          {successMessage && (
-            <FeedbackMessage type="success" message={successMessage} align="start" />
-          )}
+        <div className="text-center mb-4 px-2">
+          <h3
+            className={`font-bold text-base sm:text-lg wrap-break-word leading-tight ${rarityConfig.textClass}`}
+          >
+            {item.frame.name}
+          </h3>
+          <p
+            className={`text-xs font-semibold tracking-wider uppercase mt-1 ${rarityConfig.textClass}`}
+          >
+            {item.frame.rarity}
+          </p>
+        </div>
 
-          {/* Imagem e informações da moldura */}
-          <div className="flex flex-col items-center justify-center w-full mb-6">
-            <AvatarWithFrame
-              avatarUrl={avatarUrl}
-              name={me?.name || 'Usuário'}
-              frameUrl={item.frame.imageUrl}
-              rarity={item.frame.rarity || RARITY.COMUM}
-              priority
-            />
-          </div>
-
-          <div className="text-center mb-4 px-2">
-            <h3
-              className={`font-bold text-base sm:text-lg wrap-break-word leading-tight ${rarityConfig.textClass}`}
-            >
-              {item.frame.name}
-            </h3>
-            <p
-              className={`text-xs font-semibold tracking-wider uppercase mt-1 ${rarityConfig.textClass}`}
-            >
-              {item.frame.rarity}
-            </p>
-          </div>
-
-          {/* Modo equip: visão geral de itens não anunciados */}
-          {currentMode === 'equip' && (
-            <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-left-4 duration-200">
-              <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex justify-between items-center shadow-inner">
-                <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Quantidade no Cofre:
-                </span>
-                <span className="text-sm sm:text-base font-black text-slate-200 flex items-center gap-1.5">
-                  <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />{' '}
-                  {formatFullNumber(localItem.count)}
-                </span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
-                <button
-                  onClick={handleEquip}
-                  disabled={submitting || (item.isListed && !localIsEquipped)}
-                  className={`flex-[1.5] ${
-                    localIsEquipped
-                      ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20'
-                      : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20'
-                  } text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
-                >
-                  {submitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : localIsEquipped ? (
-                    <>
-                      <Circle className="w-4 h-4" /> Desequipar
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" /> Equipar
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    setCurrentMode('sell');
-                    setQuantity(1);
-                    setPrice(item.resalePrice || suggestedPrice);
-                    setErrorMessage('');
-                    setSuccessMessage('');
-                  }}
-                  disabled={item.isListed}
-                  className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Tag className="w-4 h-4" /> Anunciar
-                </button>
-              </div>
+        {/* Modo equip: visão geral de itens não anunciados */}
+        {currentMode === 'equip' && (
+          <div className="space-y-4 sm:space-y-5 animate-slide-in-left">
+            <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex justify-between items-center shadow-inner">
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Quantidade no Cofre:
+              </span>
+              <span className="text-sm sm:text-base font-black text-slate-200 flex items-center gap-1.5">
+                <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />{' '}
+                {formatFullNumber(localItem.count)}
+              </span>
             </div>
-          )}
 
-          {/* Modo view: anúncio ativo */}
-          {currentMode === 'view' && (
-            <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-right-4 duration-200">
-              <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex flex-col gap-2 sm:gap-3 shadow-inner">
-                <div className="flex justify-between items-center border-b border-slate-800/50 pb-2">
-                  <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Preço
-                    <span className="text-slate-600 mx-2">|</span>
-                    Quantidade:
-                  </span>
-                  <span className="text-sm font-black text-amber-500 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
-                    {localItem.resalePrice ? formatFullNumber(localItem.resalePrice) : ''}
-                    <span className="text-slate-600 mx-2">|</span>
-                    <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />{' '}
-                    <span className="text-slate-200">{formatFullNumber(localItem.count)}</span>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
+              <button
+                onClick={handleEquip}
+                disabled={submitting || (item.isListed && !localIsEquipped)}
+                className={`flex-[1.5] ${
+                  localIsEquipped
+                    ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20'
+                    : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20'
+                } text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+              >
+                {submitting ? (
+                  <Spinner />
+                ) : localIsEquipped ? (
+                  <>
+                    <Circle className="w-4 h-4" /> Desequipar
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" /> Equipar
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentMode('sell');
+                  setQuantity(1);
+                  setPrice(item.resalePrice || suggestedPrice);
+                  setErrorMessage('');
+                  setSuccessMessage('');
+                }}
+                disabled={item.isListed}
+                className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Tag className="w-4 h-4" /> Anunciar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modo view: anúncio ativo */}
+        {currentMode === 'view' && (
+          <div className="space-y-4 sm:space-y-5 animate-slide-in-right">
+            <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-800/50 flex flex-col gap-2 sm:gap-3 shadow-inner">
+              <div className="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Preço
+                  <span className="text-slate-600 mx-2">|</span>
+                  Quantidade:
+                </span>
+                <span className="text-sm font-black text-amber-500 flex items-center gap-1.5">
+                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{' '}
+                  {localItem.resalePrice ? formatFullNumber(localItem.resalePrice) : ''}
+                  <span className="text-slate-600 mx-2">|</span>
+                  <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />{' '}
+                  <span className="text-slate-200">{formatFullNumber(localItem.count)}</span>
+                </span>
+              </div>
+
+              {/* Detalhamento completo */}
+              <div className="space-y-2 pt-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Subtotal</span>
+                  <span className="text-slate-200 font-medium flex items-center gap-1">
+                    <Coins className="w-3 h-3" />{' '}
+                    {formatPrice((localItem.resalePrice || 0) * localItem.count)}
                   </span>
                 </div>
 
-                {/* Detalhamento completo */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-400">Subtotal</span>
-                    <span className="text-slate-200 font-medium flex items-center gap-1">
-                      <Coins className="w-3 h-3" />{' '}
-                      {formatPrice((localItem.resalePrice || 0) * localItem.count)}
-                    </span>
-                  </div>
-
-                  {platformFee !== null && platformFee > 0 && (
-                    <>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-slate-400 flex items-center gap-1">
-                          Taxa da plataforma ({platformFee}%)
-                          <PlatformFeeTooltipIcon />
-                        </span>
-                        <span className="text-rose-400 font-medium flex items-center gap-1">
-                          - <Coins className="w-3 h-3" />{' '}
-                          {formatPrice(
+                {platformFee !== null && platformFee > 0 && (
+                  <>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        Taxa da plataforma ({platformFee}%)
+                        <PlatformFeeTooltipIcon />
+                      </span>
+                      <span className="text-rose-400 font-medium flex items-center gap-1">
+                        - <Coins className="w-3 h-3" />{' '}
+                        {formatPrice(
+                          Math.max(
+                            1,
+                            Math.floor(
+                              (localItem.resalePrice || 0) * localItem.count * (platformFee / 100),
+                            ),
+                          ),
+                        )}
+                      </span>
+                    </div>
+                    <SummaryRow label="Rendimento Previsto" variant="total">
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <Coins className="w-4 h-4" />
+                        {formatPrice(
+                          (localItem.resalePrice || 0) * localItem.count -
                             Math.max(
                               1,
                               Math.floor(
@@ -485,198 +502,85 @@ export function CosmeticActionModal({
                                   (platformFee / 100),
                               ),
                             ),
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm border-t border-slate-700/50 pt-2">
-                        <span className="text-slate-300 font-semibold">Rendimento Previsto</span>
-                        <span className="text-emerald-400 font-bold flex items-center gap-1">
-                          <Coins className="w-4 h-4" />
-                          {formatPrice(
-                            (localItem.resalePrice || 0) * localItem.count -
-                              Math.max(
-                                1,
-                                Math.floor(
-                                  (localItem.resalePrice || 0) *
-                                    localItem.count *
-                                    (platformFee / 100),
-                                ),
-                              ),
-                          )}
-                        </span>
-                      </div>
-                    </>
-                  )}
-
-                  {(!platformFee || platformFee === 0) && (
-                    <div className="flex justify-between text-sm border-t border-slate-700/50 pt-2">
-                      <span className="text-slate-300 font-semibold">Rendimento Previsto</span>
-                      <span className="text-emerald-400 font-bold flex items-center gap-1">
-                        <Coins className="w-4 h-4" />
-                        {formatPrice((localItem.resalePrice || 0) * localItem.count)}
+                        )}
                       </span>
-                    </div>
-                  )}
-                </div>
-              </div>
+                    </SummaryRow>
+                  </>
+                )}
 
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
-                <button
-                  onClick={() => {
-                    setCurrentMode('edit');
-                    setPrice(localItem.resalePrice || suggestedPrice);
-                    setErrorMessage('');
-                    setSuccessMessage('');
-                  }}
-                  className="flex-1 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 hover:border-indigo-500 text-indigo-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
-                >
-                  <Edit2 className="w-4 h-4" /> Editar Preço
-                </button>
-                <button
-                  onClick={() => {
-                    setCurrentMode('remove');
-                    setQuantity(localItem.count);
-                    setErrorMessage('');
-                    setSuccessMessage('');
-                  }}
-                  className="flex-1 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/30 hover:border-rose-500 text-rose-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
-                >
-                  <MinusCircle className="w-4 h-4" /> Retirar Lote
-                </button>
-              </div>
-              {item.listingId && (
-                <Link
-                  href={`/worldo/cosmetics/marketplace/${item.listingId}`}
-                  className="flex items-center justify-center gap-2 w-full bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Ver anúncio público
-                </Link>
-              )}
-            </div>
-          )}
-
-          {/* Modo sell: anunciar à venda */}
-          {currentMode === 'sell' && (
-            <form
-              onSubmit={handleSell}
-              className="space-y-4 animate-in slide-in-from-right-4 duration-200"
-            >
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Box className="w-3 h-3 text-emerald-400" /> Qtd. a Listar
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={Math.min(maxAvailable, MAX_QUANTITY)}
-                    value={quantity}
-                    onChange={(e) =>
-                      setQuantity(
-                        Math.min(
-                          parseInt(e.target.value) || 1,
-                          Math.min(maxAvailable, MAX_QUANTITY),
-                        ),
-                      )
-                    }
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold"
-                    disabled={submitting}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Coins className="w-3 h-3 text-amber-500" /> Preço Un.
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={MAX_PRICE}
-                    value={price}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
-                      setPrice(Math.min(Math.max(1, value), MAX_PRICE));
-                    }}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-amber-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
-                    disabled={submitting}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                {/* Resumo da venda */}
-                <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-3 space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-400">Subtotal</span>
-                    <span className="text-slate-200 font-medium flex items-center gap-1">
-                      <Coins className="w-3 h-3" /> {formatPrice(quantity * price)}
+                {(!platformFee || platformFee === 0) && (
+                  <SummaryRow label="Rendimento Previsto" variant="total">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <Coins className="w-4 h-4" />
+                      {formatPrice((localItem.resalePrice || 0) * localItem.count)}
                     </span>
-                  </div>
-
-                  {platformFee !== null && platformFee > 0 && (
-                    <>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-slate-400 flex items-center gap-1">
-                          Taxa da plataforma ({platformFee}%)
-                          <PlatformFeeTooltipIcon />
-                        </span>
-                        <span className="text-rose-400 font-medium flex items-center gap-1">
-                          - <Coins className="w-3 h-3" />{' '}
-                          {formatPrice(
-                            Math.max(1, Math.floor(quantity * price * (platformFee / 100))),
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm border-t border-slate-700/50 pt-2">
-                        <span className="text-slate-300 font-semibold">Você receberá</span>
-                        <span className="text-emerald-400 font-bold flex items-center gap-1">
-                          <Coins className="w-4 h-4" />
-                          {formatPrice(
-                            quantity * price -
-                              Math.max(1, Math.floor(quantity * price * (platformFee / 100))),
-                          )}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
+                  </SummaryRow>
+                )}
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
-                <button
-                  type="submit"
-                  disabled={submitting || maxAvailable === 0}
-                  className="flex-[1.5] bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {submitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Store className="w-4 h-4" /> Confirmar Anúncio
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentMode('equip')}
-                  disabled={submitting}
-                  className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Voltar
-                </button>
-              </div>
-            </form>
-          )}
+            </div>
 
-          {/* Modo edit: alterar preço */}
-          {currentMode === 'edit' && (
-            <form
-              onSubmit={handleUpdatePrice}
-              className="space-y-4 animate-in slide-in-from-left-4 duration-200"
-            >
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
+              <button
+                onClick={() => {
+                  setCurrentMode('edit');
+                  setPrice(localItem.resalePrice || suggestedPrice);
+                  setErrorMessage('');
+                  setSuccessMessage('');
+                }}
+                className="flex-1 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 hover:border-indigo-500 text-indigo-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
+              >
+                <Edit2 className="w-4 h-4" /> Editar Preço
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentMode('remove');
+                  setQuantity(localItem.count);
+                  setErrorMessage('');
+                  setSuccessMessage('');
+                }}
+                className="flex-1 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/30 hover:border-rose-500 text-rose-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] flex items-center justify-center gap-2"
+              >
+                <MinusCircle className="w-4 h-4" /> Retirar Lote
+              </button>
+            </div>
+            {item.listingId && (
+              <Link
+                href={`/worldo/cosmetics/marketplace/${item.listingId}`}
+                className="flex items-center justify-center gap-2 w-full bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Ver anúncio público
+              </Link>
+            )}
+          </div>
+        )}
+
+        {/* Modo sell: anunciar à venda */}
+        {currentMode === 'sell' && (
+          <form onSubmit={handleSell} className="space-y-4 animate-slide-in-right">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Coins className="w-3 h-3 text-amber-500" /> Novo Preço Unitário
+                  <Box className="w-3 h-3 text-emerald-400" /> Qtd. a Listar
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max={Math.min(maxAvailable, MAX_QUANTITY)}
+                  value={quantity}
+                  onChange={(e) =>
+                    setQuantity(
+                      Math.min(parseInt(e.target.value) || 1, Math.min(maxAvailable, MAX_QUANTITY)),
+                    )
+                  }
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold"
+                  disabled={submitting}
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Coins className="w-3 h-3 text-amber-500" /> Preço Un.
                 </label>
                 <input
                   type="number"
@@ -687,75 +591,156 @@ export function CosmeticActionModal({
                     const value = parseInt(e.target.value) || 0;
                     setPrice(Math.min(Math.max(1, value), MAX_PRICE));
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-amber-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                   disabled={submitting}
                   required
                 />
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
-                <button
-                  type="submit"
-                  disabled={submitting || price === localItem.resalePrice}
-                  className="flex-[1.5] bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-indigo-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Alteração'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentMode('view')}
-                  disabled={submitting}
-                  className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Voltar
-                </button>
-              </div>
-            </form>
-          )}
+            </div>
+            <div className="space-y-2">
+              {/* Resumo da venda */}
+              <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Subtotal</span>
+                  <span className="text-slate-200 font-medium flex items-center gap-1">
+                    <Coins className="w-3 h-3" /> {formatPrice(quantity * price)}
+                  </span>
+                </div>
 
-          {/* Modo remove: retirar do mercado */}
-          {currentMode === 'remove' && (
-            <form
-              onSubmit={handleRemoveItems}
-              className="space-y-4 animate-in slide-in-from-right-4 duration-200"
-            >
-              <div>
-                <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Box className="w-3 h-3 text-purple-400" /> Qtd. a Retirar para o Cofre
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={localItem.count}
-                  value={quantity}
-                  onChange={(e) =>
-                    setQuantity(Math.min(parseInt(e.target.value) || 1, localItem.count))
-                  }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
-                  disabled={submitting}
-                  required
-                />
+                {platformFee !== null && platformFee > 0 && (
+                  <>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        Taxa da plataforma ({platformFee}%)
+                        <PlatformFeeTooltipIcon />
+                      </span>
+                      <span className="text-rose-400 font-medium flex items-center gap-1">
+                        - <Coins className="w-3 h-3" />{' '}
+                        {formatPrice(
+                          Math.max(1, Math.floor(quantity * price * (platformFee / 100))),
+                        )}
+                      </span>
+                    </div>
+                    <SummaryRow label="Você receberá" variant="total">
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <Coins className="w-4 h-4" />
+                        {formatPrice(
+                          quantity * price -
+                            Math.max(1, Math.floor(quantity * price * (platformFee / 100))),
+                        )}
+                      </span>
+                    </SummaryRow>
+                  </>
+                )}
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-[1.5] bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-rose-900/20 flex items-center justify-center gap-2"
-                >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar Retirada'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentMode('view')}
-                  disabled={submitting}
-                  className="flex-1 bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Voltar
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
+              <button
+                type="submit"
+                disabled={submitting || maxAvailable === 0}
+                className="flex-[1.5] bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {submitting ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    <Store className="w-4 h-4" /> Confirmar Anúncio
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentMode('equip')}
+                disabled={submitting}
+                className={`flex-1 ${buttonClass.secondary}`}
+              >
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Modo edit: alterar preço */}
+        {currentMode === 'edit' && (
+          <form onSubmit={handleUpdatePrice} className="space-y-4 animate-slide-in-left">
+            <div>
+              <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Coins className="w-3 h-3 text-amber-500" /> Novo Preço Unitário
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={MAX_PRICE}
+                value={price}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value) || 0;
+                  setPrice(Math.min(Math.max(1, value), MAX_PRICE));
+                }}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
+                disabled={submitting}
+                required
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
+              <button
+                type="submit"
+                disabled={submitting || price === localItem.resalePrice}
+                className="flex-[1.5] bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-indigo-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {submitting ? <Spinner /> : 'Salvar Alteração'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentMode('view')}
+                disabled={submitting}
+                className={`flex-1 ${buttonClass.secondary}`}
+              >
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Modo remove: retirar do mercado */}
+        {currentMode === 'remove' && (
+          <form onSubmit={handleRemoveItems} className="space-y-4 animate-slide-in-right">
+            <div>
+              <label className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Box className="w-3 h-3 text-purple-400" /> Qtd. a Retirar para o Cofre
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={localItem.count}
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(Math.min(parseInt(e.target.value) || 1, localItem.count))
+                }
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
+                disabled={submitting}
+                required
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-800/60">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-[1.5] bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm py-3 px-4 rounded-xl transition-[transform,border-color,background-color,box-shadow] shadow-lg shadow-rose-900/20 flex items-center justify-center gap-2"
+              >
+                {submitting ? <Spinner /> : 'Confirmar Retirada'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentMode('view')}
+                disabled={submitting}
+                className={`flex-1 ${buttonClass.secondary}`}
+              >
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </button>
+            </div>
+          </form>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,0 +1,94 @@
+/* styles/header.css
+ * Visual do Header galáctico: fundo translúcido, estrelas, neblina, texto em gradiente e cartão do
+ * usuário. Cada classe só entra no CSS final quando usada.
+ */
+
+/* Fundo translúcido do Header no topo da página */
+@utility galaxy-header {
+  background: rgba(10, 5, 20, 0.65);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: visible;
+}
+
+/* Fundo mais opaco do Header depois de rolar a página */
+@utility galaxy-header-scrolled {
+  background: rgba(10, 5, 20, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.45);
+  box-shadow: 0 4px 30px rgba(102, 126, 234, 0.15);
+}
+
+/* Camada de estrelas maiores piscando */
+@utility stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    radial-gradient(2px 2px at 10% 20%, #ffffff, transparent),
+    radial-gradient(1px 1px at 25% 45%, #ffffff, transparent),
+    radial-gradient(3px 3px at 40% 10%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 55% 70%, #ffffff, transparent),
+    radial-gradient(2px 2px at 70% 30%, #ffffff, transparent),
+    radial-gradient(1px 1px at 85% 55%, #ffffff, transparent);
+  animation: var(--animate-twinkle);
+}
+
+/* Camada de estrelas menores piscando em contratempo */
+@utility stars-small {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    radial-gradient(1px 1px at 15% 85%, #ffffff, transparent),
+    radial-gradient(1px 1px at 45% 90%, #ffffff, transparent),
+    radial-gradient(2px 2px at 75% 85%, #ffffff, transparent),
+    radial-gradient(1px 1px at 95% 15%, #ffffff, transparent),
+    radial-gradient(1px 1px at 5% 50%, #ffffff, transparent);
+  animation: var(--animate-twinkle-fast);
+}
+
+/* Neblina cósmica em movimento atrás do conteúdo do Header */
+@utility nebula-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(88, 101, 242, 0.08), transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(155, 89, 182, 0.08), transparent 50%);
+  animation: var(--animate-nebula-drift);
+  pointer-events: none;
+}
+
+/* Texto com o gradiente da paleta galáctica */
+@utility galaxy-text {
+  background: linear-gradient(
+    135deg,
+    var(--color-galaxy-primary) 0%,
+    var(--color-galaxy-secondary) 50%,
+    var(--color-galaxy-accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(102, 126, 234, 0.25);
+}
+
+/* Cartão do usuário logado no Header */
+@utility galaxy-user-card {
+  background: rgba(102, 126, 234, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(102, 126, 234, 0.15);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.12);
+    border-color: rgba(102, 126, 234, 0.35);
+  }
+}

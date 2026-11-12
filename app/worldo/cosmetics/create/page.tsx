@@ -29,8 +29,9 @@ import {
   Coins,
   X,
   Image as ImageIcon,
-  AlertTriangle,
 } from 'lucide-react';
+import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
+import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/FormField';
 
 /** Campos do formulário de criação. */
 interface FormData {
@@ -408,30 +409,23 @@ export default function CreateCosmeticPage() {
         </div>
 
         <div className="p-8">
-          {error && (
-            <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-500/20 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          <FeedbackMessage type="error" message={error} className="mb-6" />
 
-          {success && (
-            <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl mb-6 text-sm border border-emerald-500/20 flex items-center gap-2">
-              <span>{success}</span>
-            </div>
-          )}
+          <FeedbackMessage type="success" message={success} className="mb-6" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-7">
               {/* Nome da moldura */}
               <div>
-                <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                  <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Nome da Moldura *
-                  <span className="text-xs text-slate-500 font-normal ml-auto">
-                    {formData.name.length}/{MAX_NAME_LENGTH}
-                  </span>
-                </label>
-                <input
+                <FieldLabel
+                  icon={FileText}
+                  iconClassName={currentStyle.textClass}
+                  size="md"
+                  counter={{ value: formData.name.length, max: MAX_NAME_LENGTH }}
+                >
+                  Nome da Moldura *
+                </FieldLabel>
+                <TextInput
                   type="text"
                   value={formData.name}
                   onChange={(e) => {
@@ -446,32 +440,26 @@ export default function CreateCosmeticPage() {
                       setErrors((prev) => ({ ...prev, name: validateName(trimmed) }));
                     }
                   }}
-                  className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
-                    errors.name
-                      ? 'border-red-500/50 focus:ring-red-500/50'
-                      : 'border-slate-800 focus:ring-1'
-                  } ${currentStyle.focusRing}`}
+                  hasError={!!errors.name}
+                  focusClassName={`focus:ring-1 ${currentStyle.focusRing}`}
                   required
                   placeholder="Ex: Singularidade Estelar"
                   maxLength={MAX_NAME_LENGTH}
                 />
-                {errors.name && (
-                  <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    {errors.name}
-                  </p>
-                )}
+                <FieldError message={errors.name} />
               </div>
 
               {/* Descrição */}
               <div>
-                <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                  <FileText className={`w-4 h-4 ${currentStyle.textClass}`} /> Descrição do Artefato
-                  <span className="text-xs text-slate-500 font-normal ml-auto">
-                    {formData.description.length}/{MAX_DESCRIPTION_LENGTH}
-                  </span>
-                </label>
-                <textarea
+                <FieldLabel
+                  icon={FileText}
+                  iconClassName={currentStyle.textClass}
+                  size="md"
+                  counter={{ value: formData.description.length, max: MAX_DESCRIPTION_LENGTH }}
+                >
+                  Descrição do Artefato
+                </FieldLabel>
+                <TextArea
                   value={formData.description}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -485,28 +473,20 @@ export default function CreateCosmeticPage() {
                       setErrors((prev) => ({ ...prev, description: validateDescription(trimmed) }));
                     }
                   }}
-                  className={`w-full bg-slate-950/80 border rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none transition-all resize-none ${
-                    errors.description
-                      ? 'border-red-500/50 focus:ring-red-500/50'
-                      : 'border-slate-800 focus:ring-1'
-                  } ${currentStyle.focusRing}`}
+                  hasError={!!errors.description}
+                  focusClassName={`focus:ring-1 ${currentStyle.focusRing}`}
                   rows={3}
                   placeholder="Descreva a história ou efeitos visuais desta moldura..."
                   maxLength={MAX_DESCRIPTION_LENGTH}
                 />
-                {errors.description && (
-                  <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    {errors.description}
-                  </p>
-                )}
+                <FieldError message={errors.description} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <Layers className={`w-4 h-4 ${currentStyle.textClass}`} /> Nível de Raridade
-                  </label>
+                  <FieldLabel icon={Layers} iconClassName={currentStyle.textClass} size="md">
+                    Nível de Raridade
+                  </FieldLabel>
                   <select
                     value={formData.rarity}
                     onChange={(e) => {
@@ -525,9 +505,9 @@ export default function CreateCosmeticPage() {
                 </div>
 
                 <div>
-                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <Package className={`w-4 h-4 ${currentStyle.textClass}`} /> Lote de Upload
-                  </label>
+                  <FieldLabel icon={Package} iconClassName={currentStyle.textClass} size="md">
+                    Lote de Upload
+                  </FieldLabel>
                   <div className="bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 text-sm flex items-center h-11.5">
                     {currentPackage ? `${currentPackage.quantity} Unidades` : 'Selecione um pacote'}
                   </div>
@@ -535,10 +515,9 @@ export default function CreateCosmeticPage() {
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-slate-300 mb-3 font-semibold text-sm tracking-wide uppercase">
-                  <Package className={`w-4 h-4 ${currentStyle.textClass}`} /> Seleção do Pacote de
-                  Distribuição
-                </label>
+                <FieldLabel icon={Package} iconClassName={currentStyle.textClass} size="md" loose>
+                  Seleção do Pacote de Distribuição
+                </FieldLabel>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {packages.map((pkg) => {
                     const isSelected = selectedPackageId === pkg.id;
@@ -585,10 +564,9 @@ export default function CreateCosmeticPage() {
               {/* Upload da imagem e da miniatura */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Camada da Moldura
-                    *
-                  </label>
+                  <FieldLabel icon={ImageIcon} iconClassName={currentStyle.textClass} size="md">
+                    Camada da Moldura *
+                  </FieldLabel>
                   <input
                     ref={imageInputRef}
                     type="file"
@@ -610,10 +588,9 @@ export default function CreateCosmeticPage() {
                 </div>
 
                 <div>
-                  <label className="flex items-center gap-2 text-slate-300 mb-2 font-semibold text-sm tracking-wide uppercase">
-                    <ImageIcon className={`w-4 h-4 ${currentStyle.textClass}`} /> Miniatura
-                    (Opcional)
-                  </label>
+                  <FieldLabel icon={ImageIcon} iconClassName={currentStyle.textClass} size="md">
+                    Miniatura (Opcional)
+                  </FieldLabel>
                   <input
                     ref={thumbnailInputRef}
                     type="file"

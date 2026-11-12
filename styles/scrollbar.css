@@ -1,0 +1,32 @@
+/* styles/scrollbar.css
+ * Estilos de barra de rolagem. Cada classe só entra no CSS final quando usada.
+ */
+
+/* Esconde a barra mantendo a rolagem */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Barra fina e discreta no tom do app */
+@utility custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-purple-500) 35%, transparent) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-purple-500) 35%, transparent);
+    border-radius: 9999px;
+  }
+}

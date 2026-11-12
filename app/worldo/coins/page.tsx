@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Zap,
   CreditCard,
-  Loader2,
   Store,
   Sparkles,
   Flame,
@@ -22,6 +21,8 @@ import {
   Package,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/Loading';
+import { Spinner } from '@/components/ui/Spinner';
+import { Modal } from '@/components/ui/Modal';
 
 /** Pacote de moedas exibido na loja. */
 interface CoinPackage {
@@ -267,7 +268,7 @@ export default function CoinsPage() {
                 >
                   {buyingId === pkg.id ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-current" />
+                      <Spinner />
                       <span>Processando...</span>
                     </>
                   ) : (
@@ -330,65 +331,63 @@ export default function CoinsPage() {
 
       {/* Modal de confirmação */}
       {showConfirmModal && selectedPackage && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl transition-all">
-            <div className="p-6 md:p-8 text-center space-y-6">
-              <div className="mx-auto w-14 h-14 bg-blue-500/10 rounded-full border border-blue-500/20 flex items-center justify-center text-blue-400">
-                <Package className="w-6 h-6" />
-              </div>
+        <Modal panelClassName="max-w-md overflow-hidden">
+          <div className="p-6 md:p-8 text-center space-y-6">
+            <div className="mx-auto w-14 h-14 bg-blue-500/10 rounded-full border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Package className="w-6 h-6" />
+            </div>
 
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-white tracking-tight">Confirmar Pedido</h3>
-                <p className="text-sm text-slate-400 leading-relaxed px-4">
-                  Você escolheu o pacote{' '}
-                  <strong className="text-blue-400 font-semibold">{selectedPackage.name}</strong>.
-                  Revise os dados abaixo:
-                </p>
-              </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-white tracking-tight">Confirmar Pedido</h3>
+              <p className="text-sm text-slate-400 leading-relaxed px-4">
+                Você escolheu o pacote{' '}
+                <strong className="text-blue-400 font-semibold">{selectedPackage.name}</strong>.
+                Revise os dados abaixo:
+              </p>
+            </div>
 
-              {/* Box de Resumo da Fatura */}
-              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-sm divide-y divide-slate-800/80 space-y-3">
-                <div className="flex justify-between items-center pb-3">
-                  <span className="text-slate-400 font-medium">Moedas Inclusas:</span>
-                  <span className="text-white font-bold flex items-center gap-1.5">
-                    {formatFullNumber(selectedPackage.coins)}
-                  </span>
+            {/* Box de Resumo da Fatura */}
+            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-sm divide-y divide-slate-800/80 space-y-3">
+              <div className="flex justify-between items-center pb-3">
+                <span className="text-slate-400 font-medium">Moedas Inclusas:</span>
+                <span className="text-white font-bold flex items-center gap-1.5">
+                  {formatFullNumber(selectedPackage.coins)}
+                </span>
+              </div>
+              {selectedPackage.bonusCoins > 0 && (
+                <div className="flex justify-between items-center py-3 text-emerald-400 font-semibold">
+                  <span>Bônus Adicional:</span>
+                  <span>+{selectedPackage.bonusCoins.toLocaleString()}</span>
                 </div>
-                {selectedPackage.bonusCoins > 0 && (
-                  <div className="flex justify-between items-center py-3 text-emerald-400 font-semibold">
-                    <span>Bônus Adicional:</span>
-                    <span>+{selectedPackage.bonusCoins.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center pt-3 font-medium">
-                  <span className="text-slate-400">Valor Total:</span>
-                  <span className="text-white font-black text-lg">
-                    R${' '}
-                    {selectedPackage.priceReal.toLocaleString('pt-BR', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              </div>
-
-              {/* Ações do modal */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  className="w-full sm:order-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl font-semibold text-sm transition-colors border border-slate-700/50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmPurchase}
-                  className="w-full sm:order-2 bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/10 transition-colors"
-                >
-                  Ir para o Pagamento
-                </button>
+              )}
+              <div className="flex justify-between items-center pt-3 font-medium">
+                <span className="text-slate-400">Valor Total:</span>
+                <span className="text-white font-black text-lg">
+                  R${' '}
+                  {selectedPackage.priceReal.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
               </div>
             </div>
+
+            {/* Ações do modal */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="w-full sm:order-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl font-semibold text-sm transition-colors border border-slate-700/50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmPurchase}
+                className="w-full sm:order-2 bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/10 transition-colors"
+              >
+                Ir para o Pagamento
+              </button>
+            </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

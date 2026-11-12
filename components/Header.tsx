@@ -15,7 +15,18 @@ import { AvatarWithFrame } from './AvatarWithFrame';
 import { RARITY } from '@/constants/cosmeticRarity';
 import { useMe } from '@/hooks/queries/useMe';
 
-import { Home, User, Compass, Menu, X, Store, Package, Sparkles, ChevronDown } from 'lucide-react';
+import {
+  Home,
+  User,
+  Compass,
+  Menu,
+  X,
+  Store,
+  Package,
+  Sparkles,
+  ChevronDown,
+  type LucideIcon,
+} from 'lucide-react';
 
 /** Renderiza o Header apenas com sessão autenticada; nome, avatar e moldura vêm de useMe(). */
 export default function Header() {
@@ -109,30 +120,12 @@ export default function Header() {
 
             {/* Desktop Menu (Visível apenas em telas grandes - lg para cima) */}
             <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-              <Link
-                href="/"
-                className="px-3 xl:px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
-              >
-                <span>Início</span>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
-              </Link>
+              <DesktopNavLink href="/" label="Início" />
 
               {isLoggedIn && (
                 <>
-                  <Link
-                    href="/worldo/perfil"
-                    className="px-3 xl:px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
-                  >
-                    <span>Perfil</span>
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
-                  </Link>
-                  <Link
-                    href="/worldo/explore"
-                    className="px-3 xl:px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
-                  >
-                    <span>Explorar</span>
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
-                  </Link>
+                  <DesktopNavLink href="/worldo/perfil" label="Perfil" />
+                  <DesktopNavLink href="/worldo/explore" label="Explorar" />
 
                   {/* Dropdown de Cosméticos */}
                   <div
@@ -158,31 +151,28 @@ export default function Header() {
                     <div
                       className={`absolute top-full right-0 mt-2 w-52 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] p-2 transition-all duration-300 z-50 transform origin-top-right ${isCosmeticsOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}
                     >
-                      <Link
+                      <DropdownLink
                         href="/worldo/cosmetics/marketplace"
+                        icon={Store}
+                        iconClassName="text-purple-400"
+                        label="Marketplace"
                         onClick={() => setIsCosmeticsOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors group/link"
-                      >
-                        <Store className="w-4 h-4 text-purple-400 group-hover/link:scale-110 transition-transform" />
-                        <span>Marketplace</span>
-                      </Link>
-                      <Link
+                      />
+                      <DropdownLink
                         href="/worldo/cosmetics/inventory"
+                        icon={Package}
+                        iconClassName="text-blue-400"
+                        label="Inventário"
                         onClick={() => setIsCosmeticsOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors group/link"
-                      >
-                        <Package className="w-4 h-4 text-blue-400 group-hover/link:scale-110 transition-transform" />
-                        <span>Inventário</span>
-                      </Link>
+                      />
                       <div className="h-px bg-white/10 my-1 mx-2"></div>
-                      <Link
+                      <DropdownLink
                         href="/worldo/cosmetics/create"
+                        icon={Sparkles}
+                        iconClassName="text-amber-400"
+                        label="Criar Moldura"
                         onClick={() => setIsCosmeticsOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors group/link"
-                      >
-                        <Sparkles className="w-4 h-4 text-amber-400 group-hover/link:scale-110 transition-transform" />
-                        <span>Criar Moldura</span>
-                      </Link>
+                      />
                     </div>
                   </div>
                 </>
@@ -290,33 +280,30 @@ export default function Header() {
 
           {/* Links de Navegação Mobile */}
           <nav className="grow px-3 pt-2 space-y-1">
-            <Link
+            <MobileNavLink
               href="/"
+              icon={Home}
+              hoverClassName="group-hover:text-blue-400"
+              label="Início"
               onClick={handleLinkClick}
-              className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
-            >
-              <Home className="w-4 h-4 text-slate-400 group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0" />
-              <span className="truncate">Início</span>
-            </Link>
+            />
 
             {isLoggedIn && (
               <>
-                <Link
+                <MobileNavLink
                   href="/worldo/perfil"
+                  icon={User}
+                  hoverClassName="group-hover:text-blue-400"
+                  label="Perfil"
                   onClick={handleLinkClick}
-                  className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
-                >
-                  <User className="w-4 h-4 text-slate-400 group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0" />
-                  <span className="truncate">Perfil</span>
-                </Link>
-                <Link
+                />
+                <MobileNavLink
                   href="/worldo/explore"
+                  icon={Compass}
+                  hoverClassName="group-hover:text-blue-400"
+                  label="Explorar"
                   onClick={handleLinkClick}
-                  className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
-                >
-                  <Compass className="w-4 h-4 text-slate-400 group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0" />
-                  <span className="truncate">Explorar</span>
-                </Link>
+                />
 
                 {/* Seção Cosméticos no Mobile */}
                 <div className="mt-6 mb-2 px-4">
@@ -325,30 +312,27 @@ export default function Header() {
                   </p>
                 </div>
 
-                <Link
+                <MobileNavLink
                   href="/worldo/cosmetics/marketplace"
+                  icon={Store}
+                  hoverClassName="group-hover:text-purple-400"
+                  label="Marketplace"
                   onClick={handleLinkClick}
-                  className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
-                >
-                  <Store className="w-4 h-4 text-slate-400 group-hover:text-purple-400 group-hover:scale-105 transition-all shrink-0" />
-                  <span className="truncate">Marketplace</span>
-                </Link>
-                <Link
+                />
+                <MobileNavLink
                   href="/worldo/cosmetics/inventory"
+                  icon={Package}
+                  hoverClassName="group-hover:text-blue-400"
+                  label="Meu Inventário"
                   onClick={handleLinkClick}
-                  className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
-                >
-                  <Package className="w-4 h-4 text-slate-400 group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0" />
-                  <span className="truncate">Meu Inventário</span>
-                </Link>
-                <Link
+                />
+                <MobileNavLink
                   href="/worldo/cosmetics/create"
+                  icon={Sparkles}
+                  hoverClassName="group-hover:text-amber-400"
+                  label="Criar Moldura"
                   onClick={handleLinkClick}
-                  className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
-                >
-                  <Sparkles className="w-4 h-4 text-slate-400 group-hover:text-amber-400 group-hover:scale-105 transition-all shrink-0" />
-                  <span className="truncate">Criar Moldura</span>
-                </Link>
+                />
               </>
             )}
           </nav>
@@ -362,5 +346,70 @@ export default function Header() {
         </div>
       </div>
     </>
+  );
+}
+
+/** Link do menu principal no desktop, com sublinhado em gradiente no hover. */
+function DesktopNavLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="px-3 xl:px-4 py-2 text-sm text-slate-300 hover:text-white transition-all duration-300 font-medium relative group"
+    >
+      <span>{label}</span>
+      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-linear-to-r from-blue-500 to-purple-500 group-hover:w-8/12 transition-all duration-300 rounded-full"></span>
+    </Link>
+  );
+}
+
+/** Propriedades dos links com ícone (submenu e menu mobile). */
+interface IconLinkProps {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+}
+
+/** Item do submenu de cosméticos (desktop). */
+function DropdownLink({
+  href,
+  icon: Icon,
+  iconClassName,
+  label,
+  onClick,
+}: IconLinkProps & { iconClassName: string }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors group/link"
+    >
+      <Icon
+        className={`w-4 h-4 group-hover/link:scale-110 transition-transform ${iconClassName}`}
+      />
+      <span>{label}</span>
+    </Link>
+  );
+}
+
+/** Link do menu lateral mobile; o ícone ganha cor no hover. */
+function MobileNavLink({
+  href,
+  icon: Icon,
+  hoverClassName,
+  label,
+  onClick,
+}: IconLinkProps & { hoverClassName: string }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-3.5 px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl font-medium text-sm transition-all group"
+    >
+      <Icon
+        className={`w-4 h-4 text-slate-400 group-hover:scale-105 transition-all shrink-0 ${hoverClassName}`}
+      />
+      <span className="truncate">{label}</span>
+    </Link>
   );
 }
