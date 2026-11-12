@@ -23,7 +23,7 @@ Este repositório interage com um módulo separado que contém um backend dedica
 
 ## Requisitos
 
-- Node v22.22.3
+- Node v26.13.1 (LTS)
 - Banco de dados PostgreSql com uma database criada préviamente
 - Banco de dados ElasticSearch
 - Cloudflare R2 com 2 buckets: privado / público

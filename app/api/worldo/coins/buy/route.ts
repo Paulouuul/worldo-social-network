@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Sessão de checkout do Stripe com os metadados usados pelo webhook
     const stripeSession = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      allowed_payment_method_types: ['card'],
       customer_email: session.user.email,
       line_items: [
         {
