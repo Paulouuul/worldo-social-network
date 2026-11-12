@@ -4,10 +4,10 @@
 
 import { SignJWT } from 'jose';
 import { Session } from 'next-auth';
+import { BACKEND_TOKEN_EXPIRY_MINUTES } from './tokenConfig';
 
 const JWT_SECRET = process.env.BACKEND_JWT_SECRET;
 const JWT_ALGORITHM = process.env.BACKEND_JWT_ALGORITHM || 'HS256';
-const TOKEN_EXPIRATION = process.env.BACKEND_TOKEN_EXPIRATION || '15m';
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET não configurada no ambiente');
@@ -41,8 +41,8 @@ function extractUserFromSession(session: Session): BackendTokenPayload {
 }
 
 /**
- * Gera o JWT do backend (sub = id do usuário) com validade BACKEND_TOKEN_EXPIRATION (padrão
- * 15m).
+ * Gera o JWT do backend (sub = id do usuário) com validade BACKEND_TOKEN_EXPIRY_MINUTES
+ * (tokenConfig.ts).
  */
 export async function generateJwtToken(session: Session): Promise<string> {
   const userData = extractUserFromSession(session);
@@ -50,7 +50,7 @@ export async function generateJwtToken(session: Session): Promise<string> {
   return new SignJWT({ ...userData })
     .setProtectedHeader({ alg: JWT_ALGORITHM })
     .setIssuedAt()
-    .setExpirationTime(TOKEN_EXPIRATION)
+    .setExpirationTime(`${BACKEND_TOKEN_EXPIRY_MINUTES}m`)
     .setSubject(userData.id)
     .sign(new TextEncoder().encode(JWT_SECRET));
 }

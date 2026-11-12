@@ -27,6 +27,7 @@ import {
   ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
 
 /** Renderiza o Header apenas com sessão autenticada; nome, avatar e moldura vêm de useMe(). */
 export default function Header() {
@@ -124,8 +125,8 @@ export default function Header() {
 
               {isLoggedIn && (
                 <>
-                  <DesktopNavLink href="/worldo/perfil" label="Perfil" />
-                  <DesktopNavLink href="/worldo/explore" label="Explorar" />
+                  <DesktopNavLink href={ROUTES.profile} label="Perfil" />
+                  <DesktopNavLink href={ROUTES.explore} label="Explorar" />
 
                   {/* Dropdown de Cosméticos */}
                   <div
@@ -152,14 +153,14 @@ export default function Header() {
                       className={`absolute top-full right-0 mt-2 w-52 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] p-2 transition-all duration-300 z-50 transform origin-top-right ${isCosmeticsOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}
                     >
                       <DropdownLink
-                        href="/worldo/cosmetics/marketplace"
+                        href={ROUTES.marketplace}
                         icon={Store}
                         iconClassName="text-purple-400"
                         label="Marketplace"
                         onClick={() => setIsCosmeticsOpen(false)}
                       />
                       <DropdownLink
-                        href="/worldo/cosmetics/inventory"
+                        href={ROUTES.inventory}
                         icon={Package}
                         iconClassName="text-blue-400"
                         label="Inventário"
@@ -167,7 +168,7 @@ export default function Header() {
                       />
                       <div className="h-px bg-white/10 my-1 mx-2"></div>
                       <DropdownLink
-                        href="/worldo/cosmetics/create"
+                        href={ROUTES.createCosmetic}
                         icon={Sparkles}
                         iconClassName="text-amber-400"
                         label="Criar Moldura"
@@ -291,14 +292,14 @@ export default function Header() {
             {isLoggedIn && (
               <>
                 <MobileNavLink
-                  href="/worldo/perfil"
+                  href={ROUTES.profile}
                   icon={User}
                   hoverClassName="group-hover:text-blue-400"
                   label="Perfil"
                   onClick={handleLinkClick}
                 />
                 <MobileNavLink
-                  href="/worldo/explore"
+                  href={ROUTES.explore}
                   icon={Compass}
                   hoverClassName="group-hover:text-blue-400"
                   label="Explorar"
@@ -313,21 +314,21 @@ export default function Header() {
                 </div>
 
                 <MobileNavLink
-                  href="/worldo/cosmetics/marketplace"
+                  href={ROUTES.marketplace}
                   icon={Store}
                   hoverClassName="group-hover:text-purple-400"
                   label="Marketplace"
                   onClick={handleLinkClick}
                 />
                 <MobileNavLink
-                  href="/worldo/cosmetics/inventory"
+                  href={ROUTES.inventory}
                   icon={Package}
                   hoverClassName="group-hover:text-blue-400"
                   label="Meu Inventário"
                   onClick={handleLinkClick}
                 />
                 <MobileNavLink
-                  href="/worldo/cosmetics/create"
+                  href={ROUTES.createCosmetic}
                   icon={Sparkles}
                   hoverClassName="group-hover:text-amber-400"
                   label="Criar Moldura"

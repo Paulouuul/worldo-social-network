@@ -32,6 +32,16 @@ import {
 } from 'lucide-react';
 import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/forms/FormField';
+import { ROUTES } from '@/constants/routes';
+import { FRAME_DESCRIPTION_MAX_LENGTH, FRAME_NAME_LENGTH } from '@/constants/validation';
+import {
+  ALLOWED_IMAGE_TYPES,
+  IMAGE_ACCEPT,
+  UPLOAD_LIMITS_MB,
+  mbToBytes,
+  uploadLimitText,
+} from '@/constants/uploads';
+import { UI_TIMING } from '@/constants/ui';
 
 /** Campos do formulário de criação. */
 interface FormData {
@@ -93,33 +103,31 @@ export default function CreateCosmeticPage() {
     [formData.rarity, rarityDesigns],
   );
 
-  const MAX_NAME_LENGTH = 50;
-  const MAX_DESCRIPTION_LENGTH = 500;
   const [errors, setErrors] = useState({
     name: '',
     description: '',
   });
 
-  /** Valida o nome da moldura: 3–50 caracteres. */
+  /** Valida o nome da moldura (limites em FRAME_NAME_LENGTH). */
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (trimmed.length === 0) {
       return 'Nome é obrigatório';
     }
-    if (trimmed.length < 3) {
-      return 'Nome deve ter pelo menos 3 caracteres';
+    if (trimmed.length < FRAME_NAME_LENGTH.min) {
+      return `Nome deve ter pelo menos ${FRAME_NAME_LENGTH.min} caracteres`;
     }
-    if (trimmed.length > MAX_NAME_LENGTH) {
-      return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    if (trimmed.length > FRAME_NAME_LENGTH.max) {
+      return `Nome deve ter no máximo ${FRAME_NAME_LENGTH.max} caracteres`;
     }
     return '';
   };
 
-  /** Valida a descrição: até 500 caracteres. */
+  /** Valida a descrição (limite em FRAME_DESCRIPTION_MAX_LENGTH). */
   const validateDescription = (value: string) => {
     const trimmed = value.trim();
-    if (trimmed.length > MAX_DESCRIPTION_LENGTH) {
-      return `Descrição deve ter no máximo ${MAX_DESCRIPTION_LENGTH} caracteres`;
+    if (trimmed.length > FRAME_DESCRIPTION_MAX_LENGTH) {
+      return `Descrição deve ter no máximo ${FRAME_DESCRIPTION_MAX_LENGTH} caracteres`;
     }
     return '';
   };
@@ -129,8 +137,8 @@ export default function CreateCosmeticPage() {
 
   // Campos obrigatórios preenchidos e válidos
   const isFormValid =
-    formData.name.trim().length >= 3 &&
-    formData.name.trim().length <= MAX_NAME_LENGTH &&
+    formData.name.trim().length >= FRAME_NAME_LENGTH.min &&
+    formData.name.trim().length <= FRAME_NAME_LENGTH.max &&
     imageFile !== null &&
     selectedPackageId !== '' &&
     !hasErrors;
@@ -194,23 +202,22 @@ export default function CreateCosmeticPage() {
     };
   }, [imagePreview, thumbnailPreview]);
 
-  /** Valida e define a imagem principal (JPG, PNG, GIF ou JFIF; até 5MB, GIF até 3MB). */
+  /** Valida e define a imagem principal (tipos e limites em constants/uploads). */
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jfif'];
-    if (!allowedTypes.includes(file.type)) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       setError('Formato não suportado.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024;
-    const gifLimit = 3 * 1024 * 1024;
+    const maxSize = mbToBytes(UPLOAD_LIMITS_MB.frame.max);
+    const gifLimit = mbToBytes(UPLOAD_LIMITS_MB.frame.gif);
 
     if (file.type === 'image/gif' && file.size > gifLimit) {
-      setError('GIF muito grande para moldura. Máximo: 3MB');
+      setError(`GIF muito grande para moldura. Máximo: ${UPLOAD_LIMITS_MB.frame.gif}MB`);
       return;
     }
 
@@ -224,23 +231,22 @@ export default function CreateCosmeticPage() {
     setError('');
   }, []);
 
-  /** Valida e define a miniatura opcional (até 2MB, GIF até 1MB). */
+  /** Valida e define a miniatura opcional (tipos e limites em constants/uploads). */
   const handleThumbnailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jfif'];
-    if (!allowedTypes.includes(file.type)) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       setError('Formato não suportado.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    const maxSize = 2 * 1024 * 1024;
-    const gifLimit = 1 * 1024 * 1024;
+    const maxSize = mbToBytes(UPLOAD_LIMITS_MB.thumbnail.max);
+    const gifLimit = mbToBytes(UPLOAD_LIMITS_MB.thumbnail.gif);
 
     if (file.type === 'image/gif' && file.size > gifLimit) {
-      setError(`GIF muito grande para miniatura. Máximo: 1MB`);
+      setError(`GIF muito grande para miniatura. Máximo: ${UPLOAD_LIMITS_MB.thumbnail.gif}MB`);
       return;
     }
 
@@ -351,8 +357,8 @@ export default function CreateCosmeticPage() {
           invalidate.balance(queryClient);
           invalidate.inventory(queryClient);
           setTimeout(() => {
-            router.push('/worldo/cosmetics/inventory');
-          }, 1500);
+            router.push(ROUTES.inventory);
+          }, UI_TIMING.transitionMs);
         }
       } catch (error) {
         console.error('Erro ao criar moldura:', error);
@@ -421,7 +427,7 @@ export default function CreateCosmeticPage() {
                   icon={FileText}
                   iconClassName={currentStyle.textClass}
                   size="md"
-                  counter={{ value: formData.name.length, max: MAX_NAME_LENGTH }}
+                  counter={{ value: formData.name.length, max: FRAME_NAME_LENGTH.max }}
                 >
                   Nome da Moldura *
                 </FieldLabel>
@@ -444,7 +450,7 @@ export default function CreateCosmeticPage() {
                   focusClassName={`focus:ring-1 ${currentStyle.focusRing}`}
                   required
                   placeholder="Ex: Singularidade Estelar"
-                  maxLength={MAX_NAME_LENGTH}
+                  maxLength={FRAME_NAME_LENGTH.max}
                 />
                 <FieldError message={errors.name} />
               </div>
@@ -455,7 +461,10 @@ export default function CreateCosmeticPage() {
                   icon={FileText}
                   iconClassName={currentStyle.textClass}
                   size="md"
-                  counter={{ value: formData.description.length, max: MAX_DESCRIPTION_LENGTH }}
+                  counter={{
+                    value: formData.description.length,
+                    max: FRAME_DESCRIPTION_MAX_LENGTH,
+                  }}
                 >
                   Descrição do Artefato
                 </FieldLabel>
@@ -477,7 +486,7 @@ export default function CreateCosmeticPage() {
                   focusClassName={`focus:ring-1 ${currentStyle.focusRing}`}
                   rows={3}
                   placeholder="Descreva a história ou efeitos visuais desta moldura..."
-                  maxLength={MAX_DESCRIPTION_LENGTH}
+                  maxLength={FRAME_DESCRIPTION_MAX_LENGTH}
                 />
                 <FieldError message={errors.description} />
               </div>
@@ -570,7 +579,7 @@ export default function CreateCosmeticPage() {
                   <input
                     ref={imageInputRef}
                     type="file"
-                    accept="image/png,image/jpeg,image/gif,image/jfif"
+                    accept={IMAGE_ACCEPT}
                     onChange={handleImageChange}
                     className="hidden"
                     id="image-upload"
@@ -583,7 +592,8 @@ export default function CreateCosmeticPage() {
                     <span>{imageFile ? 'Alterar Ativo Principal' : 'Carregar Moldura'}</span>
                   </label>
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                    Recomendado PNG transparente. A arte pode extrapolar as dimensões do avatar.
+                    {uploadLimitText(UPLOAD_LIMITS_MB.frame)} Recomendado PNG transparente. A arte
+                    pode extrapolar as dimensões do avatar.
                   </p>
                 </div>
 
@@ -594,7 +604,7 @@ export default function CreateCosmeticPage() {
                   <input
                     ref={thumbnailInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/jfif"
+                    accept={IMAGE_ACCEPT}
                     onChange={handleThumbnailChange}
                     className="hidden"
                     id="thumbnail-upload"
@@ -635,6 +645,7 @@ export default function CreateCosmeticPage() {
                   </div>
 
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    {uploadLimitText(UPLOAD_LIMITS_MB.thumbnail)}{' '}
                     {!imageFile
                       ? '⚠️ Faça o upload da moldura principal para liberar esta opção.'
                       : 'Imagem utilizada para exibição em feeds, inventário e listagens da loja.'}
@@ -707,7 +718,7 @@ export default function CreateCosmeticPage() {
                       : 'CONFIRMAR CRIAÇÃO'}
                 </button>
                 <Link
-                  href="/worldo/cosmetics/marketplace"
+                  href={ROUTES.marketplace}
                   className="bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:flex-1 text-center select-none"
                 >
                   <X className="w-4 h-4" /> CANCELAR

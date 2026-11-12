@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Coins, Plus } from 'lucide-react';
 import { useCoinBalance } from '@/hooks/queries/useWallet';
 import { formatFullNumber } from '@/lib/utils/formatUtils';
+import { ROUTES } from '@/constants/routes';
 /** Propriedades do saldo de moedas. */
 interface CoinBalanceProps {
   onClick?: () => void;
@@ -27,7 +28,7 @@ export function CoinBalance({ onClick }: CoinBalanceProps) {
 
   return (
     <Link
-      href="/worldo/coins"
+      href={ROUTES.coins}
       onClick={onClick}
       className="inline-flex items-center gap-2 bg-slate-900/60 hover:bg-purple-950/40 border border-purple-500/20 px-3 py-1.5 rounded-xl transition-all duration-300 group select-none backdrop-blur-sm"
     >

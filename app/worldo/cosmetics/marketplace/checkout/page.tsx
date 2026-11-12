@@ -22,6 +22,8 @@ import { LoadingSpinner } from '@/components/ui/feedback/Loading';
 import { Spinner } from '@/components/ui/feedback/Spinner';
 import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 import { SummaryRow } from '@/components/ui/dataDisplay/SummaryRow';
+import { ROUTES } from '@/constants/routes';
+import { UI_TIMING } from '@/constants/ui';
 
 /**
  * Checkout com carrinho e saldo sempre buscados do servidor. Após a compra o carrinho deixa de
@@ -52,7 +54,7 @@ export default function CheckoutPage() {
     isInitialLoad.current = false;
     if (!cart || cart.items.length === 0) {
       setRedirecting(true);
-      router.replace('/worldo');
+      router.replace(ROUTES.home);
     }
   }, [cartQuery.isSuccess, cart, router]);
 
@@ -94,7 +96,7 @@ export default function CheckoutPage() {
       if (!res.ok) {
         if (data.error_type === 'out_of_stock' || data.error?.includes('estoque')) {
           setError('Alguns itens estão indisponíveis. Voltando ao carrinho...');
-          setTimeout(() => router.replace('/worldo/cosmetics/marketplace/cart'), 2000);
+          setTimeout(() => router.replace(ROUTES.cart), UI_TIMING.messageMs);
           return;
         }
         throw new Error(data.error || 'Erro ao finalizar compra');
@@ -105,7 +107,7 @@ export default function CheckoutPage() {
 
       setTimeout(() => {
         router.push('/worldo/cosmetics/orders/success');
-      }, 1500);
+      }, UI_TIMING.transitionMs);
     } catch (err) {
       console.error('Erro ao finalizar compra:', err);
       setError(err instanceof Error ? err.message : 'Erro ao finalizar compra');
@@ -130,10 +132,10 @@ export default function CheckoutPage() {
         subtitle={
           <>Revise os itens antes de finalizar • {formatItemCount(cart.total_items)} unidades</>
         }
-        backHref="/worldo/cosmetics/marketplace/cart"
+        backHref={ROUTES.cart}
         actions={
           <Link
-            href="/worldo/cosmetics/marketplace/cart"
+            href={ROUTES.cart}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-xl hover:bg-slate-800 transition text-slate-300 text-sm font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -288,7 +290,7 @@ export default function CheckoutPage() {
 
             <div className="mt-6 pt-4 border-t border-slate-800/50 text-[10px] text-slate-500 text-center font-medium">
               <Link
-                href="/worldo/cosmetics/marketplace/cart"
+                href={ROUTES.cart}
                 className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition font-medium py-3 rounded-xl hover:bg-slate-800/50"
               >
                 <ArrowLeft className="w-4 h-4" />

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { serverTokenManager } from '@/lib/auth/backendToken/serverBackendTokenManager';
 import { backendApiServerCall } from '@/lib/api/backendApiClient';
 import { syncToListing } from '@/lib/search/prismaSync';
+import { DEFAULT_PLATFORM_FEE_PERCENT } from '@/constants/marketplace';
 
 /** Item enviado pelo checkout: anúncio, quantidade e preço unitário esperado. */
 interface CheckoutItem {
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
         });
 
         const purchases = [];
-        const feePercentage = activeFee?.feeValue ?? 5;
+        const feePercentage = activeFee?.feeValue ?? DEFAULT_PLATFORM_FEE_PERCENT;
         const platformFee = Math.max(1, Math.floor(realTotal * (feePercentage / 100)));
         const totalSellerEarnings = realTotal - platformFee;
 

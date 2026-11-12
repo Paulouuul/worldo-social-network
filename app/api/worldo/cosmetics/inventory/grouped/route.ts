@@ -5,14 +5,15 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { Rarity } from '@prisma/client';
+import { parseRarities } from '@/lib/api/rarityParam';
+import { SORT } from '@/constants/marketplace';
 
 /**
  * GET /api/worldo/cosmetics/inventory/grouped — grupos do inventário com contagem, item
  * equipado e menor preço de revenda.
  *
- * Query: filter (all|listed|unlisted), search (nome), rarity, sort (newest|oldest pela última
- * atividade), page e limit. Agrupa e filtra em memória.
+ * Query: filter (all|listed|unlisted), search (nome), rarity (uma ou mais, separadas por vírgula),
+ * sort (newest|oldest pela última atividade), page e limit. Agrupa e filtra em memória.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -23,8 +24,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter');
     const search = searchParams.get('search') || '';
-    const rarity = searchParams.get('rarity') || 'all';
-    const sort = searchParams.get('sort') || 'newest';
+    const rarities = parseRarities(searchParams.get('rarity'));
+    const sort = searchParams.get('sort') || SORT.newest;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = (page - 1) * limit;
@@ -98,16 +99,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (rarity && rarity !== 'all') {
-      const validRarities = Object.values(Rarity);
-      if (validRarities.includes(rarity as Rarity)) {
-        allGroupedItems = allGroupedItems.filter((item) => item.frame.rarity === rarity);
-      }
+    if (rarities.length > 0) {
+      allGroupedItems = allGroupedItems.filter((item) => rarities.includes(item.frame.rarity));
     }
 
     // Ordena pela última atividade do grupo
     allGroupedItems.sort((a, b) => {
-      if (sort === 'oldest') {
+      if (sort === SORT.oldest) {
         const dateA = new Date(a.lastActivityAt).getTime();
         const dateB = new Date(b.lastActivityAt).getTime();
         return dateA - dateB;

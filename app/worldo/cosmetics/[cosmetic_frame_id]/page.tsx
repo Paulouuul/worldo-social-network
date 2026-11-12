@@ -17,6 +17,8 @@ import { Star, ShoppingBag, Users, Coins, User } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/feedback/Loading';
 import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 import { Breadcrumb } from '@/components/ui/navigation/Breadcrumb';
+import { ROUTES } from '@/constants/routes';
+import { RARITY } from '@/constants/cosmeticRarity';
 
 /** Moldura retornada por /api/worldo/cosmetics/[id]. */
 interface FrameData {
@@ -107,7 +109,7 @@ export default function CosmeticDetailPage() {
       const data = await res.json();
       if (res.ok) {
         setFeedback({ type: 'success', message: 'Compra realizada com sucesso!' });
-        router.push('/inventory');
+        router.push(ROUTES.inventory);
       } else {
         setFeedback({ type: 'error', message: data.error || 'Erro na compra' });
       }
@@ -119,13 +121,13 @@ export default function CosmeticDetailPage() {
   /** Classes de borda e fundo da raridade. */
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'COMUM':
+      case RARITY.COMUM:
         return 'border-green-500/30 bg-green-500/5';
-      case 'RARO':
+      case RARITY.RARO:
         return 'border-blue-500/30 bg-blue-500/5';
-      case 'EPICO':
+      case RARITY.EPICO:
         return 'border-purple-500/30 bg-purple-500/5';
-      case 'LENDARIO':
+      case RARITY.LENDARIO:
         return 'border-amber-500/30 bg-amber-500/5';
       default:
         return 'border-gray-500/30 bg-gray-500/5';
@@ -135,13 +137,13 @@ export default function CosmeticDetailPage() {
   /** Classe de cor do texto da raridade. */
   const getRarityTextColor = (rarity: string) => {
     switch (rarity) {
-      case 'COMUM':
+      case RARITY.COMUM:
         return 'text-green-400';
-      case 'RARO':
+      case RARITY.RARO:
         return 'text-blue-400';
-      case 'EPICO':
+      case RARITY.EPICO:
         return 'text-purple-400';
-      case 'LENDARIO':
+      case RARITY.LENDARIO:
         return 'text-amber-400';
       default:
         return 'text-gray-400';
@@ -170,10 +172,7 @@ export default function CosmeticDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-400">Moldura não encontrada</p>
-        <Link
-          href="/worldo/cosmetics/marketplace"
-          className={`${buttonClass.primary} w-fit mx-auto mt-4`}
-        >
+        <Link href={ROUTES.marketplace} className={`${buttonClass.primary} w-fit mx-auto mt-4`}>
           Voltar ao Marketplace
         </Link>
       </div>
@@ -235,7 +234,7 @@ export default function CosmeticDetailPage() {
             <div>
               <p className="text-xs text-gray-500">Criado por</p>
               <Link
-                href={`/worldo/perfil/${frame.creator.username}`}
+                href={ROUTES.profileOf(frame.creator.username)}
                 className="font-medium hover:text-purple-400 transition"
               >
                 {frame.creator.name}
@@ -308,7 +307,7 @@ export default function CosmeticDetailPage() {
                   <PrimaryButton onClick={handleBuy}>Comprar agora</PrimaryButton>
                 </div>
               ) : (
-                <Link href="/login" className={`${buttonClass.primary} w-full`}>
+                <Link href={ROUTES.login} className={`${buttonClass.primary} w-full`}>
                   Entre para comprar
                 </Link>
               )}
@@ -319,7 +318,7 @@ export default function CosmeticDetailPage() {
             <div className="p-6 bg-slate-800/30 rounded-2xl text-center">
               <p className="text-gray-400">Nenhum anúncio disponível no momento</p>
               <Link
-                href="/worldo/cosmetics/marketplace"
+                href={ROUTES.marketplace}
                 className={`${buttonClass.secondary} w-fit mx-auto mt-3`}
               >
                 Ver outras molduras

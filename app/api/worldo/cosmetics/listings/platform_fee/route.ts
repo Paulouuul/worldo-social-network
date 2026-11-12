@@ -5,6 +5,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
 import { NextResponse } from 'next/server';
+import { DEFAULT_PLATFORM_FEE_PERCENT } from '@/constants/marketplace';
 
 /**
  * GET /api/worldo/cosmetics/listings/platform_fee — retorna { platform_fee } da taxa ativa (5%
@@ -22,7 +23,7 @@ export async function GET() {
       where: { isActive: true },
     });
 
-    const fee = activeFee?.feeValue ?? 5;
+    const fee = activeFee?.feeValue ?? DEFAULT_PLATFORM_FEE_PERCENT;
 
     return NextResponse.json({ success: true, platform_fee: fee }, { status: 200 });
   } catch (error) {

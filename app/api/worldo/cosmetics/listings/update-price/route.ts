@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
 import { syncToListing } from '@/lib/search/prismaSync';
 import { NextRequest, NextResponse } from 'next/server';
+import { LISTING_MAX_PRICE } from '@/constants/marketplace';
 
 /**
  * PATCH /api/worldo/cosmetics/listings/update-price — define { priceCoins } (até 1.000.000) no
@@ -14,7 +15,6 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const MAX_PRICE = 1000000;
     console.log('[UPDATE PRICE] Iniciando atualização de preço...');
 
     const session = await auth();
@@ -28,7 +28,7 @@ export async function PATCH(request: NextRequest) {
     const { listingId, priceCoins } = await request.json();
     console.log('[UPDATE PRICE] Dados recebidos:', { listingId, priceCoins });
 
-    if (!listingId || !priceCoins || priceCoins <= 0 || priceCoins > MAX_PRICE) {
+    if (!listingId || !priceCoins || priceCoins <= 0 || priceCoins > LISTING_MAX_PRICE) {
       console.log('[UPDATE PRICE] Campos inválidos');
       return NextResponse.json({ error: 'Campos inválidos' }, { status: 400 });
     }

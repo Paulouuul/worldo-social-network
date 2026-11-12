@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { hashKey, useQueries, useQuery, type QueryKey } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { BREAKPOINTS } from '@/constants/ui';
 
 /** Itens de uma página e total geral da listagem. */
 export interface PageSlice<T> {
@@ -67,7 +68,7 @@ function useViewport(columnsForWidth: (width: number) => number) {
     const update = () => {
       const width = window.innerWidth;
       setState((prev) => {
-        const next = { columns: columnsForWidth(width), isMobile: width < 640 };
+        const next = { columns: columnsForWidth(width), isMobile: width < BREAKPOINTS.sm };
         return prev.columns === next.columns && prev.isMobile === next.isMobile ? prev : next;
       });
     };

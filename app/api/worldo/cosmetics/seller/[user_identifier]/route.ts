@@ -5,13 +5,15 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { Rarity, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { parseRarities } from '@/lib/api/rarityParam';
+import { SORT } from '@/constants/marketplace';
 
 /**
  * GET /api/worldo/cosmetics/seller/:usernameOuPublicId — dados do vendedor e seus anúncios
  * ativos com estoque.
  *
- * Query: rarity, search (nome/descrição da moldura, nome/username do criador), sort
+ * Query: rarity (uma ou mais, separadas por vírgula), search (nome/descrição da moldura, nome/username do criador), sort
  * (newest|oldest|price_asc|price_desc), page e limit. Inclui ownedFrameIds (molduras da página
  * que o usuário já possui). 404 se o vendedor não existir.
  */
@@ -24,8 +26,8 @@ export async function GET(
     const { searchParams } = new URL(request.url);
 
     const { user_identifier } = await params;
-    const rarityParam = searchParams.get('rarity');
-    const sort = searchParams.get('sort') || 'newest';
+    const rarities = parseRarities(searchParams.get('rarity'));
+    const sort = searchParams.get('sort') || SORT.newest;
     const search = searchParams.get('search') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
@@ -72,13 +74,8 @@ export async function GET(
       sellerId: seller.id,
     };
 
-    if (rarityParam && rarityParam !== 'all') {
-      const validRarities = Object.values(Rarity);
-      if (validRarities.includes(rarityParam as Rarity)) {
-        where.frame = {
-          rarity: rarityParam as Rarity,
-        };
-      }
+    if (rarities.length > 0) {
+      where.frame = { rarity: { in: rarities } };
     }
 
     // Busca por texto
@@ -125,13 +122,13 @@ export async function GET(
 
     let orderBy: Prisma.cosmetic_listingOrderByWithRelationInput = {};
     switch (sort) {
-      case 'price_asc':
+      case SORT.priceAsc:
         orderBy = { priceCoins: 'asc' };
         break;
-      case 'price_desc':
+      case SORT.priceDesc:
         orderBy = { priceCoins: 'desc' };
         break;
-      case 'oldest':
+      case SORT.oldest:
         orderBy = { createdAt: 'asc' };
         break;
       default:

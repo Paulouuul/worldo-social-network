@@ -7,21 +7,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { Resend } from 'resend';
 import crypto from 'crypto';
+import { NAME_LENGTH, PASSWORD_MIN_LENGTH, USERNAME_LENGTH } from '@/constants/validation';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const resend_email = process.env.RESEND_EMAIL;
 
-// Limites de validação
-const MAX_NAME_LENGTH = 50;
-const MIN_NAME_LENGTH = 3;
-const MAX_USERNAME_LENGTH = 30;
-const MIN_USERNAME_LENGTH = 3;
-const MIN_PASSWORD_LENGTH = 6;
-
 /**
  * POST /api/register — cadastra um usuário com email e senha.
  *
- * Normaliza e valida email, username (3–30, [a-z0-9_]), nome (3–50) e senha forte; recusa email ou
+ * Normaliza e valida email, username ([a-z0-9_], USERNAME_LENGTH), nome (NAME_LENGTH) e senha
+ * forte (PASSWORD_MIN_LENGTH); recusa email ou
  * username em uso; cria usuário e token de verificação (24h) em transação e envia o email. Se o
  * envio falhar, apaga o usuário e o token criados.
  */
@@ -59,33 +54,33 @@ export async function POST(request: NextRequest) {
     // Nome de usuário
     if (
       !formattedUsername ||
-      formattedUsername.length < MIN_USERNAME_LENGTH ||
-      formattedUsername.length > MAX_USERNAME_LENGTH
+      formattedUsername.length < USERNAME_LENGTH.min ||
+      formattedUsername.length > USERNAME_LENGTH.max
     ) {
       return NextResponse.json(
         {
           success: false,
-          error: `Nome de Usuário inválido. Use apenas letras, números e underscore (${MIN_USERNAME_LENGTH}-${MAX_USERNAME_LENGTH} caracteres)`,
+          error: `Nome de Usuário inválido. Use apenas letras, números e underscore (${USERNAME_LENGTH.min}-${USERNAME_LENGTH.max} caracteres)`,
         },
         { status: 400 },
       );
     }
 
     // Nome de exibição
-    if (!formattedName || formattedName.length < MIN_NAME_LENGTH) {
+    if (!formattedName || formattedName.length < NAME_LENGTH.min) {
       return NextResponse.json(
         {
           success: false,
-          error: `Nome de Exibição deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`,
+          error: `Nome de Exibição deve ter pelo menos ${NAME_LENGTH.min} caracteres`,
         },
         { status: 400 },
       );
     }
-    if (formattedName.length > MAX_NAME_LENGTH) {
+    if (formattedName.length > NAME_LENGTH.max) {
       return NextResponse.json(
         {
           success: false,
-          error: `Nome de Exibição deve ter no máximo ${MAX_NAME_LENGTH} caracteres`,
+          error: `Nome de Exibição deve ter no máximo ${NAME_LENGTH.max} caracteres`,
         },
         { status: 400 },
       );
@@ -97,8 +92,8 @@ export async function POST(request: NextRequest) {
      */
     const validatePassword = (pass: string) => {
       const errors = [];
-      if (pass.length < MIN_PASSWORD_LENGTH) {
-        errors.push(`pelo menos ${MIN_PASSWORD_LENGTH} caracteres`);
+      if (pass.length < PASSWORD_MIN_LENGTH) {
+        errors.push(`pelo menos ${PASSWORD_MIN_LENGTH} caracteres`);
       }
       if (!/[A-Z]/.test(pass)) errors.push('pelo menos 1 letra maiúscula');
       if (!/[a-z]/.test(pass)) errors.push('pelo menos 1 letra minúscula');

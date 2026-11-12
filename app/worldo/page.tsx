@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db/prisma';
 import Link from 'next/link';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 import { Sparkles, UserCircle, Palette, Coins, MessageSquare } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
 
 /**
  * Tela inicial (server component). O nome exibido vem do banco, com o prefixo do email como
@@ -54,7 +55,7 @@ export default async function Home() {
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
             <Link
-              href="/worldo/perfil"
+              href={ROUTES.profile}
               className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] active:scale-[0.98]"
             >
               <UserCircle className="w-5 h-5" />

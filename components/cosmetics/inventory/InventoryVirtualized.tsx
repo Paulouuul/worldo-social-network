@@ -12,6 +12,7 @@ import {
   VirtualizedPagedGrid,
   type PagedSource,
 } from '@/components/ui/dataDisplay/VirtualizedPagedGrid';
+import { BREAKPOINTS } from '@/constants/ui';
 
 /** Grupo do inventário retornado por /api/worldo/cosmetics/inventory/grouped. */
 export interface GroupedItem {
@@ -48,11 +49,11 @@ export const selectInventory = (page: InventoryPage) => ({
 
 /** Colunas da grade conforme a largura da janela (2 a 8). */
 const columnsForWidth = (width: number) => {
-  if (width < 480) return 2;
-  if (width < 640) return 3;
-  if (width < 768) return 4;
-  if (width < 1024) return 5;
-  if (width < 1280) return 7;
+  if (width < BREAKPOINTS.xs) return 2;
+  if (width < BREAKPOINTS.sm) return 3;
+  if (width < BREAKPOINTS.md) return 4;
+  if (width < BREAKPOINTS.lg) return 5;
+  if (width < BREAKPOINTS.xl) return 7;
   return 8;
 };
 

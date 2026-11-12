@@ -1,20 +1,17 @@
 // lib/auth/backendToken/serverBackendTokenManager.ts
 // Gerenciador do JWT do backend no servidor Next.js: gera o token a partir da sessão (auth()),
-// reutiliza enquanto válido (com 2 minutos de margem) e evita gerações simultâneas.
+// reutiliza enquanto válido (renovado com a margem de tokenConfig.ts) e evita gerações simultâneas.
 
 import 'server-only';
 import { auth } from '@/auth';
 import { generateJwtToken } from '@/lib/auth/backendToken/backendJwtTokenGenerator';
+import { BACKEND_TOKEN_EXPIRY_MS, BACKEND_TOKEN_RENEW_MARGIN_MS } from './tokenConfig';
 /** Cache em memória do JWT do backend no servidor. */
 class serverBackendTokenManager {
   private token: string | null = null;
   private expiryTime: number = 0;
   private isGenerating: boolean = false;
   private generatePromise: Promise<string> | null = null;
-
-  private readonly TOKEN_EXPIRY_MS =
-    (Number(process.env.BACKEND_TOKEN_EXPIRATION) || 15) * 60 * 1000;
-  private readonly SAFETY_MARGIN_MS = 2 * 60 * 1000;
 
   /**
    * Retorna o token em cache ou gera um novo a partir da sessão atual; chamadas concorrentes
@@ -23,7 +20,7 @@ class serverBackendTokenManager {
   async getToken(): Promise<string> {
     const now = Date.now();
 
-    if (this.token && now < this.expiryTime - this.SAFETY_MARGIN_MS) {
+    if (this.token && now < this.expiryTime - BACKEND_TOKEN_RENEW_MARGIN_MS) {
       console.log('[BackendTokenManager] Token válido, reutilizando');
       return this.token;
     }
@@ -51,10 +48,10 @@ class serverBackendTokenManager {
         }
 
         this.token = newToken;
-        this.expiryTime = Date.now() + this.TOKEN_EXPIRY_MS;
+        this.expiryTime = Date.now() + BACKEND_TOKEN_EXPIRY_MS;
 
         console.log(
-          `[BackendTokenManager] Token gerado com sucesso (expira em ${this.TOKEN_EXPIRY_MS / 1000}s)`,
+          `[BackendTokenManager] Token gerado com sucesso (expira em ${BACKEND_TOKEN_EXPIRY_MS / 1000}s)`,
         );
         return newToken;
       } catch (error) {
@@ -82,7 +79,7 @@ class serverBackendTokenManager {
   isValid(): boolean {
     if (!this.token) return false;
     const now = Date.now();
-    return now < this.expiryTime - this.SAFETY_MARGIN_MS;
+    return now < this.expiryTime - BACKEND_TOKEN_RENEW_MARGIN_MS;
   }
 
   /** Segundos restantes até o token expirar (0 sem token). */

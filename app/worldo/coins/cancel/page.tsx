@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { XCircle, RefreshCcw, Home } from 'lucide-react';
 import { StatusCard, StatusPage } from '@/components/ui/feedback/StatusPage';
+import { ROUTES } from '@/constants/routes';
 
 /** Informa que nenhuma cobrança foi feita e oferece voltar à loja de moedas ou ao início. */
 export default function CancelPage() {
@@ -38,7 +39,7 @@ export default function CancelPage() {
         <div className="flex flex-col gap-3">
           {/* Tentar novamente */}
           <Link
-            href="/worldo/coins"
+            href={ROUTES.coins}
             className="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 rounded-xl text-sm font-bold uppercase tracking-wider bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] active:scale-[0.98]"
           >
             <RefreshCcw className="w-4 h-4" />

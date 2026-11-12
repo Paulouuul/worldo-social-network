@@ -16,7 +16,8 @@ import {
   CatalogFilters,
   LISTING_SORT_OPTIONS,
   SortSelector,
-  type RarityFilterValue,
+  toRarityParam,
+  type RaritySelection,
 } from '@/components/cosmetics/catalog/CatalogFilters';
 import {
   MarketplaceVirtualized,
@@ -26,9 +27,8 @@ import {
 import type { PagedSource } from '@/components/ui/dataDisplay/VirtualizedPagedGrid';
 import { fetchJson, toQueryString } from '@/lib/api/fetcher';
 import { cachePolicy, qk } from '@/lib/query/queryKeys';
-
-/** Anúncios por página buscada. */
-const PAGE_SIZE = 56;
+import { ROUTES } from '@/constants/routes';
+import { CATALOG_PAGE_SIZE, SORT } from '@/constants/marketplace';
 
 /**
  * Catálogo do marketplace. Páginas com preço/estoque são revalidadas sempre e liberadas da
@@ -39,18 +39,18 @@ export default function MarketplacePage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [rarityFilter, setRarityFilter] = useState<RarityFilterValue>('all');
-  const [sort, setSort] = useState('newest');
+  const [rarityFilter, setRarityFilter] = useState<RaritySelection>([]);
+  const [sort, setSort] = useState<string>(SORT.newest);
 
   // Fonte paginada da grade, recriada quando os filtros mudam
   const source = useMemo<PagedSource<ListingsPage['listings'][number], ListingsPage>>(() => {
-    const filters = { rarity: rarityFilter, sort, search: searchTerm };
+    const filters = { rarity: toRarityParam(rarityFilter), sort, search: searchTerm };
     return {
       baseKey: qk.marketplace.list(filters),
-      pageSize: PAGE_SIZE,
+      pageSize: CATALOG_PAGE_SIZE,
       fetchPage: (page, signal) =>
         fetchJson<ListingsPage>(
-          `/api/worldo/cosmetics/marketplace${toQueryString({ ...filters, page, limit: PAGE_SIZE })}`,
+          `/api/worldo/cosmetics/marketplace${toQueryString({ ...filters, page, limit: CATALOG_PAGE_SIZE })}`,
           { signal },
         ),
       select: selectListings,
@@ -69,7 +69,7 @@ export default function MarketplacePage() {
             subtitle="Adquira cosméticos exclusivos de outros usuários"
             action={
               session && (
-                <Link href="/worldo/cosmetics/inventory" className={catalogActionClass.neutral}>
+                <Link href={ROUTES.inventory} className={catalogActionClass.neutral}>
                   <Package className="w-4 h-4 text-purple-400" />
                   Meu Inventário
                 </Link>
@@ -81,8 +81,8 @@ export default function MarketplacePage() {
             onSearchInputChange={setSearchInput}
             onSearch={setSearchTerm}
             searchPlaceholder="Buscar molduras pelo nome..."
-            rarity={rarityFilter}
-            onRarityChange={setRarityFilter}
+            rarities={rarityFilter}
+            onRaritiesChange={setRarityFilter}
           />
           <SortSelector options={LISTING_SORT_OPTIONS} value={sort} onChange={setSort} />
         </>

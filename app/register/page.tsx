@@ -11,6 +11,9 @@ import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 import { FieldError, FieldLabel, TextInput } from '@/components/ui/forms/FormField';
 import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 import { AuthShell } from '@/components/auth/AuthShell';
+import { ROUTES } from '@/constants/routes';
+import { NAME_LENGTH, PASSWORD_MIN_LENGTH, USERNAME_LENGTH } from '@/constants/validation';
+import { UI_TIMING } from '@/constants/ui';
 
 /** Formulário de cadastro com validação por campo e redirecionamento para /login após o sucesso. */
 export default function RegisterPage() {
@@ -24,13 +27,6 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   useSession();
-
-  // Limites de validação (iguais aos da API)
-  const MAX_NAME_LENGTH = 50;
-  const MIN_NAME_LENGTH = 3;
-  const MAX_USERNAME_LENGTH = 30;
-  const MIN_USERNAME_LENGTH = 3;
-  const MIN_PASSWORD_LENGTH = 6;
 
   // Erro de validação de cada campo
   const [fieldErrors, setFieldErrors] = useState({
@@ -49,28 +45,28 @@ export default function RegisterPage() {
     return '';
   };
 
-  /** Valida o username: 3–30 caracteres com letras, números e underscore. */
+  /** Valida o username: letras, números e underscore (limites em USERNAME_LENGTH). */
   const validateUsername = (value: string) => {
     if (!value) return 'Username é obrigatório';
     const trimmed = value.trim();
-    if (trimmed.length < MIN_USERNAME_LENGTH)
-      return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_USERNAME_LENGTH)
-      return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length < USERNAME_LENGTH.min)
+      return `Username deve ter pelo menos ${USERNAME_LENGTH.min} caracteres`;
+    if (trimmed.length > USERNAME_LENGTH.max)
+      return `Username deve ter no máximo ${USERNAME_LENGTH.max} caracteres`;
     if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
       return 'Username deve conter apenas letras, números e underscore';
     }
     return '';
   };
 
-  /** Valida o nome de exibição: 3–50 caracteres. */
+  /** Valida o nome de exibição (limites em NAME_LENGTH). */
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Nome é obrigatório';
-    if (trimmed.length < MIN_NAME_LENGTH)
-      return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_NAME_LENGTH)
-      return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    if (trimmed.length < NAME_LENGTH.min)
+      return `Nome deve ter pelo menos ${NAME_LENGTH.min} caracteres`;
+    if (trimmed.length > NAME_LENGTH.max)
+      return `Nome deve ter no máximo ${NAME_LENGTH.max} caracteres`;
     return '';
   };
 
@@ -82,8 +78,8 @@ export default function RegisterPage() {
     const errors = [];
 
     if (!value) return 'Senha é obrigatória';
-    if (value.length < MIN_PASSWORD_LENGTH) {
-      return `Senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`;
+    if (value.length < PASSWORD_MIN_LENGTH) {
+      return `Senha deve ter pelo menos ${PASSWORD_MIN_LENGTH} caracteres`;
     }
 
     if (!/[A-Z]/.test(value)) errors.push('1 letra maiúscula');
@@ -158,7 +154,7 @@ export default function RegisterPage() {
         setError(data.error || 'Erro ao criar conta');
       } else {
         setSuccess(data.message || 'Conta criada com sucesso!');
-        setTimeout(() => router.push('/login'), 3000);
+        setTimeout(() => router.push(ROUTES.login), UI_TIMING.messageMs);
       }
     } catch (_err) {
       setError('Erro ao conectar com o servidor');
@@ -173,7 +169,7 @@ export default function RegisterPage() {
       subtitle="Crie seu registro de acesso na rede"
       footerText="Já possui cadastro?"
       footerLink={{
-        href: '/login',
+        href: ROUTES.login,
         label: (
           <>
             <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" /> Faça
@@ -192,7 +188,7 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Username */}
         <div>
-          <FieldLabel icon={AtSign} counter={{ value: username.length, max: MAX_USERNAME_LENGTH }}>
+          <FieldLabel icon={AtSign} counter={{ value: username.length, max: USERNAME_LENGTH.max }}>
             Nome de usuário *
           </FieldLabel>
           <TextInput
@@ -207,18 +203,18 @@ export default function RegisterPage() {
             hasError={!!fieldErrors.username}
             required
             placeholder="usuario_123"
-            maxLength={MAX_USERNAME_LENGTH}
+            maxLength={USERNAME_LENGTH.max}
           />
           <FieldError message={fieldErrors.username} />
           <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-            Apenas letras, números e underline. De {MIN_USERNAME_LENGTH} a {MAX_USERNAME_LENGTH}{' '}
+            Apenas letras, números e underline. De {USERNAME_LENGTH.min} a {USERNAME_LENGTH.max}{' '}
             caracteres.
           </p>
         </div>
 
         {/* Nome de Exibição */}
         <div>
-          <FieldLabel icon={User} counter={{ value: name.length, max: MAX_NAME_LENGTH }}>
+          <FieldLabel icon={User} counter={{ value: name.length, max: NAME_LENGTH.max }}>
             Nome de Exibição *
           </FieldLabel>
           <TextInput
@@ -238,11 +234,11 @@ export default function RegisterPage() {
             hasError={!!fieldErrors.name}
             required
             placeholder="Seu nome real ou apelido"
-            maxLength={MAX_NAME_LENGTH}
+            maxLength={NAME_LENGTH.max}
           />
           <FieldError message={fieldErrors.name} />
           <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-            De {MIN_NAME_LENGTH} a {MAX_NAME_LENGTH} caracteres.
+            De {NAME_LENGTH.min} a {NAME_LENGTH.max} caracteres.
           </p>
         </div>
 
@@ -292,7 +288,7 @@ export default function RegisterPage() {
             />
             <FieldError message={fieldErrors.password} />
             <p className="text-[11px] text-slate-500 mt-1 leading-normal">
-              Mín. {MIN_PASSWORD_LENGTH} caracteres. Letras maiúsculas, minúsculas, números e
+              Mín. {PASSWORD_MIN_LENGTH} caracteres. Letras maiúsculas, minúsculas, números e
               especial.
             </p>
           </div>

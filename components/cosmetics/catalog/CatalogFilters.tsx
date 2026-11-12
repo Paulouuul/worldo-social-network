@@ -3,21 +3,29 @@
 
 'use client';
 
-import { RARITY } from '@/constants/cosmeticRarity';
+import { RARITY, type Rarity } from '@/constants/cosmeticRarity';
 import { ChipButton } from '@/components/ui/buttons/ChipButton';
 import { SearchBar } from '@/components/ui/forms/SearchBar';
+import { SORT } from '@/constants/marketplace';
 
-/** Opções de raridade do filtro ('all' = todas). */
-export const RARITY_FILTER_OPTIONS = [
-  'all',
+/** Raridades selecionáveis no filtro, na ordem de exibição. */
+export const RARITY_FILTER_OPTIONS: Rarity[] = [
   RARITY.COMUM,
   RARITY.RARO,
   RARITY.EPICO,
   RARITY.LENDARIO,
-] as const;
+];
 
-/** Valor do filtro de raridade. */
-export type RarityFilterValue = (typeof RARITY_FILTER_OPTIONS)[number];
+/** Raridades selecionadas no filtro; lista vazia = todas (sem filtro de raridade). */
+export type RaritySelection = Rarity[];
+
+/**
+ * Valor do parâmetro `rarity` das APIs: raridades selecionadas separadas por vírgula, sempre na
+ * ordem de RARITY_FILTER_OPTIONS (a mesma seleção gera a mesma chave de cache). Vazio sem filtro.
+ */
+export function toRarityParam(selection: RaritySelection): string {
+  return RARITY_FILTER_OPTIONS.filter((r) => selection.includes(r)).join(',');
+}
 
 /** Opção de ordenação. */
 export interface SortOption {
@@ -27,16 +35,16 @@ export interface SortOption {
 
 /** Ordenações de anúncios (marketplace e loja do vendedor). */
 export const LISTING_SORT_OPTIONS: SortOption[] = [
-  { value: 'newest', label: 'Mais recentes' },
-  { value: 'oldest', label: 'Mais antigos' },
-  { value: 'price_asc', label: 'Menor preço' },
-  { value: 'price_desc', label: 'Maior preço' },
+  { value: SORT.newest, label: 'Mais recentes' },
+  { value: SORT.oldest, label: 'Mais antigos' },
+  { value: SORT.priceAsc, label: 'Menor preço' },
+  { value: SORT.priceDesc, label: 'Maior preço' },
 ];
 
 /** Ordenações do inventário. */
 export const INVENTORY_SORT_OPTIONS: SortOption[] = [
-  { value: 'newest', label: 'Mais recentes' },
-  { value: 'oldest', label: 'Mais antigos' },
+  { value: SORT.newest, label: 'Mais recentes' },
+  { value: SORT.oldest, label: 'Mais antigos' },
 ];
 
 /** Propriedades da linha de busca e raridade. */
@@ -45,8 +53,8 @@ interface CatalogFiltersProps {
   onSearchInputChange: (value: string) => void;
   onSearch: (value: string) => void;
   searchPlaceholder: string;
-  rarity: RarityFilterValue;
-  onRarityChange: (value: RarityFilterValue) => void;
+  rarities: RaritySelection;
+  onRaritiesChange: (value: RaritySelection) => void;
 }
 
 /** Busca à esquerda e chips de raridade à direita (empilhados no mobile). */
@@ -55,8 +63,8 @@ export function CatalogFilters({
   onSearchInputChange,
   onSearch,
   searchPlaceholder,
-  rarity,
-  onRarityChange,
+  rarities,
+  onRaritiesChange,
 }: CatalogFiltersProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-4 shrink-0">
@@ -67,24 +75,36 @@ export function CatalogFilters({
         onSearch={onSearch}
         placeholder={searchPlaceholder}
       />
-      <RarityFilter value={rarity} onChange={onRarityChange} />
+      <RarityFilter value={rarities} onChange={onRaritiesChange} />
     </div>
   );
 }
 
-/** Chips de raridade com rolagem horizontal. */
+/**
+ * Chips de raridade com seleção múltipla e rolagem horizontal.
+ *
+ * Cada raridade alterna entre marcada e desmarcada ao clicar. "Todas" limpa a seleção e fica ativo
+ * apenas quando nenhuma raridade está marcada (sem filtro).
+ */
 export function RarityFilter({
   value,
   onChange,
 }: {
-  value: RarityFilterValue;
-  onChange: (value: RarityFilterValue) => void;
+  value: RaritySelection;
+  onChange: (value: RaritySelection) => void;
 }) {
+  /** Marca a raridade se estiver desmarcada, ou desmarca se estiver marcada. */
+  const toggle = (rarity: Rarity) =>
+    onChange(value.includes(rarity) ? value.filter((r) => r !== rarity) : [...value, rarity]);
+
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-      {RARITY_FILTER_OPTIONS.map((option) => (
-        <ChipButton key={option} active={value === option} onClick={() => onChange(option)}>
-          {option === 'all' ? 'Todas' : option}
+      <ChipButton active={value.length === 0} onClick={() => onChange([])}>
+        Todas
+      </ChipButton>
+      {RARITY_FILTER_OPTIONS.map((rarity) => (
+        <ChipButton key={rarity} active={value.includes(rarity)} onClick={() => toggle(rarity)}>
+          {rarity}
         </ChipButton>
       ))}
     </div>

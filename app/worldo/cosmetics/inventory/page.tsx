@@ -5,7 +5,7 @@
 
 import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   CatalogHeader,
@@ -16,7 +16,8 @@ import {
   CatalogFilters,
   INVENTORY_SORT_OPTIONS,
   SortSelector,
-  type RarityFilterValue,
+  toRarityParam,
+  type RaritySelection,
 } from '@/components/cosmetics/catalog/CatalogFilters';
 import { CosmeticActionModal } from '@/components/cosmetics/inventory/CosmeticActionModal';
 import { Package, Plus, Store, Box, type LucideIcon } from 'lucide-react';
@@ -33,14 +34,13 @@ import { useMe } from '@/hooks/queries/useMe';
 import { fetchJson, toQueryString } from '@/lib/api/fetcher';
 import { invalidate } from '@/lib/query/invalidate';
 import { cachePolicy, qk } from '@/lib/query/queryKeys';
+import { ROUTES } from '@/constants/routes';
+import { CATALOG_PAGE_SIZE, SORT } from '@/constants/marketplace';
 
 /** Situação dos itens exibidos: todos, à venda ou livres. */
 type FilterType = 'all' | 'listed' | 'unlisted';
 /** Modo em que o modal de ações abre. */
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
-
-/** Itens por página buscada. */
-const PAGE_SIZE = 56;
 
 /**
  * Inventário paginado sob demanda; contadores e páginas são invalidados após cada ação do
@@ -55,32 +55,42 @@ export default function MyCosmeticsPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('unlisted');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [rarityFilter, setRarityFilter] = useState<RarityFilterValue>('all');
-  const [sort, setSort] = useState('newest');
+  const [rarityFilter, setRarityFilter] = useState<RaritySelection>([]);
+  const [sort, setSort] = useState<string>(SORT.newest);
 
   // Modal de ações
   const [selectedItem, setSelectedItem] = useState<GroupedItem | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
 
+  // Contadores por situação com os mesmos filtros de busca e raridade da grade.
+  // keepPreviousData mantém os números anteriores enquanto os novos carregam.
+  const statsFilters = { search: searchTerm, rarity: toRarityParam(rarityFilter) };
   const { data: statsData = { all: 0, listed: 0, unlisted: 0 } } = useQuery({
-    queryKey: qk.inventory.stats(),
+    queryKey: qk.inventory.stats(statsFilters),
     queryFn: ({ signal }) =>
       fetchJson<{ all: number; listed: number; unlisted: number }>(
-        '/api/worldo/cosmetics/inventory/stats',
+        `/api/worldo/cosmetics/inventory/stats${toQueryString(statsFilters)}`,
         { signal },
       ),
     enabled: status === 'authenticated',
+    placeholderData: keepPreviousData,
     ...cachePolicy.inventory,
   });
+  const hasActiveFilters = !!searchTerm || rarityFilter.length > 0;
 
   const source = useMemo<PagedSource<GroupedItem, InventoryPage>>(() => {
-    const filters = { filter: activeFilter, search: searchTerm, rarity: rarityFilter, sort };
+    const filters = {
+      filter: activeFilter,
+      search: searchTerm,
+      rarity: toRarityParam(rarityFilter),
+      sort,
+    };
     return {
       baseKey: qk.inventory.list(filters),
-      pageSize: PAGE_SIZE,
+      pageSize: CATALOG_PAGE_SIZE,
       fetchPage: (page, signal) =>
         fetchJson<InventoryPage>(
-          `/api/worldo/cosmetics/inventory/grouped${toQueryString({ ...filters, page, limit: PAGE_SIZE })}`,
+          `/api/worldo/cosmetics/inventory/grouped${toQueryString({ ...filters, page, limit: CATALOG_PAGE_SIZE })}`,
           { signal },
         ),
       select: selectInventory,
@@ -114,8 +124,8 @@ export default function MyCosmeticsPage() {
             subtitle="Gerencie seu inventário e comercialize suas molduras"
             gradientClassName="from-white via-slate-200 to-slate-400"
             action={
-              statsData.all > 0 && (
-                <Link href="/worldo/cosmetics/create" className={catalogActionClass.accent}>
+              (statsData.all > 0 || hasActiveFilters) && (
+                <Link href={ROUTES.createCosmetic} className={catalogActionClass.accent}>
                   <Plus className="w-4 h-4" /> Criar Nova Moldura
                 </Link>
               )
@@ -126,8 +136,8 @@ export default function MyCosmeticsPage() {
             onSearchInputChange={setSearchInput}
             onSearch={setSearchTerm}
             searchPlaceholder="Buscar no inventário..."
-            rarity={rarityFilter}
-            onRarityChange={setRarityFilter}
+            rarities={rarityFilter}
+            onRaritiesChange={setRarityFilter}
           />
 
           {/* Filtros de situação */}

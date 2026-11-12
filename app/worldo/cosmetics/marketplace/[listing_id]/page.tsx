@@ -38,6 +38,8 @@ import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 import { Breadcrumb } from '@/components/ui/navigation/Breadcrumb';
 import { CosmeticCard } from '@/components/cosmetics/catalog/CosmeticCard';
 import { PriceTag, QuantityTag } from '@/components/ui/dataDisplay/PriceTag';
+import { ROUTES } from '@/constants/routes';
+import { CART_MAX_QUANTITY_PER_ITEM } from '@/constants/marketplace';
 
 /** Anúncio retornado por /api/worldo/cosmetics/listings/[id]. */
 interface ListingData {
@@ -110,7 +112,6 @@ export default function ListingDetailPage() {
   const [actionError, setError] = useState('');
 
   const listingId = params.listing_id as string;
-  const MAX_QUANTITY_PER_ITEM = 99;
 
   // Preço e estoque: sempre buscados do servidor, sem cache
   const listingQuery = useQuery({
@@ -145,9 +146,9 @@ export default function ListingDetailPage() {
     setBuyQuantity(availableQuantity > 0 ? 1 : 0);
   }, [availableQuantity]);
 
-  /** Aumenta a quantidade até o disponível (máximo 99). */
+  /** Aumenta a quantidade até o disponível (máximo CART_MAX_QUANTITY_PER_ITEM). */
   const handleIncrement = () => {
-    if (buyQuantity < availableQuantity && buyQuantity < MAX_QUANTITY_PER_ITEM) {
+    if (buyQuantity < availableQuantity && buyQuantity < CART_MAX_QUANTITY_PER_ITEM) {
       setBuyQuantity((prev) => prev + 1);
     }
   };
@@ -165,7 +166,7 @@ export default function ListingDetailPage() {
    */
   const handleAddToCart = async () => {
     if (!session) {
-      router.replace('/login');
+      router.replace(ROUTES.login);
       return;
     }
 
@@ -212,7 +213,7 @@ export default function ListingDetailPage() {
         return;
       }
       await invalidate.cart(queryClient);
-      router.push('/worldo/cosmetics/marketplace/cart');
+      router.push(ROUTES.cart);
     } catch (error) {
       console.error('Erro ao adicionar ao carrinho:', error);
       setError('Erro ao conectar com o servidor');
@@ -234,7 +235,7 @@ export default function ListingDetailPage() {
           Este anúncio não existe mais, foi comprado por outro usuário ou removido pelo vendedor.
         </p>
         <Link
-          href="/worldo/cosmetics/marketplace"
+          href={ROUTES.marketplace}
           className="bg-slate-800 border border-slate-700 hover:border-purple-500/50 text-white px-6 py-3 rounded-xl transition flex items-center gap-2 font-bold shadow-lg"
         >
           <ArrowLeft className="w-4 h-4" /> Voltar ao Marketplace
@@ -307,7 +308,7 @@ export default function ListingDetailPage() {
           {!listing.isOwnListing && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
-                href={`/worldo/cosmetics/seller/${listing.seller.id}`}
+                href={ROUTES.seller(listing.seller.id)}
                 className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-emerald-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all relative overflow-hidden"
               >
                 <AvatarWithFrame
@@ -329,7 +330,7 @@ export default function ListingDetailPage() {
               </Link>
 
               <Link
-                href={`/worldo/perfil/${listing.frame.creator.id}`}
+                href={ROUTES.profileOf(listing.frame.creator.id)}
                 className="group flex items-center gap-4 p-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl hover:border-purple-500/50 hover:bg-slate-800/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all"
               >
                 <AvatarWithFrame
@@ -404,7 +405,7 @@ export default function ListingDetailPage() {
                     Gerencie seus itens e anúncios no seu inventário
                   </p>
                   <Link
-                    href="/worldo/cosmetics/inventory"
+                    href={ROUTES.inventory}
                     className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-xl transition-all hover:scale-105 shadow-lg shadow-purple-900/30"
                   >
                     <Package className="w-4 h-4" />
@@ -419,7 +420,7 @@ export default function ListingDetailPage() {
                   </FeedbackMessage>
 
                   <Link
-                    href="/worldo/cosmetics/marketplace/cart"
+                    href={ROUTES.cart}
                     className="w-full bg-slate-800 hover:bg-slate-700 text-white font-black text-sm uppercase tracking-wider py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border border-slate-700 hover:border-slate-500 shadow-lg hover:shadow-xl hover:-translate-y-1"
                   >
                     <ShoppingBag className="w-5 h-5" />
@@ -529,7 +530,7 @@ export default function ListingDetailPage() {
             </h2>
 
             <Link
-              href={`/worldo/cosmetics/seller/${listing.seller.id}`}
+              href={ROUTES.seller(listing.seller.id)}
               className="inline-flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-105"
             >
               Ver Catálogo Completo <ChevronRight className="w-4 h-4" />
@@ -540,7 +541,7 @@ export default function ListingDetailPage() {
             {listing.sellerOtherListings.map((item) => (
               <CosmeticCard
                 key={item.id}
-                href={`/worldo/cosmetics/marketplace/${item.id}`}
+                href={ROUTES.listing(item.id)}
                 name={item.frame.name}
                 rarity={item.frame.rarity}
                 imageUrl={item.frame.thumbnailUrl || item.frame.imageUrl}

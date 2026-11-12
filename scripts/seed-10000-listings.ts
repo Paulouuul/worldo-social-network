@@ -5,6 +5,7 @@
 import 'dotenv/config';
 import { prisma } from '../lib/db/prisma';
 import { esClient, LISTINGS_INDEX } from '../lib/search/elasticsearch';
+import { VALID_RARITIES } from '../constants/cosmeticRarity';
 
 /** Gera e indexa em bulk 10.000 documentos de anúncio e imprime alguns exemplos. */
 async function seed10000Listings() {
@@ -54,7 +55,7 @@ async function seed10000Listings() {
 
     // Documentos fictícios
     const listings = [];
-    const rarities = ['COMUM', 'INCOMUM', 'RARA', 'EPICO', 'LENDARIO', 'MITICO'];
+    const rarities = VALID_RARITIES;
     const names = [
       'Frame Solar',
       'Frame Lunar',

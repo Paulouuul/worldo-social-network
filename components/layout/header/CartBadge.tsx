@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCartSummary } from '@/hooks/queries/useWallet';
+import { ROUTES } from '@/constants/routes';
 
 /** Propriedades do atalho do carrinho. */
 interface CartBadgeProps {
@@ -30,7 +31,7 @@ export function CartBadge({ onClick }: CartBadgeProps) {
 
   return (
     <Link
-      href="/worldo/cosmetics/marketplace/cart"
+      href={ROUTES.cart}
       onClick={onClick}
       className="relative inline-flex items-center gap-2 bg-slate-900/60 hover:bg-purple-950/40 border border-purple-500/20 px-3 py-1.5 rounded-xl transition-all duration-300 group select-none backdrop-blur-sm"
     >

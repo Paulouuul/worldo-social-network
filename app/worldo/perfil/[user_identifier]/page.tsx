@@ -25,6 +25,7 @@ import {
   Star,
   Image as ImageIcon,
 } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
 
 /** Parâmetros da rota: publicId ou username. */
 interface ProfilePageProps {
@@ -121,7 +122,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="pt-1 sm:pt-0 self-start sm:self-end">
               {isOwnProfile && (
                 <Link
-                  href="/worldo/perfil/edit"
+                  href={ROUTES.profileEdit}
                   className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-slate-800 border border-slate-700/60 hover:bg-slate-700/80 text-slate-200 transition-all shadow-lg active:scale-[0.98]"
                 >
                   <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-400" />

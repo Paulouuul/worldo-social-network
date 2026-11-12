@@ -12,6 +12,8 @@ import GoogleProvider from 'next-auth/providers/google';
 import GitHubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
+import { ROUTES } from '@/constants/routes';
+import { USERNAME_LENGTH } from '@/constants/validation';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -40,8 +42,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
 
   // Espaço para o prefixo do email: 30 menos os 14 fixos de "user_" + "_" + 8 do uuid
   const FIXED_LENGTH = 5 + 1 + 8;
-  const MAX_USERNAME_LENGTH = 30;
-  const MAX_BASE_NAME_LENGTH = MAX_USERNAME_LENGTH - FIXED_LENGTH;
+  const MAX_BASE_NAME_LENGTH = USERNAME_LENGTH.max - FIXED_LENGTH;
 
   let truncatedBase = baseName;
   if (truncatedBase.length > MAX_BASE_NAME_LENGTH) {
@@ -51,7 +52,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
   let username = `user_${truncatedBase}_${uuid}`;
 
   // Se ainda passar do limite, usa apenas user_<uuid>
-  if (username.length > MAX_USERNAME_LENGTH) {
+  if (username.length > USERNAME_LENGTH.max) {
     username = `user_${uuid}`;
   }
 
@@ -71,7 +72,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
 
     const newUuid = crypto.randomUUID().substring(0, 8);
     username = `user_${truncatedBase}_${newUuid}`;
-    if (username.length > MAX_USERNAME_LENGTH) {
+    if (username.length > USERNAME_LENGTH.max) {
       username = `user_${newUuid}`;
     }
     attempts++;
@@ -80,7 +81,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
   // Último recurso: timestamp em base 36
   const timestamp = Date.now().toString(36).substring(0, 6);
   username = `user_${timestamp}`;
-  if (username.length > MAX_USERNAME_LENGTH) {
+  if (username.length > USERNAME_LENGTH.max) {
     username = `u_${timestamp}`;
   }
 
@@ -265,7 +266,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   pages: {
-    signIn: '/login',
+    signIn: ROUTES.login,
     error: '/auth/error',
   },
   session: {

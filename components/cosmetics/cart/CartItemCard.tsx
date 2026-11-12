@@ -9,6 +9,7 @@ import { ClientImage } from '@/components/ui/media/ClientImage';
 import { PriceTag } from '@/components/ui/dataDisplay/PriceTag';
 import { getRarityDesigns } from '@/constants/cosmeticRarity';
 import { formatFullNumber } from '@/lib/utils/formatUtils';
+import { ROUTES } from '@/constants/routes';
 
 /** Item do carrinho com dados do anúncio. */
 export interface CartItem {
@@ -154,7 +155,7 @@ export function CartItemCard({
             <div className="flex-1 min-w-0">
               {linkName ? (
                 <Link
-                  href={`/worldo/cosmetics/marketplace/${item.listing_id}`}
+                  href={ROUTES.listing(item.listing_id)}
                   className={`${nameClass} hover:underline transition`}
                 >
                   {item.name}

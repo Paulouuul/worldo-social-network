@@ -6,7 +6,8 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
 import { esClient, LISTINGS_INDEX } from '@/lib/search/elasticsearch';
 import { NextRequest, NextResponse } from 'next/server';
-import { Rarity } from '@prisma/client';
+import { parseRarities } from '@/lib/api/rarityParam';
+import { SORT } from '@/constants/marketplace';
 
 /** Maior posição paginável com from/size (max_result_window padrão do Elasticsearch). */
 const ES_MAX_RESULT_WINDOW = 10_000;
@@ -14,7 +15,7 @@ const ES_MAX_RESULT_WINDOW = 10_000;
 /**
  * GET /api/worldo/cosmetics/marketplace — anúncios ativos com estoque.
  *
- * Query: rarity, search (prefixo do nome, descrição, criador e vendedor), sort
+ * Query: rarity (uma ou mais, separadas por vírgula), search (prefixo do nome, descrição, criador e vendedor), sort
  * (newest|oldest|price_asc|price_desc), page e limit (1–100). Retorna listings, total (limitado
  * a 10.000), hasMore e ownedFrameIds (molduras da página que o usuário já possui).
  */
@@ -22,16 +23,8 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const { searchParams } = new URL(req.url);
-    const rarityParam = searchParams.get('rarity');
-    let rarityFilter: Rarity | undefined;
-    if (rarityParam && rarityParam !== 'all') {
-      const validRarities = Object.values(Rarity);
-      if (validRarities.includes(rarityParam as Rarity)) {
-        rarityFilter = rarityParam as Rarity;
-      }
-      // Raridade inválida é ignorada
-    }
-    const sort = searchParams.get('sort') || 'newest';
+    const rarities = parseRarities(searchParams.get('rarity'));
+    const sort = searchParams.get('sort') || SORT.newest;
     const search = searchParams.get('search') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '12'), 1), 100);
@@ -58,8 +51,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Filtro por raridade
-    if (rarityFilter) {
-      must.push({ term: { frameRarity: rarityFilter } });
+    if (rarities.length > 0) {
+      must.push({ terms: { frameRarity: rarities } });
     }
 
     // Busca por texto
@@ -109,13 +102,13 @@ export async function GET(req: NextRequest) {
     // Ordenação
     let sortField: any = [];
     switch (sort) {
-      case 'price_asc':
+      case SORT.priceAsc:
         sortField = [{ priceCoins: { order: 'asc' } }, { createdAt: { order: 'desc' } }];
         break;
-      case 'price_desc':
+      case SORT.priceDesc:
         sortField = [{ priceCoins: { order: 'desc' } }, { createdAt: { order: 'desc' } }];
         break;
-      case 'oldest':
+      case SORT.oldest:
         sortField = [{ createdAt: { order: 'asc' } }];
         break;
       default:

@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { ChevronRight, Store } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
 
 /** Propriedades da trilha. */
 interface BreadcrumbProps {
@@ -17,7 +18,7 @@ export function Breadcrumb({ current, currentClassName = 'text-slate-300' }: Bre
   return (
     <nav className="flex items-center gap-2 text-xs font-bold text-slate-500 mb-4 sm:mb-6 uppercase tracking-wider shrink-0 min-w-0">
       <Link
-        href="/worldo/cosmetics/marketplace"
+        href={ROUTES.marketplace}
         className="hover:text-purple-400 transition flex items-center gap-1 shrink-0"
       >
         <Store className="w-3.5 h-3.5" /> Marketplace

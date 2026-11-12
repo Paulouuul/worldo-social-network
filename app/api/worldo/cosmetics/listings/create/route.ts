@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
 import { syncToListing } from '@/lib/search/prismaSync';
 import { NextRequest, NextResponse } from 'next/server';
+import { LISTING_MAX_PRICE, LISTING_MAX_QUANTITY } from '@/constants/marketplace';
 
 /**
  * POST /api/worldo/cosmetics/listings/create — anuncia { frameId, quantity, priceCoins }.
@@ -13,12 +14,10 @@ import { NextRequest, NextResponse } from 'next/server';
  * Usa apenas unidades livres (não anunciadas e não equipadas). Se o usuário já tem anúncio
  * ativo da moldura, soma a quantidade e aplica o novo preço a todas as unidades; senão cria o
  * anúncio. Marca as unidades como anunciadas e sincroniza o anúncio com o Elasticsearch na
- * mesma transação. Limites: preço e quantidade até 1.000.000.
+ * mesma transação. Limites: LISTING_MAX_PRICE e LISTING_MAX_QUANTITY.
  */
 export async function POST(request: NextRequest) {
   try {
-    const MAX_PRICE = 1000000;
-    const MAX_QUANTITY = 1000000;
     console.log('[LISTING] Iniciando criação de anúncio...');
 
     const session = await auth();
@@ -40,8 +39,8 @@ export async function POST(request: NextRequest) {
       !priceCoins ||
       quantity <= 0 ||
       priceCoins <= 0 ||
-      priceCoins > MAX_PRICE ||
-      quantity > MAX_QUANTITY
+      priceCoins > LISTING_MAX_PRICE ||
+      quantity > LISTING_MAX_QUANTITY
     ) {
       console.log('[LISTING] Campos inválidos:', { frameId, quantity, priceCoins });
       return NextResponse.json({ error: 'Campos inválidos' }, { status: 400 });

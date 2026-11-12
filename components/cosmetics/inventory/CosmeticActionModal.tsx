@@ -32,6 +32,9 @@ import { Spinner } from '@/components/ui/feedback/Spinner';
 import { Modal } from '@/components/ui/overlays/Modal';
 import { buttonClass } from '@/components/ui/buttons/PrimaryButton';
 import { SummaryRow } from '@/components/ui/dataDisplay/SummaryRow';
+import { ROUTES } from '@/constants/routes';
+import { LISTING_MAX_PRICE, LISTING_MAX_QUANTITY } from '@/constants/marketplace';
+import { UI_TIMING } from '@/constants/ui';
 
 /** Modos do modal. */
 type ModalMode = 'sell' | 'view' | 'edit' | 'remove' | 'equip' | null;
@@ -103,8 +106,6 @@ export function CosmeticActionModal({
   const [localIsEquipped, setLocalIsEquipped] = useState(item.isEquipped);
   const [hasEquipChanged, setHasEquipChanged] = useState(false);
   const [localItem, setLocalItem] = useState(item);
-  const MAX_PRICE = 1000000;
-  const MAX_QUANTITY = 1000000;
 
   useEffect(() => {
     setLocalIsEquipped(item.isEquipped);
@@ -122,10 +123,10 @@ export function CosmeticActionModal({
     return localIsEquipped ? localItem.count - 1 : localItem.count;
   }, [localIsEquipped, localItem.count]);
 
-  // Mensagem de sucesso some após 3s
+  // Mensagem de sucesso some após UI_TIMING.messageMs
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(''), 3000);
+      const timer = setTimeout(() => setSuccessMessage(''), UI_TIMING.messageMs);
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
@@ -222,9 +223,9 @@ export function CosmeticActionModal({
         setLocalItem((prev) => ({ ...prev, count: newCount }));
         onSuccess();
         if (quantity >= localItem.count) {
-          setTimeout(() => handleClose(), 1500);
+          setTimeout(() => handleClose(), UI_TIMING.transitionMs);
         } else {
-          setTimeout(() => setCurrentMode('equip'), 1500);
+          setTimeout(() => setCurrentMode('equip'), UI_TIMING.transitionMs);
         }
       } else {
         setErrorMessage(data.error || 'Erro na validação do anúncio.');
@@ -254,7 +255,7 @@ export function CosmeticActionModal({
         setLocalItem((prev) => ({ ...prev, resalePrice: price }));
         setSuccessMessage('Preço atualizado com sucesso!');
         onSuccess();
-        setTimeout(() => setCurrentMode('view'), 1000);
+        setTimeout(() => setCurrentMode('view'), UI_TIMING.transitionMs);
       } else {
         setErrorMessage(data.error || 'Erro ao atualizar preço');
       }
@@ -285,9 +286,9 @@ export function CosmeticActionModal({
         setSuccessMessage(`${quantity} unidade(s) retiradas do mercado!`);
         onSuccess();
         if (quantity >= localItem.count) {
-          setTimeout(() => handleClose(), 1500);
+          setTimeout(() => handleClose(), UI_TIMING.transitionMs);
         } else {
-          setTimeout(() => setCurrentMode('view'), 1500);
+          setTimeout(() => setCurrentMode('view'), UI_TIMING.transitionMs);
         }
       } else {
         setErrorMessage(data.error || 'Erro ao remover do mercado');
@@ -545,7 +546,7 @@ export function CosmeticActionModal({
             </div>
             {item.listingId && (
               <Link
-                href={`/worldo/cosmetics/marketplace/${item.listingId}`}
+                href={ROUTES.listing(item.listingId)}
                 className="flex items-center justify-center gap-2 w-full bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -566,11 +567,14 @@ export function CosmeticActionModal({
                 <input
                   type="number"
                   min="1"
-                  max={Math.min(maxAvailable, MAX_QUANTITY)}
+                  max={Math.min(maxAvailable, LISTING_MAX_QUANTITY)}
                   value={quantity}
                   onChange={(e) =>
                     setQuantity(
-                      Math.min(parseInt(e.target.value) || 1, Math.min(maxAvailable, MAX_QUANTITY)),
+                      Math.min(
+                        parseInt(e.target.value) || 1,
+                        Math.min(maxAvailable, LISTING_MAX_QUANTITY),
+                      ),
                     )
                   }
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-semibold"
@@ -585,11 +589,11 @@ export function CosmeticActionModal({
                 <input
                   type="number"
                   min="1"
-                  max={MAX_PRICE}
+                  max={LISTING_MAX_PRICE}
                   value={price}
                   onChange={(e) => {
                     const value = parseInt(e.target.value) || 0;
-                    setPrice(Math.min(Math.max(1, value), MAX_PRICE));
+                    setPrice(Math.min(Math.max(1, value), LISTING_MAX_PRICE));
                   }}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-amber-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                   disabled={submitting}
@@ -670,11 +674,11 @@ export function CosmeticActionModal({
               <input
                 type="number"
                 min="1"
-                max={MAX_PRICE}
+                max={LISTING_MAX_PRICE}
                 value={price}
                 onChange={(e) => {
                   const value = parseInt(e.target.value) || 0;
-                  setPrice(Math.min(Math.max(1, value), MAX_PRICE));
+                  setPrice(Math.min(Math.max(1, value), LISTING_MAX_PRICE));
                 }}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-[transform,border-color,background-color,box-shadow] text-sm font-bold"
                 disabled={submitting}

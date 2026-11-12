@@ -8,6 +8,7 @@ import { ClientImage } from '@/components/ui/media/ClientImage';
 import Link from 'next/link';
 import { AlertCircle, ArrowLeft, LifeBuoy } from 'lucide-react';
 import { StatusCard, StatusPage } from '@/components/ui/feedback/StatusPage';
+import { ROUTES } from '@/constants/routes';
 
 /** Conteúdo da página de erro; lê o código de erro da URL. */
 function AuthErrorContent() {
@@ -64,7 +65,7 @@ function AuthErrorContent() {
 
       {/* Ações */}
       <Link
-        href="/login"
+        href={ROUTES.login}
         className="mt-8 flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-sm font-bold tracking-wide bg-slate-800/80 border border-white/[0.08] hover:border-purple-500/40 hover:bg-purple-600/10 text-slate-200 hover:text-purple-300 transition-all duration-300 shadow-lg active:scale-[0.98]"
       >
         <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />

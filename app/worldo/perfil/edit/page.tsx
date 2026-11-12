@@ -29,6 +29,16 @@ import {
 import { LoadingSpinner } from '@/components/ui/feedback/Loading';
 import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/forms/FormField';
+import { ROUTES } from '@/constants/routes';
+import { NAME_LENGTH, PROFILE_LIMITS, USERNAME_LENGTH } from '@/constants/validation';
+import {
+  ALLOWED_IMAGE_TYPES,
+  IMAGE_ACCEPT,
+  UPLOAD_LIMITS_MB,
+  mbToBytes,
+  uploadLimitText,
+} from '@/constants/uploads';
+import { UI_TIMING } from '@/constants/ui';
 
 /** Formato aceito para o site (http/https, domínio, localhost ou IP, porta e caminho opcionais). */
 const URL_REGEX =
@@ -46,15 +56,6 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // Limites de validação
-  const MAX_NAME_LENGTH = 50;
-  const MIN_NAME_LENGTH = 3;
-  const MAX_USERNAME_LENGTH = 30;
-  const MIN_USERNAME_LENGTH = 3;
-  const MAX_BIO_LENGTH = 500;
-  const MAX_LOCATION_LENGTH = 30;
-  const MAX_WEBSITE_LENGTH = 200;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -75,53 +76,54 @@ export default function EditProfilePage() {
     website: '',
   });
 
-  /** Valida o nome de exibição: 3–50 caracteres. */
+  /** Valida o nome de exibição (limites em NAME_LENGTH). */
   const validateName = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Nome é obrigatório';
-    if (trimmed.length < MIN_NAME_LENGTH)
-      return `Nome deve ter pelo menos ${MIN_NAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_NAME_LENGTH)
-      return `Nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres`;
+    if (trimmed.length < NAME_LENGTH.min)
+      return `Nome deve ter pelo menos ${NAME_LENGTH.min} caracteres`;
+    if (trimmed.length > NAME_LENGTH.max)
+      return `Nome deve ter no máximo ${NAME_LENGTH.max} caracteres`;
     return '';
   };
 
-  /** Valida o username: 3–30 caracteres com letras, números e underscore. */
+  /** Valida o username: letras, números e underscore (limites em USERNAME_LENGTH). */
   const validateUsername = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 'Username é obrigatório';
-    if (trimmed.length < MIN_USERNAME_LENGTH)
-      return `Username deve ter pelo menos ${MIN_USERNAME_LENGTH} caracteres`;
-    if (trimmed.length > MAX_USERNAME_LENGTH)
-      return `Username deve ter no máximo ${MAX_USERNAME_LENGTH} caracteres`;
+    if (trimmed.length < USERNAME_LENGTH.min)
+      return `Username deve ter pelo menos ${USERNAME_LENGTH.min} caracteres`;
+    if (trimmed.length > USERNAME_LENGTH.max)
+      return `Username deve ter no máximo ${USERNAME_LENGTH.max} caracteres`;
     if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
       return 'Username deve conter apenas letras, números e underscore';
     }
     return '';
   };
 
-  /** Valida a bio: até 500 caracteres. */
+  /** Valida a bio (limite em PROFILE_LIMITS.bio). */
   const validateBio = (value: string) => {
-    if (value.length > MAX_BIO_LENGTH) return `Bio deve ter no máximo ${MAX_BIO_LENGTH} caracteres`;
+    if (value.length > PROFILE_LIMITS.bio)
+      return `Bio deve ter no máximo ${PROFILE_LIMITS.bio} caracteres`;
     return '';
   };
 
-  /** Valida a localização: até 30 caracteres. */
+  /** Valida a localização (limite em PROFILE_LIMITS.location). */
   const validateLocation = (value: string) => {
-    if (value.length > MAX_LOCATION_LENGTH)
-      return `Localização deve ter no máximo ${MAX_LOCATION_LENGTH} caracteres`;
+    if (value.length > PROFILE_LIMITS.location)
+      return `Localização deve ter no máximo ${PROFILE_LIMITS.location} caracteres`;
     return '';
   };
 
   /**
-   * Valida o site (opcional): até 200 caracteres e formato de URL, assumindo https:// quando
+   * Valida o site (opcional): tamanho (PROFILE_LIMITS.website) e formato de URL, assumindo https:// quando
    * ausente.
    */
   const validateWebsite = (value: string) => {
     if (!value) return '';
 
-    if (value.length > MAX_WEBSITE_LENGTH)
-      return `Website deve ter no máximo ${MAX_WEBSITE_LENGTH} caracteres`;
+    if (value.length > PROFILE_LIMITS.website)
+      return `Website deve ter no máximo ${PROFILE_LIMITS.website} caracteres`;
 
     let testUrl = value;
     if (!testUrl.startsWith('http://') && !testUrl.startsWith('https://')) {
@@ -181,29 +183,25 @@ export default function EditProfilePage() {
     return <LoadingSpinner text="Carregando terminal de perfil..." withBackground fullScreen />;
   }
 
-  /** Valida o arquivo de avatar (até 5MB, GIF 3MB) ou capa (até 8MB, GIF 5MB) e mostra a prévia. */
+  /** Valida o arquivo de avatar ou capa (tipos e limites em constants/uploads) e mostra a prévia. */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/jfif', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       setError(`Formato de ${type} não suportado.`);
       return;
     }
 
-    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 8 * 1024 * 1024;
+    const limit = UPLOAD_LIMITS_MB[type];
 
-    if (file.type === 'image/gif') {
-      const gifLimit = type === 'avatar' ? 3 : 5;
-      if (file.size > gifLimit * 1024 * 1024) {
-        setError(`GIF muito grande para ${type}. Máximo: ${gifLimit}MB`);
-        return;
-      }
+    if (file.type === 'image/gif' && file.size > mbToBytes(limit.gif)) {
+      setError(`GIF muito grande para ${type}. Máximo: ${limit.gif}MB`);
+      return;
     }
 
-    if (file.size > maxSize) {
-      setError(`Arquivo de ${type} muito grande. Máximo ${maxSize / 1024 / 1024}MB.`);
+    if (file.size > mbToBytes(limit.max)) {
+      setError(`Arquivo de ${type} muito grande. Máximo ${limit.max}MB.`);
       return;
     }
 
@@ -352,7 +350,7 @@ export default function EditProfilePage() {
 
         setTimeout(() => {
           setSuccess('');
-        }, 1500);
+        }, UI_TIMING.messageMs);
       }
     } catch (_err) {
       setError('Erro ao conectar com o servidor');
@@ -372,9 +370,9 @@ export default function EditProfilePage() {
   /** Volta para o perfil público do usuário (ou para /login sem sessão). */
   const handleCancel = () => {
     if (session?.user?.publicId) {
-      router.push(`/worldo/perfil/${session.user?.publicId}`);
+      router.push(ROUTES.profileOf(session.user?.publicId));
     } else {
-      router.replace('/login');
+      router.replace(ROUTES.login);
     }
   };
 
@@ -435,7 +433,7 @@ export default function EditProfilePage() {
                   <input
                     ref={coverInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/jfif"
+                    accept={IMAGE_ACCEPT}
                     onChange={(e) => handleFileChange(e, 'cover')}
                     className="hidden"
                     id="cover-upload"
@@ -459,7 +457,9 @@ export default function EditProfilePage() {
                     </button>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-500">Máximo: 8MB (GIFs: 5MB)</p>
+                <p className="text-[10px] text-slate-500">
+                  {uploadLimitText(UPLOAD_LIMITS_MB.cover)}
+                </p>
               </div>
             </div>
           </div>
@@ -487,7 +487,7 @@ export default function EditProfilePage() {
                 <input
                   ref={avatarInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/gif,image/jfif"
+                  accept={IMAGE_ACCEPT}
                   onChange={(e) => handleFileChange(e, 'avatar')}
                   className="hidden"
                   id="avatar-upload"
@@ -514,7 +514,7 @@ export default function EditProfilePage() {
                   )}
                 </div>
                 <p className="text-[11px] text-slate-500 leading-normal">
-                  Máximo: 5MB (GIFs: 3MB).
+                  {uploadLimitText(UPLOAD_LIMITS_MB.avatar)}
                 </p>
               </div>
             </div>
@@ -526,7 +526,7 @@ export default function EditProfilePage() {
             <div>
               <FieldLabel
                 icon={AtSign}
-                counter={{ value: formData.username.length, max: MAX_USERNAME_LENGTH }}
+                counter={{ value: formData.username.length, max: USERNAME_LENGTH.max }}
               >
                 Nome de Usuário *
               </FieldLabel>
@@ -543,7 +543,7 @@ export default function EditProfilePage() {
                 required
                 disabled={loading}
                 placeholder="usuario_123"
-                maxLength={MAX_USERNAME_LENGTH}
+                maxLength={USERNAME_LENGTH.max}
               />
               <FieldError message={fieldErrors.username} />
             </div>
@@ -552,7 +552,7 @@ export default function EditProfilePage() {
             <div>
               <FieldLabel
                 icon={User}
-                counter={{ value: formData.name.length, max: MAX_NAME_LENGTH }}
+                counter={{ value: formData.name.length, max: NAME_LENGTH.max }}
               >
                 Nome de Exibição *
               </FieldLabel>
@@ -575,7 +575,7 @@ export default function EditProfilePage() {
                 required
                 disabled={loading}
                 placeholder="Seu nome"
-                maxLength={MAX_NAME_LENGTH}
+                maxLength={NAME_LENGTH.max}
               />
               <FieldError message={fieldErrors.name} />
             </div>
@@ -585,7 +585,7 @@ export default function EditProfilePage() {
           <div>
             <FieldLabel
               icon={FileText}
-              counter={{ value: formData.bio.length, max: MAX_BIO_LENGTH }}
+              counter={{ value: formData.bio.length, max: PROFILE_LIMITS.bio }}
             >
               Biografia da Entidade
             </FieldLabel>
@@ -607,7 +607,7 @@ export default function EditProfilePage() {
               disabled={loading}
               rows={3}
               placeholder="Fale um pouco sobre sua trajetória na rede..."
-              maxLength={MAX_BIO_LENGTH}
+              maxLength={PROFILE_LIMITS.bio}
             />
             <FieldError message={fieldErrors.bio} />
           </div>
@@ -618,7 +618,7 @@ export default function EditProfilePage() {
             <div>
               <FieldLabel
                 icon={MapPin}
-                counter={{ value: formData.location.length, max: MAX_LOCATION_LENGTH }}
+                counter={{ value: formData.location.length, max: PROFILE_LIMITS.location }}
               >
                 Coordenadas / Localização
               </FieldLabel>
@@ -633,7 +633,7 @@ export default function EditProfilePage() {
                 hasError={!!fieldErrors.location}
                 disabled={loading}
                 placeholder="Cidade, Estado ou Planeta"
-                maxLength={MAX_LOCATION_LENGTH}
+                maxLength={PROFILE_LIMITS.location}
               />
               <FieldError message={fieldErrors.location} />
             </div>
@@ -642,7 +642,7 @@ export default function EditProfilePage() {
             <div>
               <FieldLabel
                 icon={Link2}
-                counter={{ value: formData.website.length, max: MAX_WEBSITE_LENGTH }}
+                counter={{ value: formData.website.length, max: PROFILE_LIMITS.website }}
               >
                 Link de Hipertexto
               </FieldLabel>
@@ -667,7 +667,7 @@ export default function EditProfilePage() {
                 hasError={!!fieldErrors.website}
                 disabled={loading}
                 placeholder="https://seusite.com"
-                maxLength={MAX_WEBSITE_LENGTH}
+                maxLength={PROFILE_LIMITS.website}
               />
               <FieldError message={fieldErrors.website} />
             </div>

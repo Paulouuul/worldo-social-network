@@ -54,7 +54,8 @@ export const qk = {
   inventory: {
     all: () => ['inventory'] as const,
     list: (filters: InventoryFilters) => ['inventory', 'list', filters] as const,
-    stats: () => ['inventory', 'stats'] as const,
+    stats: (filters: { search: string; rarity: string }) =>
+      ['inventory', 'stats', filters] as const,
   },
 };
 

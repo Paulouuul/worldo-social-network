@@ -13,6 +13,8 @@ import {
   type PagedSource,
 } from '@/components/ui/dataDisplay/VirtualizedPagedGrid';
 import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { ROUTES } from '@/constants/routes';
+import { BREAKPOINTS } from '@/constants/ui';
 
 /** Anúncio exibido na grade. */
 export interface MarketplaceListing {
@@ -59,11 +61,11 @@ function ownedSet(page: ListingsPage<any>) {
 
 /** Colunas da grade conforme a largura da janela (2 a 7). */
 const columnsForWidth = (width: number) => {
-  if (width < 480) return 2;
-  if (width < 640) return 3;
-  if (width < 768) return 4;
-  if (width < 1024) return 5;
-  if (width < 1280) return 6;
+  if (width < BREAKPOINTS.xs) return 2;
+  if (width < BREAKPOINTS.sm) return 3;
+  if (width < BREAKPOINTS.md) return 4;
+  if (width < BREAKPOINTS.lg) return 5;
+  if (width < BREAKPOINTS.xl) return 6;
   return 7;
 };
 
@@ -79,7 +81,7 @@ const MarketplaceItem = ({
   isOwned: boolean;
 }) => (
   <CosmeticCard
-    href={`/worldo/cosmetics/marketplace/${listing.id}`}
+    href={ROUTES.listing(listing.id)}
     name={listing.frame.name}
     rarity={listing.frame.rarity}
     imageUrl={listing.frame.thumbnailUrl || listing.frame.imageUrl}

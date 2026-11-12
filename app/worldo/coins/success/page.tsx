@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { ROUTES } from '@/constants/routes';
 
 /** Confirmação do pagamento com contagem regressiva até voltar para /worldo/coins. */
 function SuccessPageContent() {
@@ -30,7 +31,7 @@ function SuccessPageContent() {
   // Ao chegar a zero, volta para a loja de moedas
   useEffect(() => {
     if (countdown === 0) {
-      router.replace('/worldo/coins');
+      router.replace(ROUTES.coins);
     }
   }, [countdown, router]);
 
@@ -67,7 +68,7 @@ function SuccessPageContent() {
 
         {/* Voltar agora */}
         <Link
-          href="/worldo/coins"
+          href={ROUTES.coins}
           className="w-full inline-flex items-center justify-center gap-2 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 group"
         >
           <span>Voltar para Loja Agora</span>

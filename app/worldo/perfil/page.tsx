@@ -4,16 +4,17 @@
 
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { ROUTES } from '@/constants/routes';
 
 /** Redireciona para /login sem sessão ou para o perfil do usuário pelo publicId. */
 export default async function PerfilRedirectPage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(ROUTES.login);
   }
   <div className="text-center py-12">Redirecionando para seu perfil...</div>;
 
   const publicId = session.user.publicId;
-  redirect(`/worldo/perfil/${publicId}`);
+  redirect(ROUTES.profileOf(publicId));
 }

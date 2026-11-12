@@ -35,6 +35,8 @@ import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 import { Modal } from '@/components/ui/overlays/Modal';
 import { buttonClass } from '@/components/ui/buttons/PrimaryButton';
 import { SummaryRow } from '@/components/ui/dataDisplay/SummaryRow';
+import { ROUTES } from '@/constants/routes';
+import { UI_TIMING } from '@/constants/ui';
 
 /**
  * Carrinho sempre buscado do servidor. Cada alteração invalida carrinho, resumo do Header e
@@ -65,7 +67,7 @@ export default function CartPage() {
     isInitialLoad.current = false;
     if (cart && cart.items.length === 0) {
       setRedirecting(true);
-      router.replace('/worldo');
+      router.replace(ROUTES.home);
     }
   }, [cartQuery.isSuccess, cart, router]);
 
@@ -144,7 +146,7 @@ export default function CartPage() {
       setError(err instanceof Error ? err.message : 'Erro ao limpar carrinho');
     } finally {
       setSubmitting(false);
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(''), UI_TIMING.messageMs);
     }
   };
 
@@ -168,7 +170,7 @@ export default function CartPage() {
         await refreshCart();
         return;
       }
-      router.push('/worldo/cosmetics/marketplace/checkout');
+      router.push(ROUTES.checkout);
     } catch (err) {
       console.error('Erro ao validar carrinho:', err);
       setError(err instanceof Error ? err.message : 'Erro ao validar carrinho');
@@ -261,7 +263,7 @@ export default function CartPage() {
                 Explore o marketplace e adicione molduras incríveis ao seu carrinho!
               </p>
               <Link
-                href="/worldo/cosmetics/marketplace"
+                href={ROUTES.marketplace}
                 className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-purple-900/20"
               >
                 <Store className="w-5 h-5" />
@@ -379,7 +381,7 @@ export default function CartPage() {
 
             <div className="mt-6 pt-4 border-t border-slate-800/50 text-[10px] text-slate-500 text-center font-medium">
               <Link
-                href="/worldo/cosmetics/marketplace"
+                href={ROUTES.marketplace}
                 className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition font-medium py-3 rounded-xl hover:bg-slate-800/50"
               >
                 <ArrowLeft className="w-4 h-4" />

@@ -3,6 +3,7 @@
 
 import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { ROUTES } from '@/constants/routes';
 
 /**
  * GET /api/auth/verify-email?token=... — valida o token de verificação, marca o email como
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     // Token é de uso único
     await prisma.verification_tokens.delete({ where: { token } });
 
-    const loginUrl = new URL('/login', process.env.NEXT_PUBLIC_APP_URL);
+    const loginUrl = new URL(ROUTES.login, process.env.NEXT_PUBLIC_APP_URL);
     loginUrl.searchParams.set('verified', 'true');
 
     return NextResponse.redirect(loginUrl);

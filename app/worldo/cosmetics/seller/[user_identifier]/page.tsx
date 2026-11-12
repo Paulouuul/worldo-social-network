@@ -15,7 +15,8 @@ import {
   CatalogFilters,
   LISTING_SORT_OPTIONS,
   SortSelector,
-  type RarityFilterValue,
+  toRarityParam,
+  type RaritySelection,
 } from '@/components/cosmetics/catalog/CatalogFilters';
 import { ArrowLeft, Package, Store, Sparkles, Calendar } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/feedback/Loading';
@@ -30,6 +31,8 @@ import {
 import { fetchJson, HttpError, toQueryString } from '@/lib/api/fetcher';
 import { cachePolicy, qk } from '@/lib/query/queryKeys';
 import { Breadcrumb } from '@/components/ui/navigation/Breadcrumb';
+import { ROUTES } from '@/constants/routes';
+import { CATALOG_PAGE_SIZE, SORT } from '@/constants/marketplace';
 
 /** Dados públicos do vendedor. */
 interface SellerData {
@@ -97,19 +100,17 @@ export default function SellerPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [rarityFilter, setRarityFilter] = useState<RarityFilterValue>('all');
-  const [sort, setSort] = useState('newest');
-
-  const ITEMS_PER_PAGE = 56;
+  const [rarityFilter, setRarityFilter] = useState<RaritySelection>([]);
+  const [sort, setSort] = useState<string>(SORT.newest);
 
   const source = useMemo<PagedSource<ListingData, ApiResponse>>(() => {
-    const filters = { rarity: rarityFilter, sort, search: searchTerm };
+    const filters = { rarity: toRarityParam(rarityFilter), sort, search: searchTerm };
     return {
       baseKey: qk.seller.list(userIdentifier, filters),
-      pageSize: ITEMS_PER_PAGE,
+      pageSize: CATALOG_PAGE_SIZE,
       fetchPage: (page, signal) =>
         fetchJson<ApiResponse>(
-          `/api/worldo/cosmetics/seller/${encodeURIComponent(userIdentifier)}${toQueryString({ ...filters, page, limit: ITEMS_PER_PAGE })}`,
+          `/api/worldo/cosmetics/seller/${encodeURIComponent(userIdentifier)}${toQueryString({ ...filters, page, limit: CATALOG_PAGE_SIZE })}`,
           { signal },
         ),
       select: selectListings,
@@ -149,7 +150,7 @@ export default function SellerPage() {
             : 'Ocorreu um erro ao carregar os dados. Tente novamente mais tarde.'}
         </p>
         <Link
-          href="/worldo/cosmetics/marketplace"
+          href={ROUTES.marketplace}
           className="bg-slate-800 border border-slate-700 hover:border-purple-500/50 text-white px-6 py-3 rounded-xl transition flex items-center gap-2 font-bold shadow-lg"
         >
           <ArrowLeft className="w-4 h-4" /> Voltar ao Marketplace
@@ -223,8 +224,8 @@ export default function SellerPage() {
             onSearchInputChange={setSearchInput}
             onSearch={setSearchTerm}
             searchPlaceholder="Buscar itens deste vendedor..."
-            rarity={rarityFilter}
-            onRarityChange={setRarityFilter}
+            rarities={rarityFilter}
+            onRaritiesChange={setRarityFilter}
           />
           <SortSelector options={LISTING_SORT_OPTIONS} value={sort} onChange={setSort} />
         </>

@@ -13,6 +13,7 @@ import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 import { FieldLabel, TextInput } from '@/components/ui/forms/FormField';
 import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 import { AuthShell } from '@/components/auth/AuthShell';
+import { ROUTES } from '@/constants/routes';
 
 /** Formulário de login. Lê ?verified e ?error da URL para exibir mensagens. */
 function LoginContent() {
@@ -94,7 +95,7 @@ function LoginContent() {
         }
         setLoading(false);
       } else {
-        router.push('/worldo');
+        router.push(ROUTES.home);
       }
     } catch (_err) {
       setError('Erro ao conectar com o servidor');
@@ -109,7 +110,7 @@ function LoginContent() {
       symmetricTitle
       footerText="Não tem uma conta?"
       footerLink={{
-        href: '/register',
+        href: ROUTES.register,
         label: (
           <>
             Registre-se{' '}
@@ -186,7 +187,7 @@ function LoginContent() {
       {/* Provedores OAuth com SVG customizado */}
       <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={() => signIn('google', { callbackUrl: '/worldo' })}
+          onClick={() => signIn('google', { callbackUrl: ROUTES.home })}
           className="flex items-center justify-center gap-2 bg-slate-950 border border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white py-2.5 px-4 rounded-xl transition text-xs font-semibold"
         >
           <svg
@@ -217,7 +218,7 @@ function LoginContent() {
         </button>
 
         <button
-          onClick={() => signIn('github', { callbackUrl: '/worldo' })}
+          onClick={() => signIn('github', { callbackUrl: ROUTES.home })}
           className="flex items-center justify-center gap-2 bg-slate-950 border border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white py-2.5 px-4 rounded-xl transition text-xs font-semibold"
         >
           <svg
