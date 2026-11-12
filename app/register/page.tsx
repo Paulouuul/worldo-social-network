@@ -7,9 +7,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { User, AtSign, Mail, Lock, UserPlus, ArrowLeft } from 'lucide-react';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
-import { FieldError, FieldLabel, TextInput } from '@/components/ui/FormField';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
+import { FieldError, FieldLabel, TextInput } from '@/components/ui/forms/FormField';
+import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 import { AuthShell } from '@/components/auth/AuthShell';
 
 /** Formulário de cadastro com validação por campo e redirecionamento para /login após o sucesso. */

@@ -8,14 +8,14 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { AvatarWithFrame } from '@/components/AvatarWithFrame';
+import { AvatarWithFrame } from '@/components/cosmetics/AvatarWithFrame';
 import { getRarityDesigns, Rarity } from '@/constants/cosmeticRarity';
-import { backendApiCall } from '@/lib/backendApiClient';
-import { backendJson, fetchJson } from '@/lib/fetcher';
-import { invalidate } from '@/lib/invalidate';
+import { backendApiCall } from '@/lib/api/backendApiClient';
+import { backendJson, fetchJson } from '@/lib/api/fetcher';
+import { invalidate } from '@/lib/query/invalidate';
 import { useMe } from '@/hooks/queries/useMe';
-import { cachePolicy, qk } from '@/lib/query-keys';
-import { formatFullNumber } from '@/lib/format-utils';
+import { cachePolicy, qk } from '@/lib/query/queryKeys';
+import { formatFullNumber } from '@/lib/utils/formatUtils';
 import {
   Coins,
   User,
@@ -32,12 +32,12 @@ import {
   CheckCircle2,
   ShoppingBag,
 } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
-import { LoadingSpinner } from '@/components/Loading';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { CosmeticCard } from '@/components/catalog/CosmeticCard';
-import { PriceTag, QuantityTag } from '@/components/ui/PriceTag';
+import { Spinner } from '@/components/ui/feedback/Spinner';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
+import { Breadcrumb } from '@/components/ui/navigation/Breadcrumb';
+import { CosmeticCard } from '@/components/cosmetics/catalog/CosmeticCard';
+import { PriceTag, QuantityTag } from '@/components/ui/dataDisplay/PriceTag';
 
 /** Anúncio retornado por /api/worldo/cosmetics/listings/[id]. */
 interface ListingData {

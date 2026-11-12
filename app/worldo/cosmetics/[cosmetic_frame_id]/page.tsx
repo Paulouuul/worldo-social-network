@@ -4,19 +4,19 @@
 'use client';
 
 import { useState } from 'react';
-import { PrimaryButton, buttonClass } from '@/components/ui/PrimaryButton';
-import { SelectInput, TextInput } from '@/components/ui/FormField';
+import { PrimaryButton, buttonClass } from '@/components/ui/buttons/PrimaryButton';
+import { SelectInput, TextInput } from '@/components/ui/forms/FormField';
 import { useQuery } from '@tanstack/react-query';
-import { fetchJson } from '@/lib/fetcher';
-import { cachePolicy, qk } from '@/lib/query-keys';
+import { fetchJson } from '@/lib/api/fetcher';
+import { cachePolicy, qk } from '@/lib/query/queryKeys';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ClientImage } from '@/components/ClientImage';
+import { ClientImage } from '@/components/ui/media/ClientImage';
 import { Star, ShoppingBag, Users, Coins, User } from 'lucide-react';
-import { LoadingSpinner } from '@/components/Loading';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
+import { Breadcrumb } from '@/components/ui/navigation/Breadcrumb';
 
 /** Moldura retornada por /api/worldo/cosmetics/[id]. */
 interface FrameData {

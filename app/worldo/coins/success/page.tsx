@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
-import { LoadingSpinner } from '@/components/Loading';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
 
 /** Confirmação do pagamento com contagem regressiva até voltar para /worldo/coins. */
 function SuccessPageContent() {

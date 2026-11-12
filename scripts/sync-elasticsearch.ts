@@ -3,8 +3,8 @@
 // Executar com: npx tsx scripts/sync-elasticsearch.ts
 
 import 'dotenv/config';
-import { prisma } from '../lib/prisma';
-import { esClient, LISTINGS_INDEX, setupElasticsearchIndices } from '../lib/elasticsearch';
+import { prisma } from '../lib/db/prisma';
+import { esClient, LISTINGS_INDEX, setupElasticsearchIndices } from '../lib/search/elasticsearch';
 
 /** Garante o índice, lê os anúncios ativos com moldura, criador e vendedor e indexa cada um. */
 async function syncExistingListings() {
@@ -56,7 +56,7 @@ async function syncExistingListings() {
     let indexedCount = 0;
     for (const listing of listings) {
       try {
-        // Mesmo formato de documento do sync automático (lib/prisma-sync.ts)
+        // Mesmo formato de documento do sync automático (lib/search/prismaSync.ts)
         await esClient.index({
           index: LISTINGS_INDEX,
           id: listing.id,

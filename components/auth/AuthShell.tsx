@@ -5,7 +5,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
-import { ClientImage } from '@/components/ClientImage';
+import { ClientImage } from '@/components/ui/media/ClientImage';
 
 /** Propriedades da moldura de autenticação. */
 interface AuthShellProps {

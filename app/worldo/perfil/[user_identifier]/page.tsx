@@ -2,14 +2,14 @@
 // Página /worldo/perfil/[user_identifier]: perfil público (server component) com capa, avatar e
 // moldura, dados do usuário, métricas e bio; o próprio usuário vê o botão de editar.
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/auth';
-import { ClientImage } from '@/components/ClientImage';
+import { ClientImage } from '@/components/ui/media/ClientImage';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AvatarWithFrame } from '@/components/AvatarWithFrame';
+import { AvatarWithFrame } from '@/components/cosmetics/AvatarWithFrame';
 import { RARITY } from '@/constants/cosmeticRarity';
-import { ProfileBio } from '@/components/ProfileBio';
+import { ProfileBio } from '@/components/profile/ProfileBio';
 import {
   Pencil,
   MapPin,

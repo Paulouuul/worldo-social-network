@@ -11,28 +11,28 @@ import {
   CatalogHeader,
   CatalogLayout,
   catalogActionClass,
-} from '@/components/catalog/CatalogLayout';
+} from '@/components/cosmetics/catalog/CatalogLayout';
 import {
   CatalogFilters,
   INVENTORY_SORT_OPTIONS,
   SortSelector,
   type RarityFilterValue,
-} from '@/components/catalog/CatalogFilters';
-import { CosmeticActionModal } from '@/components/CosmeticActionModal';
+} from '@/components/cosmetics/catalog/CatalogFilters';
+import { CosmeticActionModal } from '@/components/cosmetics/inventory/CosmeticActionModal';
 import { Package, Plus, Store, Box, type LucideIcon } from 'lucide-react';
-import { formatItemCount } from '@/lib/format-utils';
-import { LoadingSpinner } from '@/components/Loading';
+import { formatItemCount } from '@/lib/utils/formatUtils';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
 import {
   InventoryVirtualized,
   selectInventory,
   type GroupedItem,
   type InventoryPage,
-} from '@/components/InventoryVirtualized';
-import type { PagedSource } from '@/components/VirtualizedPagedGrid';
+} from '@/components/cosmetics/inventory/InventoryVirtualized';
+import type { PagedSource } from '@/components/ui/dataDisplay/VirtualizedPagedGrid';
 import { useMe } from '@/hooks/queries/useMe';
-import { fetchJson, toQueryString } from '@/lib/fetcher';
-import { invalidate } from '@/lib/invalidate';
-import { cachePolicy, qk } from '@/lib/query-keys';
+import { fetchJson, toQueryString } from '@/lib/api/fetcher';
+import { invalidate } from '@/lib/query/invalidate';
+import { cachePolicy, qk } from '@/lib/query/queryKeys';
 
 /** Situação dos itens exibidos: todos, à venda ou livres. */
 type FilterType = 'all' | 'listed' | 'unlisted';

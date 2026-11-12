@@ -11,14 +11,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCoinBalance } from '@/hooks/queries/useWallet';
 import { useCreationPackages } from '@/hooks/queries/useCatalog';
 import { useMe } from '@/hooks/queries/useMe';
-import { invalidate } from '@/lib/invalidate';
+import { invalidate } from '@/lib/query/invalidate';
 import Link from 'next/link';
-import { ClientImage } from '@/components/ClientImage';
-import { backendApiCall } from '@/lib/backendApiClient';
-import { AvatarWithFrame } from '@/components/AvatarWithFrame';
+import { ClientImage } from '@/components/ui/media/ClientImage';
+import { backendApiCall } from '@/lib/api/backendApiClient';
+import { AvatarWithFrame } from '@/components/cosmetics/AvatarWithFrame';
 import { getRarityDesigns, RARITY, Rarity, VALID_RARITIES } from '@/constants/cosmeticRarity';
-import { formatPrice } from '@/lib/format-utils';
-import { LoadingSpinner } from '@/components/Loading';
+import { formatPrice } from '@/lib/utils/formatUtils';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
 import {
   Sparkles,
   FileText,
@@ -30,8 +30,8 @@ import {
   X,
   Image as ImageIcon,
 } from 'lucide-react';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
-import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/FormField';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
+import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/forms/FormField';
 
 /** Campos do formulário de criação. */
 interface FormData {

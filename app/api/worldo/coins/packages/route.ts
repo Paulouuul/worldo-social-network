@@ -1,7 +1,7 @@
 // app/api/worldo/coins/packages/route.ts
 // Rota /api/worldo/coins/packages: lista os pacotes de moedas ativos.
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextResponse } from 'next/server';
 
 /** Revalidação do cache da rota (segundos). */

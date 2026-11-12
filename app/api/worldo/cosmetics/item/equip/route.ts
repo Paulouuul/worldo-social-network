@@ -2,7 +2,7 @@
 // Rota /api/worldo/cosmetics/item/equip: equipa uma moldura no perfil do usuário.
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**

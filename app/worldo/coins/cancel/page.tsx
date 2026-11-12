@@ -4,7 +4,7 @@
 
 import Link from 'next/link';
 import { XCircle, RefreshCcw, Home } from 'lucide-react';
-import { StatusCard, StatusPage } from '@/components/ui/StatusPage';
+import { StatusCard, StatusPage } from '@/components/ui/feedback/StatusPage';
 
 /** Informa que nenhuma cobrança foi feita e oferece voltar à loja de moedas ou ao início. */
 export default function CancelPage() {

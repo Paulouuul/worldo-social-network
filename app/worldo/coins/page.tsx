@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useCoinBalance } from '@/hooks/queries/useWallet';
 import { useCoinPackages } from '@/hooks/queries/useCatalog';
-import { formatFullNumber } from '@/lib/format-utils';
+import { formatFullNumber } from '@/lib/utils/formatUtils';
 
 import {
   Coins,
@@ -20,9 +20,9 @@ import {
   TrendingUp,
   Package,
 } from 'lucide-react';
-import { LoadingSpinner } from '@/components/Loading';
-import { Spinner } from '@/components/ui/Spinner';
-import { Modal } from '@/components/ui/Modal';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { Spinner } from '@/components/ui/feedback/Spinner';
+import { Modal } from '@/components/ui/overlays/Modal';
 
 /** Pacote de moedas exibido na loja. */
 interface CoinPackage {

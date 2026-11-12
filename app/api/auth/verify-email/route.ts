@@ -1,7 +1,7 @@
 // app/api/auth/verify-email/route.ts
 // Rota /api/auth/verify-email: confirma o email do cadastro a partir do token enviado por email.
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**

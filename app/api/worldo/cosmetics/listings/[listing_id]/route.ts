@@ -1,7 +1,7 @@
 // app/api/worldo/cosmetics/listings/[listing_id]/route.ts
 // Rota /api/worldo/cosmetics/listings/[listing_id]: detalhes de um anúncio ativo do marketplace.
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
 

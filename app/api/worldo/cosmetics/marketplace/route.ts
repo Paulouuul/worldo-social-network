@@ -3,8 +3,8 @@
 // excluindo os anúncios do próprio usuário.
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { esClient, LISTINGS_INDEX } from '@/lib/elasticsearch';
+import { prisma } from '@/lib/db/prisma';
+import { esClient, LISTINGS_INDEX } from '@/lib/search/elasticsearch';
 import { NextRequest, NextResponse } from 'next/server';
 import { Rarity } from '@prisma/client';
 

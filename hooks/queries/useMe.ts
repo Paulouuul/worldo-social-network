@@ -4,8 +4,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { fetchJson } from '@/lib/fetcher';
-import { qk } from '@/lib/query-keys';
+import { fetchJson } from '@/lib/api/fetcher';
+import { qk } from '@/lib/query/queryKeys';
 import type { Rarity } from '@/constants/cosmeticRarity';
 
 /** Perfil do usuário logado retornado por /api/worldo/me. */

@@ -30,8 +30,8 @@ worldo-private/
 
 
 
-lib/r2.ts - Cliente R2
+lib/storage/r2.ts - Cliente R2
 
-lib/r2-upload.ts - Funções de upload
+lib/storage/r2Upload.ts - Funções de upload
 
 app/api/upload/avatar/route.ts - API de upload de avatar

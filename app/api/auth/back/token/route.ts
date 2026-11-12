@@ -4,7 +4,7 @@
 
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
-import { generateJwtToken } from '@/lib/backend-jwt-token-generator';
+import { generateJwtToken } from '@/lib/auth/backendToken/backendJwtTokenGenerator';
 
 /** GET /api/auth/back/token — gera o JWT do backend a partir da sessão. 401 sem sessão. */
 export async function GET() {

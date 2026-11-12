@@ -1,7 +1,7 @@
 // app/api/worldo/user/[user_identifier]/route.ts
 // Rota /api/worldo/user/[user_identifier]: perfil público de um usuário.
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 

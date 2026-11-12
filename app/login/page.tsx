@@ -8,10 +8,10 @@ import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
-import { LoadingSpinner } from '@/components/Loading';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
-import { FieldLabel, TextInput } from '@/components/ui/FormField';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
+import { FieldLabel, TextInput } from '@/components/ui/forms/FormField';
+import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 import { AuthShell } from '@/components/auth/AuthShell';
 
 /** Formulário de login. Lê ?verified e ?error da URL para exibir mensagens. */

@@ -1,7 +1,7 @@
 // app/api/worldo/cosmetics/[cosmetic_frame_id]/route.ts
 // Rota /api/worldo/cosmetics/[cosmetic_frame_id]: detalhes de uma moldura cosmética.
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 

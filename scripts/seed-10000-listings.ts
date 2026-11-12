@@ -3,8 +3,8 @@
 // vendedor e molduras existentes. Executar com: npx tsx scripts/seed-10000-listings.ts
 
 import 'dotenv/config';
-import { prisma } from '../lib/prisma';
-import { esClient, LISTINGS_INDEX } from '../lib/elasticsearch';
+import { prisma } from '../lib/db/prisma';
+import { esClient, LISTINGS_INDEX } from '../lib/search/elasticsearch';
 
 /** Gera e indexa em bulk 10.000 documentos de anúncio e imprime alguns exemplos. */
 async function seed10000Listings() {

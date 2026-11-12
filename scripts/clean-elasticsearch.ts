@@ -3,8 +3,8 @@
 // ativos no PostgreSQL. Executar com: npx tsx scripts/clean-elasticsearch.ts
 
 import 'dotenv/config';
-import { prisma } from '../lib/prisma';
-import { esClient, LISTINGS_INDEX } from '../lib/elasticsearch';
+import { prisma } from '../lib/db/prisma';
+import { esClient, LISTINGS_INDEX } from '../lib/search/elasticsearch';
 
 /** Compara os ids do índice com os anúncios ativos no banco e apaga os órfãos em lotes. */
 async function cleanElasticsearch() {

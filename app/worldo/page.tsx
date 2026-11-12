@@ -3,9 +3,9 @@
 // moedas e chat.
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import Link from 'next/link';
-import { LogoutButton } from '@/components/LogoutButton';
+import { LogoutButton } from '@/components/auth/LogoutButton';
 import { Sparkles, UserCircle, Palette, Coins, MessageSquare } from 'lucide-react';
 
 /**

@@ -3,8 +3,8 @@
 // usuário.
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { syncToListing } from '@/lib/prisma-sync';
+import { prisma } from '@/lib/db/prisma';
+import { syncToListing } from '@/lib/search/prismaSync';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**

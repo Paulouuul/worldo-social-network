@@ -14,14 +14,14 @@ import {
   OrderPageHeader,
   isItemOutOfStock,
   type CartData,
-} from '@/components/cart/CartItemCard';
-import { invalidate } from '@/lib/invalidate';
-import { formatItemCount, formatPrice } from '@/lib/format-utils';
+} from '@/components/cosmetics/cart/CartItemCard';
+import { invalidate } from '@/lib/query/invalidate';
+import { formatItemCount, formatPrice } from '@/lib/utils/formatUtils';
 import { ArrowLeft, Coins, AlertTriangle, CheckCircle2, Package, CreditCard } from 'lucide-react';
-import { LoadingSpinner } from '@/components/Loading';
-import { Spinner } from '@/components/ui/Spinner';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
-import { SummaryRow } from '@/components/ui/SummaryRow';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { Spinner } from '@/components/ui/feedback/Spinner';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
+import { SummaryRow } from '@/components/ui/dataDisplay/SummaryRow';
 
 /**
  * Checkout com carrinho e saldo sempre buscados do servidor. Após a compra o carrinho deixa de

@@ -8,22 +8,28 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { AvatarWithFrame } from '@/components/AvatarWithFrame';
+import { AvatarWithFrame } from '@/components/cosmetics/AvatarWithFrame';
 import type { Rarity } from '@/constants/cosmeticRarity';
-import { CatalogLayout } from '@/components/catalog/CatalogLayout';
+import { CatalogLayout } from '@/components/cosmetics/catalog/CatalogLayout';
 import {
   CatalogFilters,
   LISTING_SORT_OPTIONS,
   SortSelector,
   type RarityFilterValue,
-} from '@/components/catalog/CatalogFilters';
+} from '@/components/cosmetics/catalog/CatalogFilters';
 import { ArrowLeft, Package, Store, Sparkles, Calendar } from 'lucide-react';
-import { LoadingSpinner } from '@/components/Loading';
-import { MarketplaceVirtualized, selectListings } from '@/components/MarketplaceVirtualized';
-import { pageQueryOptions, type PagedSource } from '@/components/VirtualizedPagedGrid';
-import { fetchJson, HttpError, toQueryString } from '@/lib/fetcher';
-import { cachePolicy, qk } from '@/lib/query-keys';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import {
+  MarketplaceVirtualized,
+  selectListings,
+} from '@/components/cosmetics/marketplace/MarketplaceVirtualized';
+import {
+  pageQueryOptions,
+  type PagedSource,
+} from '@/components/ui/dataDisplay/VirtualizedPagedGrid';
+import { fetchJson, HttpError, toQueryString } from '@/lib/api/fetcher';
+import { cachePolicy, qk } from '@/lib/query/queryKeys';
+import { Breadcrumb } from '@/components/ui/navigation/Breadcrumb';
 
 /** Dados públicos do vendedor. */
 interface SellerData {

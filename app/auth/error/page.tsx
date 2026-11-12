@@ -4,10 +4,10 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ClientImage } from '@/components/ClientImage';
+import { ClientImage } from '@/components/ui/media/ClientImage';
 import Link from 'next/link';
 import { AlertCircle, ArrowLeft, LifeBuoy } from 'lucide-react';
-import { StatusCard, StatusPage } from '@/components/ui/StatusPage';
+import { StatusCard, StatusPage } from '@/components/ui/feedback/StatusPage';
 
 /** Conteúdo da página de erro; lê o código de erro da URL. */
 function AuthErrorContent() {

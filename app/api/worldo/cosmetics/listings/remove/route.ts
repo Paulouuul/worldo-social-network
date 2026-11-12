@@ -3,8 +3,8 @@
 // devolve ao inventário livre do vendedor.
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { syncToListing, removeFromElasticsearch } from '@/lib/prisma-sync';
+import { prisma } from '@/lib/db/prisma';
+import { syncToListing, removeFromElasticsearch } from '@/lib/search/prismaSync';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**

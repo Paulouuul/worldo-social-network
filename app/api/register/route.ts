@@ -2,7 +2,7 @@
 // Rota /api/register: cadastro com email e senha. Cria o usuário não verificado e envia o email
 // de verificação via Resend.
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { Resend } from 'resend';

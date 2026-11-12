@@ -7,11 +7,11 @@ import { useRef, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMe, type Me } from '@/hooks/queries/useMe';
-import { qk } from '@/lib/query-keys';
+import { qk } from '@/lib/query/queryKeys';
 import { useRouter } from 'next/navigation';
-import { ClientImage } from '@/components/ClientImage';
-import { backendApiCall } from '@/lib/backendApiClient';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
+import { ClientImage } from '@/components/ui/media/ClientImage';
+import { backendApiCall } from '@/lib/api/backendApiClient';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
 
 import {
   Sparkles,
@@ -26,9 +26,9 @@ import {
   X,
   Image as ImageIcon,
 } from 'lucide-react';
-import { LoadingSpinner } from '@/components/Loading';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/FormField';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
+import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
+import { FieldError, FieldLabel, TextArea, TextInput } from '@/components/ui/forms/FormField';
 
 /** Formato aceito para o site (http/https, domínio, localhost ou IP, porta e caminho opcionais). */
 const URL_REGEX =

@@ -5,8 +5,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { backendJson, fetchJson } from '@/lib/fetcher';
-import { cachePolicy, qk } from '@/lib/query-keys';
+import { backendJson, fetchJson } from '@/lib/api/fetcher';
+import { cachePolicy, qk } from '@/lib/query/queryKeys';
 
 /** Totais do carrinho retornados pelo backend. */
 export interface CartSummary {

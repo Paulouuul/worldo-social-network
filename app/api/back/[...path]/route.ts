@@ -4,8 +4,8 @@
 // gerado no servidor a partir da sessão.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { backendApiServerCall } from '@/lib/backendApiClient';
-import { serverTokenManager } from '@/lib/serverBackendTokenManager';
+import { backendApiServerCall } from '@/lib/api/backendApiClient';
+import { serverTokenManager } from '@/lib/auth/backendToken/serverBackendTokenManager';
 
 // Valores aceitos em cache do fetch
 type CacheType = 'default' | 'force-cache' | 'no-cache' | 'no-store' | 'only-if-cached' | 'reload';

@@ -11,21 +11,21 @@ import {
   CatalogHeader,
   CatalogLayout,
   catalogActionClass,
-} from '@/components/catalog/CatalogLayout';
+} from '@/components/cosmetics/catalog/CatalogLayout';
 import {
   CatalogFilters,
   LISTING_SORT_OPTIONS,
   SortSelector,
   type RarityFilterValue,
-} from '@/components/catalog/CatalogFilters';
+} from '@/components/cosmetics/catalog/CatalogFilters';
 import {
   MarketplaceVirtualized,
   selectListings,
   type ListingsPage,
-} from '@/components/MarketplaceVirtualized';
-import type { PagedSource } from '@/components/VirtualizedPagedGrid';
-import { fetchJson, toQueryString } from '@/lib/fetcher';
-import { cachePolicy, qk } from '@/lib/query-keys';
+} from '@/components/cosmetics/marketplace/MarketplaceVirtualized';
+import type { PagedSource } from '@/components/ui/dataDisplay/VirtualizedPagedGrid';
+import { fetchJson, toQueryString } from '@/lib/api/fetcher';
+import { cachePolicy, qk } from '@/lib/query/queryKeys';
 
 /** Anúncios por página buscada. */
 const PAGE_SIZE = 56;

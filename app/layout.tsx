@@ -5,11 +5,11 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Header from '@/components/Header';
-import { MainWrapper } from '@/components/MainWrapper';
-import { AuthProvider } from '@/components/providers/auth-provider';
-import { QueryProvider } from '@/components/providers/query-provider';
-import { GlobalMediaProtector } from '@/components/GlobalMediaProtector';
+import Header from '@/components/layout/Header';
+import { MainWrapper } from '@/components/layout/MainWrapper';
+import { AuthProvider } from '@/components/providers/AuthProvider';
+import { QueryProvider } from '@/components/providers/QueryProvider';
+import { GlobalMediaProtector } from '@/components/layout/GlobalMediaProtector';
 /** Fonte Inter carregada pelo next/font. */
 const inter = Inter({
   subsets: ['latin'],

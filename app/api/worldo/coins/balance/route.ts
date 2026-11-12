@@ -2,7 +2,7 @@
 // Rota /api/worldo/coins/balance: saldo de moedas do usuário logado.
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextResponse } from 'next/server';
 
 /** GET /api/worldo/coins/balance — retorna { balance } do usuário autenticado. 401 sem sessão. */

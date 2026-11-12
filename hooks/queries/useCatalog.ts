@@ -4,8 +4,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { fetchJson } from '@/lib/fetcher';
-import { cachePolicy, qk } from '@/lib/query-keys';
+import { fetchJson } from '@/lib/api/fetcher';
+import { cachePolicy, qk } from '@/lib/query/queryKeys';
 
 /** Percentual da taxa da plataforma. Configuração que raramente muda: cache de 1h. */
 export function usePlatformFee() {

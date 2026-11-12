@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { backendApiCall } from '@/lib/backendApiClient';
+import { backendApiCall } from '@/lib/api/backendApiClient';
 import { useCartDetail } from '@/hooks/queries/useWallet';
 import {
   CartItemCard,
@@ -15,11 +15,11 @@ import {
   OrderPageHeader,
   isItemOutOfStock,
   type CartData,
-} from '@/components/cart/CartItemCard';
-import { QuantityStepper } from '@/components/ui/QuantityStepper';
-import { invalidate } from '@/lib/invalidate';
-import { formatItemCount, formatPrice } from '@/lib/format-utils';
-import { LoadingSpinner } from '@/components/Loading';
+} from '@/components/cosmetics/cart/CartItemCard';
+import { QuantityStepper } from '@/components/ui/forms/QuantityStepper';
+import { invalidate } from '@/lib/query/invalidate';
+import { formatItemCount, formatPrice } from '@/lib/utils/formatUtils';
+import { LoadingSpinner } from '@/components/ui/feedback/Loading';
 import {
   ShoppingCart,
   Coins,
@@ -30,11 +30,11 @@ import {
   Package,
   AlertTriangle,
 } from 'lucide-react';
-import { Spinner } from '@/components/ui/Spinner';
-import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
-import { Modal } from '@/components/ui/Modal';
-import { buttonClass } from '@/components/ui/PrimaryButton';
-import { SummaryRow } from '@/components/ui/SummaryRow';
+import { Spinner } from '@/components/ui/feedback/Spinner';
+import { FeedbackMessage } from '@/components/ui/feedback/FeedbackMessage';
+import { Modal } from '@/components/ui/overlays/Modal';
+import { buttonClass } from '@/components/ui/buttons/PrimaryButton';
+import { SummaryRow } from '@/components/ui/dataDisplay/SummaryRow';
 
 /**
  * Carrinho sempre buscado do servidor. Cada alteração invalida carrinho, resumo do Header e

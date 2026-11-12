@@ -3,11 +3,11 @@
 // marketplace, transferindo moedas e unidades entre comprador e vendedores.
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { serverTokenManager } from '@/lib/serverBackendTokenManager';
-import { backendApiServerCall } from '@/lib/backendApiClient';
-import { syncToListing } from '@/lib/prisma-sync';
+import { serverTokenManager } from '@/lib/auth/backendToken/serverBackendTokenManager';
+import { backendApiServerCall } from '@/lib/api/backendApiClient';
+import { syncToListing } from '@/lib/search/prismaSync';
 
 /** Item enviado pelo checkout: anúncio, quantidade e preço unitário esperado. */
 interface CheckoutItem {

@@ -3,7 +3,7 @@
 // molduras. Executar com: npx tsx tests/test-connection.ts
 
 import 'dotenv/config';
-import { prisma } from '../lib/prisma';
+import { prisma } from '../lib/db/prisma';
 
 /** Consulta e imprime usuários, pacotes de moedas e molduras. */
 async function test() {
